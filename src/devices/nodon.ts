@@ -8,8 +8,8 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
-import {isDummyDevice} from "../lib/utils";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import {isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -79,6 +79,21 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
+    calibrationAutoAdjust: (args?: Partial<m.BinaryArgs<"closuresWindowCovering">>) =>
+        m.binary({
+            name: "calibration_auto_adjust",
+            cluster: "closuresWindowCovering",
+            attribute: {ID: 0x1002, type: Zcl.DataType.BOOLEAN},
+            valueOn: ["ON", 1],
+            valueOff: ["OFF", 0],
+            description:
+                "When ON (default), the device refines the calibration run times on every full up/down travel, " +
+                "overwriting manually set values. When OFF, the manually set run times are kept as is.",
+            access: "ALL",
+            entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            ...args,
+        }),
     impulseMode: (args?: Partial<m.NumericArgs<"genOnOff">>) => {
         const resultName = "impulse_mode_configuration";
         const resultUnit = "ms";
@@ -146,13 +161,67 @@ const nodonModernExtend = {
                     semverValid(device.softwareBuildID) &&
                     semverGt(device.softwareBuildID, "3.4.0")
                 ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                    const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                    if (args?.endpointName) expose.withEndpoint(args.endpointName);
+                    return [expose];
                 }
                 return [];
             },
         ];
 
         return result;
+    },
+    // Physically wiring the input back to the relay/cover requires a self-bind (the wired input
+    // sends a client-role command to whatever the endpoint is bound to; without it, the command
+    // only reaches the coordinator and does nothing). Removing that bind from the frontend's
+    // "Unbind" tab used to come back on its own: Z2M's bind extension calls
+    // disableUnnecessaryReportings() on unbind, which can also touch the coordinator reporting
+    // bind and fires a `reconfigure` event that re-runs `configure()` from scratch. `configure()`
+    // has no access to per-device `options`, so this adds a real Settings option instead
+    // (`wired_input_enabled[_<suffix>]`) whose change is caught via `onEvent`'s
+    // `deviceOptionsChanged` — doing the actual bind/unbind directly (bypassing the Unbind-tab
+    // codepath, so no disableUnnecessaryReportings/reconfigure loop) and persisting the choice in
+    // `device.meta` so a later `configure()` (from any cause) respects it.
+    wiredInputBind: (args: {cluster: "genOnOff" | "closuresWindowCovering"; endpointId: number; optionSuffix?: string}): ModernExtend => {
+        const {cluster, endpointId, optionSuffix} = args;
+        const optionName = optionSuffix ? `wired_input_enabled_${optionSuffix}` : "wired_input_enabled";
+        const metaKey = optionSuffix ? `wiredInputEnabled${optionSuffix.toUpperCase()}` : "wiredInputEnabled";
+
+        return {
+            options: [
+                e
+                    .binary(optionName, ea.SET, true, false)
+                    .withDescription(
+                        "Whether the wired input physically drives the device via a Zigbee self-bind (default " +
+                            "true). Set to false to permanently disable this — unlike removing the bind from the " +
+                            "Bind tab, this choice persists across any future reconfigure.",
+                    ),
+            ],
+            onEvent: [
+                async (event) => {
+                    if (event.type !== "deviceOptionsChanged") return;
+                    const {from, to, device} = event.data;
+                    if (from[optionName] === to[optionName]) return;
+                    const enabled = to[optionName] !== false;
+                    const endpoint = device.getEndpoint(endpointId);
+                    if (enabled) {
+                        await endpoint.bind(cluster, endpoint);
+                    } else {
+                        await endpoint.unbind(cluster, endpoint);
+                    }
+                    device.meta[metaKey] = enabled;
+                    device.save();
+                },
+            ],
+            configure: [
+                async (device) => {
+                    if (device.meta[metaKey] === false) return;
+                    const endpoint = device.getEndpoint(endpointId);
+                    await endpoint.bind(cluster, endpoint);
+                },
+            ],
+            isModernExtend: true,
+        };
     },
     switchTypeWindowCovering: (args?: Partial<m.EnumLookupArgs<"closuresWindowCovering">>) => {
         const resultName = "switch_type_window_covering";
@@ -178,7 +247,9 @@ const nodonModernExtend = {
                     semverValid(device.softwareBuildID) &&
                     semverGt(device.softwareBuildID, "3.4.0")
                 ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                    const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                    if (args?.endpointName) expose.withEndpoint(args.endpointName);
+                    return [expose];
                 }
                 return [];
             },
@@ -218,6 +289,43 @@ const nodonModernExtend = {
         }),
 };
 
+interface NodonIrExtender {
+    attributes: {irbHolderTemperatureCalibration: number};
+    commands: never;
+    commandResponses: never;
+}
+
+const nodonIrbFz = {
+    irb_holder_temperature_calibration: {
+        cluster: "nodonIrExtender",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.irbHolderTemperatureCalibration === undefined) return;
+            return {irb_holder_temperature_calibration: msg.data.irbHolderTemperatureCalibration / 10};
+        },
+    } satisfies Fz.Converter<"nodonIrExtender", NodonIrExtender, ["attributeReport", "readResponse"]>,
+};
+
+const nodonIrbTz = {
+    irb_holder_temperature_calibration: {
+        key: ["irb_holder_temperature_calibration"],
+        convertSet: async (entity, key, value, meta) => {
+            const raw = Math.round(Number(value) * 10);
+            await entity.write<"nodonIrExtender", NodonIrExtender>(
+                "nodonIrExtender",
+                {irbHolderTemperatureCalibration: raw},
+                {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            );
+            return {state: {irb_holder_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"nodonIrExtender", NodonIrExtender>("nodonIrExtender", ["irbHolderTemperatureCalibration"], {
+                manufacturerCode: Zcl.ManufacturerCode.NODON,
+            });
+        },
+    } satisfies Tz.Converter,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["FPS-4-1-00"],
@@ -233,42 +341,103 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IRB-4-1-00",
         vendor: "NodOn",
         description: "IR Blaster",
-        fromZigbee: [fz.thermostat, fz.fan],
-        toZigbee: [
-            tz.fan_mode,
-            tz.thermostat_local_temperature,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_min_heat_setpoint_limit,
-            tz.thermostat_max_heat_setpoint_limit,
-            tz.thermostat_min_cool_setpoint_limit,
-            tz.thermostat_max_cool_setpoint_limit,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-            tz.thermostat_ac_louver_position,
+        fromZigbee: [fz.fan, nodonIrbFz.irb_holder_temperature_calibration],
+        extend: [
+            m.identify(),
+            m.humidity(),
+            m.thermostat({
+                localTemperature: {
+                    values: {description: "Current temperature measured on the device"},
+                },
+                localTemperatureCalibration: {values: true},
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 16, max: 30, step: 0.5},
+                        occupiedCoolingSetpoint: {min: 18, max: 30, step: 0.5},
+                    },
+                },
+                systemMode: {
+                    values: ["off", "heat", "cool", "auto", "dry", "fan_only"],
+                },
+                fanMode: ["off", "low", "medium", "high", "auto"],
+                acLouverPosition: {
+                    values: ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"],
+                },
+            }),
+            m.deviceAddCustomCluster("nodonIrExtender", {
+                name: "nodonIrExtender",
+                ID: 0xfc82,
+                manufacturerCode: Zcl.ManufacturerCode.NODON,
+                attributes: {
+                    irbHolderTemperatureCalibration: {
+                        ID: 0x8001,
+                        name: "irbHolderTemperatureCalibration",
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.NODON,
+                        write: true,
+                    },
+                },
+                // Documented by NodOn in "IRB-4-1_User-Guidelines_V1.2", section 3.2.8.
+                // Declared here so the cluster matches the vendor specification; no expose
+                // uses them yet, and a frame received from the device is parsed under the
+                // right name instead of as an unknown command.
+                commands: {
+                    sendRemoteControlCommand: {
+                        name: "sendRemoteControlCommand",
+                        ID: 0xf0,
+                        parameters: [
+                            // Target device number, range 0-3.
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            // Remote control button number, range 0-32.
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                    learnRemoteControlCode: {
+                        name: "learnRemoteControlCode",
+                        ID: 0xf1,
+                        parameters: [
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                commandsResponse: {
+                    learnRemoteControlCodeResponse: {
+                        name: "learnRemoteControlCodeResponse",
+                        ID: 0xf2,
+                        parameters: [
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                            // 1 = success, 0 = failure.
+                            {name: "resultStatus", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                // 0xF3 "Select Learning Data Source" and 0xF4 are deliberately NOT declared.
+                // Per the same document, 0xF3 switches the device between learned IR data and
+                // the code set downloaded by the vendor app ("1 = use learned data, 0 = use
+                // app-downloaded data"), and the latter is what drives normal AC control.
+                // Exposing that switch without a way to read back which source is active would
+                // be a footgun; it can be added later with proper state handling.
+            }),
         ],
-        ota: true,
+        toZigbee: [nodonIrbTz.irb_holder_temperature_calibration],
         exposes: [
             e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_cooling_setpoint", 18, 30, 0.5)
-                .withSetpoint("occupied_heating_setpoint", 16, 30, 0.5)
-                .withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only"])
-                .withFanMode(["off", "low", "medium", "high", "auto"])
-                .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
+                .numeric("irb_holder_temperature_calibration", ea.ALL)
+                .withLabel("IBH temperature offset")
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.1)
+                .withDescription(
+                    "Extra temperature offset applied on top of localTemperatureCalibration when the IBH-1-1-00 holder " +
+                        "accessory is physically connected to this device.",
+                ),
         ],
-        extend: [m.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["hvacFanCtrl", "genIdentify", "hvacThermostat"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
-            await reporting.thermostatAcLouverPosition(endpoint);
-        },
+        endpoint: (device) => ({default: 1}),
+        ota: true,
+        version: "0.0.1",
     },
     {
         zigbeeModel: ["SDC-4-1-00"],
@@ -295,10 +464,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDO-4-1-00",
         vendor: "NodOn",
         description: "Door & window opening sensor",
-        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact()],
-        extend: [m.battery({voltageReporting: true})],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"], zoneStatusReporting: {max: constants.repInterval.HOUR}}),
+        ],
         ota: true,
     },
     {
@@ -306,14 +475,180 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SEM-4-1-00",
         vendor: "NodOn",
         description: "Energy monitoring sensor",
+        version: "0.0.1",
         extend: [
+            m.identify(),
             m.electricityMeter({
-                acFrequency: true,
+                // A forced object's `change` is not auto-scaled by the multiplier/divisor (unlike
+                // the default change) — values below are already raw ZCL units. Factors measured
+                // on physical devices: acPowerMultiplier/Divisor=1/1, acCurrentMultiplier/Divisor=1/100,
+                // acVoltageMultiplier/Divisor=1/100, acFrequencyMultiplier/Divisor=1/100.
+                voltage: {min: 30, max: 3600, change: 2300}, // 23 V
+                current: {min: 10, max: 3600, change: 100}, // 1 A
+                power: {min: 10, max: 3600, change: 250}, // 250 W
+                acFrequency: {min: 30, max: 3600, change: 500}, // 5 Hz
+                producedEnergy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                energy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                apparentPower: {min: 10, max: 3600, change: 250}, // 250 VA, shares activePower's factor
                 powerFactor: true,
-                producedEnergy: true,
             }),
         ],
-        exposes: [e.power_apparent()],
+        toZigbee: [
+            {
+                key: ["energy_reset"],
+                convertSet: async (entity, _key, _value, _meta) => {
+                    // genBasic/resetFactDefault resets all cluster attributes to factory defaults.
+                    // Network membership, bindings and configureReporting are not affected (ZCL spec).
+                    await entity.command("genBasic", "resetFactDefault", {});
+                    return {state: {}};
+                },
+            },
+        ],
+        exposes: [e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config")],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["SEM-4-3-20_70A", "SEM-4-3-20_120A"],
+        model: "SEM-4-3-20",
+        vendor: "NodOn",
+        description: "3CT Energy Meter",
+        endpoint: (device) => ({default: 1}),
+        extend: (() => {
+            const meter = m.electricityMeter({
+                threePhase: true,
+                voltage: {min: 10, max: 3600, change: 100},
+                current: {min: 10, max: 3600, change: 100},
+                power: {min: 10, max: 3600, change: 250},
+                acFrequency: {min: 60, max: 3600, change: 10},
+                producedEnergy: {min: 300, max: 3600, change: 100},
+                energy: {min: 300, max: 3600, change: 100},
+            });
+            // electricityMeter()'s base voltage/current/power/energy exposes have no per-phase
+            // suffix for Phase A (only Phase B/C get '_phase_b'/'_phase_c'); this device measures
+            // 3 phases so all labels are made explicit rather than leaving Phase A implicit.
+            const relabel = (name: string, label: string) => {
+                const found = meter.exposes?.find((exp) => typeof exp !== "function" && exp.name === name);
+                if (found && typeof found !== "function") found.withLabel(label);
+            };
+            relabel("voltage", "Voltage - Phase A");
+            relabel("current", "Current - Phase A");
+            relabel("power", "Active power - Phase A");
+            relabel("voltage_phase_b", "Voltage - Phase B");
+            relabel("current_phase_b", "Current - Phase B");
+            relabel("power_phase_b", "Active power - Phase B");
+            relabel("voltage_phase_c", "Voltage - Phase C");
+            relabel("current_phase_c", "Current - Phase C");
+            relabel("power_phase_c", "Active power - Phase C");
+            relabel("energy", "Total consumed energy");
+            relabel("produced_energy", "Total produced energy");
+            return [m.identify(), meter];
+        })(),
+        toZigbee: [
+            {
+                key: ["energy_reset"],
+                convertSet: async (entity, _key, _value, _meta) => {
+                    // genBasic/resetFactDefault resets all cluster attributes to factory defaults.
+                    // Network membership, bindings and configureReporting are not affected (ZCL spec).
+                    await entity.command("genBasic", "resetFactDefault", {});
+                    return {state: {}};
+                },
+            },
+        ],
+        exposes: [
+            e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config"),
+
+            e.power_factor().withAccess(ea.STATE).withLabel("Power factor - Phase A"),
+            e.power_factor_phase_b().withAccess(ea.STATE).withLabel("Power factor - Phase B"),
+            e.power_factor_phase_c().withAccess(ea.STATE).withLabel("Power factor - Phase C"),
+            e.power_reactive().withAccess(ea.STATE).withLabel("Reactive power - Phase A"),
+            e.power_reactive_phase_b().withAccess(ea.STATE).withLabel("Reactive power - Phase B"),
+            e.power_reactive_phase_c().withAccess(ea.STATE).withLabel("Reactive power - Phase C"),
+            e.power_apparent().withAccess(ea.STATE).withLabel("Apparent power - Phase A"),
+            e.power_apparent_phase_b().withAccess(ea.STATE).withLabel("Apparent power - Phase B"),
+            e.power_apparent_phase_c().withAccess(ea.STATE).withLabel("Apparent power - Phase C"),
+
+            e.numeric("total_active_power", ea.STATE).withUnit("W").withDescription("Total active power across all 3 phases"),
+            e.numeric("total_reactive_power", ea.STATE).withUnit("VAR").withDescription("Total reactive power across all 3 phases"),
+            e.numeric("total_apparent_power", ea.STATE).withUnit("VA").withDescription("Total apparent power across all 3 phases"),
+
+            // Phase A/B/C energy: NodOn repurposes seMetering's tariff-tier attributes
+            // (currentTier1/2/3SummDelivered/Received) to carry per-phase energy on this
+            // 3-phase device — not tariffs. `tariffs` is never passed to m.electricityMeter()
+            // above, so none of these are exposed automatically; all 3 phases must be added
+            // manually. Property name stays energy_tier_N/produced_energy_tier_N (fz.metering
+            // hardcodes it), only the frontend label is overridden.
+            e.numeric("energy_tier_1", ea.STATE).withLabel("Consumed energy - Phase A").withUnit("kWh").withDescription("Energy consumed by Phase A"),
+            e
+                .numeric("produced_energy_tier_1", ea.STATE)
+                .withLabel("Produced energy - Phase A")
+                .withUnit("kWh")
+                .withDescription("Energy exported by Phase A"),
+            e.numeric("energy_tier_2", ea.STATE).withLabel("Consumed energy - Phase B").withUnit("kWh").withDescription("Energy consumed by Phase B"),
+            e
+                .numeric("produced_energy_tier_2", ea.STATE)
+                .withLabel("Produced energy - Phase B")
+                .withUnit("kWh")
+                .withDescription("Energy exported by Phase B"),
+            e.numeric("energy_tier_3", ea.STATE).withLabel("Consumed energy - Phase C").withUnit("kWh").withDescription("Energy consumed by Phase C"),
+            e
+                .numeric("produced_energy_tier_3", ea.STATE)
+                .withLabel("Produced energy - Phase C")
+                .withUnit("kWh")
+                .withDescription("Energy exported by Phase C"),
+        ],
+        fromZigbee: [
+            // totalActivePower (0x0304), totalReactivePower (0x0305), totalApparentPower (0x0306)
+            // are not handled by fz.electrical_measurement
+            {
+                cluster: "haElectricalMeasurement",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, _publish, _options, meta) => {
+                    const payload: KeyValue = {};
+                    const getFactor = (key: string) => {
+                        const mult = msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", `${key}Multiplier`) as number;
+                        const div = msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", `${key}Divisor`) as number;
+                        return mult && div ? mult / div : 1;
+                    };
+                    if (msg.data.totalActivePower !== undefined) {
+                        payload[postfixWithEndpointName("total_active_power", msg, model, meta)] = msg.data.totalActivePower * getFactor("acPower");
+                    }
+                    if (msg.data.totalReactivePower !== undefined) {
+                        payload[postfixWithEndpointName("total_reactive_power", msg, model, meta)] =
+                            msg.data.totalReactivePower * getFactor("acPower");
+                    }
+                    if (msg.data.totalApparentPower !== undefined) {
+                        payload[postfixWithEndpointName("total_apparent_power", msg, model, meta)] =
+                            msg.data.totalApparentPower * getFactor("acPower");
+                    }
+                    return payload;
+                },
+            } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await m.setupAttributes(endpoint, coordinatorEndpoint, "haElectricalMeasurement", [
+                {attribute: "reactivePower", min: 10, max: 3600, change: 250},
+                {attribute: "reactivePowerPhB", min: 10, max: 3600, change: 250},
+                {attribute: "reactivePowerPhC", min: 10, max: 3600, change: 250},
+                {attribute: "apparentPower", min: 10, max: 3600, change: 250},
+                {attribute: "apparentPowerPhB", min: 10, max: 3600, change: 250},
+                {attribute: "apparentPowerPhC", min: 10, max: 3600, change: 250},
+                {attribute: "powerFactor", min: 60, max: 3600, change: 20},
+                {attribute: "powerFactorPhB", min: 60, max: 3600, change: 20},
+                {attribute: "powerFactorPhC", min: 60, max: 3600, change: 20},
+                {attribute: "totalActivePower", min: 10, max: 3600, change: 250},
+                {attribute: "totalReactivePower", min: 10, max: 3600, change: 250},
+                {attribute: "totalApparentPower", min: 10, max: 3600, change: 250},
+            ]);
+            await m.setupAttributes(endpoint, coordinatorEndpoint, "seMetering", [
+                {attribute: "currentTier1SummDelivered", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier1SummReceived", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier2SummDelivered", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier2SummReceived", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier3SummDelivered", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier3SummReceived", min: 300, max: 3600, change: 100},
+            ]);
+        },
         ota: true,
     },
     {
@@ -321,13 +656,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-RS-20",
         vendor: "NodOn",
         description: "Roller shutter relay switch",
+        version: "0.0.1",
+        endpoint: (device) => ({default: 1}),
         extend: [
+            m.identify(),
             m.windowCovering({controls: ["tilt", "lift"], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
+            nodonModernExtend.calibrationAutoAdjust(),
             nodonModernExtend.switchTypeWindowCovering(),
+            nodonModernExtend.wiredInputBind({cluster: "closuresWindowCovering", endpointId: 1}),
         ],
         ota: true,
     },
@@ -351,7 +691,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
+        version: "0.0.1",
+        endpoint: (device) => ({default: 1}),
+        extend: [
+            m.identify(),
+            m.onOff(),
+            nodonModernExtend.impulseMode(),
+            nodonModernExtend.switchTypeOnOff(),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1}),
+        ],
         ota: true,
     },
     {
@@ -367,11 +715,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-21",
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
+        version: "0.0.1",
+        endpoint: (device) => ({default: 1}),
         extend: [
+            m.identify(),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
             nodonModernExtend.switchTypeOnOff(),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1}),
         ],
         ota: true,
     },
@@ -380,11 +732,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-2-20",
         vendor: "NodOn",
         description: "Lighting relay switch",
+        version: "0.0.1",
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.identify(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, default: 1}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1, optionSuffix: "l1"}),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 2, optionSuffix: "l2"}),
         ],
         ota: true,
     },

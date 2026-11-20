@@ -40,7 +40,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "running_state", tuya.valueConverterBasic.lookup({heat: tuya.enum(1), idle: tuya.enum(0)})],
                 [8, "open_window", tuya.valueConverter.onOff],
                 [10, "frost_protection", tuya.valueConverter.onOff],
-                [27, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [27, "local_temperature_calibration", tuya.valueConverter.raw],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
                 [101, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
                 [102, "local_temperature", tuya.valueConverter.divideBy10],

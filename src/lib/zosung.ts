@@ -4,6 +4,7 @@ import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as globalStore from "./store";
 import type {Fz, Tz, Zh} from "./types";
+import {isEndpoint} from "./utils";
 
 const NS = "zhc:zosung";
 const ea = exposes.access;
@@ -77,6 +78,31 @@ interface ZosungIrControl {
     };
     commandResponses: never;
 }
+
+interface ZosungIRMessage {
+    // biome-ignore lint/style/useNamingConvention: required by protocol schema
+    key_num?: number;
+    delay?: number;
+    key1?: {
+        num?: number;
+        freq?: number;
+        type?: number;
+        // biome-ignore lint/style/useNamingConvention: required by protocol schema
+        key_code?: string;
+    };
+    // biome-ignore lint/style/useNamingConvention: required by protocol schema
+    key_code?: string;
+    num?: number;
+    freq?: number;
+    type?: number;
+}
+
+type InfraredSignal = {
+    timings?: number[];
+    modulation?: number;
+    // biome-ignore lint/style/useNamingConvention: required by protocol schema
+    repeat_count?: number;
+};
 
 export const zosungExtend = {
     addZosungIRTransmitCluster: () =>
@@ -192,7 +218,27 @@ export const zosungExtend = {
 };
 
 function nextSeq(entity: Zh.Endpoint | Zh.Group) {
-    return (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
+    // ZG-IR01 requests all chunks with sequence zero
+    const zeroSeq = isEndpoint(entity) && entity.getDevice().modelID === "ZG-IR01";
+    const seq = zeroSeq ? 0 : (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
+    globalStore.putValue(entity, "seq", seq);
+    return seq;
+}
+
+interface PendingSend {
+    started: boolean;
+    retry?: NodeJS.Timeout;
+    sendCode00: () => Promise<unknown>;
+    resolve: () => void;
+    reject: (error: Error) => void;
+}
+
+// Runs one IR send or learn at a time across all endpoints: simultaneous transfers stall the devices.
+let irQueue = Promise.resolve();
+function runQueued(task: () => Promise<void>) {
+    const running = irQueue.then(task);
+    irQueue = running.catch(() => {});
+    return running;
 }
 
 function messagesGet(entity: Zh.Endpoint | Zh.Group, seq: number) {
@@ -233,6 +279,212 @@ function calcStringCrc(str: string) {
     );
 }
 
+function encodeTuyaTimings(timings: number[]): string {
+    const rawBytes = new Uint8Array(timings.length * 2);
+
+    for (let i = 0; i < timings.length; i++) {
+        const v = Math.abs(Math.trunc(Number(timings[i])));
+
+        if (!Number.isFinite(v) || v > 0xffff) {
+            throw new Error(`Invalid timing at index ${i}: ${timings[i]}`);
+        }
+
+        rawBytes[i * 2] = v & 0xff;
+        rawBytes[i * 2 + 1] = (v >> 8) & 0xff;
+    }
+
+    const compressed = [];
+    let pos = 0;
+
+    while (pos < rawBytes.length) {
+        const chunkLen = Math.min(32, rawBytes.length - pos);
+        compressed.push((chunkLen - 1) & 0x1f);
+
+        for (let i = 0; i < chunkLen; i++) {
+            compressed.push(rawBytes[pos + i]);
+        }
+
+        pos += chunkLen;
+    }
+
+    return Buffer.from(Uint8Array.from(compressed)).toString("base64");
+}
+
+function buildIrMsgFromTimings(obj: InfraredSignal) {
+    const timings = obj.timings ?? [];
+    const modulation = obj.modulation ?? 38000;
+    const repeatCount = obj.repeat_count ?? 0;
+
+    if (!Array.isArray(timings) || timings.length === 0) {
+        throw new Error("timings must be a non-empty array");
+    }
+
+    if (typeof modulation !== "number" || modulation <= 30000) {
+        throw new Error("Invalid modulation frequency");
+    }
+
+    const encoded = encodeTuyaTimings(timings);
+
+    return JSON.stringify({
+        key_num: 1,
+        delay: 300,
+        key1: {
+            num: 1 + repeatCount,
+            freq: modulation,
+            type: 1,
+            key_code: encoded,
+        },
+    });
+}
+
+function normalizeIrMsg(value: InfraredSignal | ZosungIRMessage | string) {
+    if (value === undefined || value === null || value === "") {
+        throw new Error("IR code payload is empty");
+    }
+
+    // Object input.
+    if (typeof value === "object" && "timings" in value) {
+        if (Array.isArray(value.timings)) {
+            return buildIrMsgFromTimings(value);
+        }
+
+        // Already full Zosung-style object.
+        const zozung_value = <ZosungIRMessage>value;
+        if (zozung_value.key_num !== undefined && zozung_value.key1 !== undefined) {
+            return JSON.stringify(value);
+        }
+
+        // Direct key_code object.
+        if (zozung_value.key_code !== undefined) {
+            return JSON.stringify({
+                key_num: 1,
+                delay: zozung_value.delay ?? 300,
+                key1: {
+                    num: zozung_value.num ?? 1,
+                    freq: zozung_value.freq ?? 38000,
+                    type: zozung_value.type ?? 1,
+                    key_code: zozung_value.key_code,
+                },
+            });
+        }
+
+        return JSON.stringify(value);
+    }
+
+    if (typeof value !== "string") {
+        value = String(value);
+    }
+
+    const trimmed = value.trim();
+
+    if (!trimmed) {
+        throw new Error("IR code payload is empty");
+    }
+
+    // JSON string input.
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+        try {
+            const parsed = JSON.parse(trimmed);
+
+            if (parsed && typeof parsed === "object") {
+                if (Array.isArray(parsed.timings)) {
+                    return buildIrMsgFromTimings(parsed);
+                }
+
+                if (parsed.key_num !== undefined && parsed.key1 !== undefined) {
+                    return JSON.stringify(parsed);
+                }
+
+                if (parsed.key_code !== undefined) {
+                    return JSON.stringify({
+                        key_num: 1,
+                        delay: parsed.delay ?? 300,
+                        key1: {
+                            num: parsed.num ?? 1,
+                            freq: parsed.freq ?? 38000,
+                            type: parsed.type ?? 1,
+                            key_code: parsed.key_code,
+                        },
+                    });
+                }
+            }
+        } catch (err) {
+            logger.debug(`JSON parse failed, treating as captured key_code: ${err}`, NS);
+        }
+    }
+
+    // Fallback:
+    // Captured base64 strings like H4IKjQP7... are key_code only,
+    // not full Zosung messages. Wrap them.
+    return JSON.stringify({
+        key_num: 1,
+        delay: 300,
+        key1: {
+            num: 1,
+            freq: 38000,
+            type: 1,
+            key_code: trimmed,
+        },
+    });
+}
+
+function decodeTuyaTimings(compressed: number[]): number[] {
+    const decompressed: number[] = [];
+    let pos = 0;
+
+    try {
+        while (pos < compressed.length) {
+            const header = compressed[pos++];
+            const blockType = header >> 5;
+
+            if (blockType === 0) {
+                // Literal block
+                const length = (header & 0x1f) + 1;
+                for (let i = 0; i < length; i++) {
+                    if (pos >= compressed.length) throw new Error("Truncated literal");
+                    decompressed.push(compressed[pos++]);
+                }
+            } else {
+                // Reference block
+                let length = blockType + 2;
+                if (length === 9) {
+                    // extended length: accumulate 255 bytes per 0xFF then a remainder
+                    while (pos < compressed.length && compressed[pos] === 0xff) {
+                        length += 255;
+                        pos++;
+                    }
+                    if (pos >= compressed.length) throw new Error("Truncated extended length");
+                    length += compressed[pos++];
+                }
+                if (pos >= compressed.length) throw new Error("Truncated distance");
+                const distance = (((header & 0x1f) << 8) | compressed[pos++]) >>> 0;
+                const offset = distance + 1;
+                for (let i = 0; i < length; i++) {
+                    const idx = decompressed.length - offset;
+                    if (idx < 0) throw new Error("Invalid reference offset");
+                    decompressed.push(decompressed[idx]);
+                }
+            }
+        }
+    } catch {
+        // truncated or malformed stream: stop decoding and continue with what we have
+    }
+
+    // Interpret decompressed bytes as little-endian 16-bit unsigned values
+    const numTimings = Math.floor(decompressed.length / 2);
+    if (numTimings === 0) return [];
+
+    const timings = new Array(numTimings);
+    for (let i = 0; i < numTimings; i++) {
+        const lo = decompressed[i * 2];
+        const hi = decompressed[i * 2 + 1];
+        const val = (hi << 8) | lo;
+        // alternate sign: even index positive, odd index negative
+        timings[i] = i % 2 === 0 ? val : -val;
+    }
+    return timings;
+}
+
 export const fzZosung = {
     zosung_send_ir_code_01: {
         cluster: "zosungIRTransmit",
@@ -243,6 +495,11 @@ export const fzZosung = {
             const irMsg = messagesGet(msg.endpoint, seq);
             if (irMsg) {
                 logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`, NS);
+            }
+            const pending: PendingSend | undefined = globalStore.getValue(msg.endpoint, "irPendingSend");
+            if (pending && !pending.started && !pending.retry) {
+                // Resend Code00 until the device requests the first chunk
+                pending.retry = setInterval(() => pending.sendCode00().catch(pending.reject), 2000);
             }
         },
     } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode01"]>,
@@ -255,6 +512,11 @@ export const fzZosung = {
             const position = msg.data.position;
             const irMsg = messagesGet(msg.endpoint, seq);
             if (irMsg) {
+                const pending: PendingSend | undefined = globalStore.getValue(msg.endpoint, "irPendingSend");
+                if (pending) {
+                    pending.started = true;
+                    clearInterval(pending.retry);
+                }
                 const part = irMsg.substring(position, position + 0x32);
                 const sum = calcStringCrc(part);
                 await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode03", ZosungIrTransmit>(
@@ -279,16 +541,28 @@ export const fzZosung = {
         convert: async (model, msg, publish, options, meta) => {
             logger.debug(`"IR-Message-Code04" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
-            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode05", ZosungIrTransmit>(
-                "zosungIRTransmit",
-                "zosungSendIRCode05",
-                {
-                    seq: seq,
-                    zero: 0,
-                },
-                {disableDefaultResponse: true},
-            );
+            const pending: PendingSend | undefined = globalStore.getValue(msg.endpoint, "irPendingSend");
+            if (pending && !pending.started) {
+                // Leftover Code04 of a previous transfer (ZG-IR01 always uses seq 0)
+                logger.debug(`Ignoring Code04 before the first chunk request (seq:${seq})`, NS);
+                return;
+            }
+            try {
+                await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode05", ZosungIrTransmit>(
+                    "zosungIRTransmit",
+                    "zosungSendIRCode05",
+                    {
+                        seq: seq,
+                        zero: 0,
+                    },
+                    {disableDefaultResponse: true},
+                );
+            } catch (error) {
+                pending?.reject(error as Error);
+                throw error;
+            }
             messagesClear(msg.endpoint, seq);
+            pending?.resolve();
             logger.debug(`IRCode has been successfully sent. (seq:${seq})`, NS);
         },
     } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode04"]>,
@@ -386,6 +660,7 @@ export const fzZosung = {
             const rcv = messagesGet(msg.endpoint, seq);
             if (rcv) {
                 const learnedIRCode = rcv.buf.toString("base64");
+                const learnedTimings = decodeTuyaTimings(rcv.buf);
                 logger.debug(`Received: ${learnedIRCode}`, NS);
                 messagesClear(msg.endpoint, seq);
                 await msg.endpoint.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
@@ -396,8 +671,19 @@ export const fzZosung = {
                     },
                     {disableDefaultResponse: true},
                 );
+                globalStore.getValue(msg.endpoint, "irLearnRelease")?.();
+
+                // Clear learned IR timings for HA
+                clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
+                globalStore.putValue(msg.endpoint, "timer", setTimeout(() => publish({learned_ir_timings: ""}), 500).unref());
+
                 return {
                     learned_ir_code: learnedIRCode,
+                    learned_ir_timings: {
+                        modulation: 38000,
+                        timings: learnedTimings,
+                        timestamp: Date.now(),
+                    },
                 };
             }
         },
@@ -406,61 +692,108 @@ export const fzZosung = {
 
 export const tzZosung = {
     zosung_ir_code_to_send: {
-        key: ["ir_code_to_send"],
+        key: ["ir_code_to_send", "ir_emitter"],
         convertSet: async (entity, key, value, meta) => {
-            if (!value) {
-                logger.error("There is no IR code to send", NS);
-                return;
-            }
-            const irMsg = JSON.stringify({
-                key_num: 1,
-                delay: 300,
-                key1: {
-                    num: 1,
-                    freq: 38000,
-                    type: 1,
-                    key_code: value,
-                },
+            const irMsg = normalizeIrMsg(value);
+
+            logger.debug(`Sending IR code: ${irMsg}`, NS);
+
+            await runQueued(async () => {
+                const seq = nextSeq(entity);
+                messagesSet(entity, seq, irMsg);
+                const sendCode00 = () =>
+                    entity.command<"zosungIRTransmit", "zosungSendIRCode00", ZosungIrTransmit>(
+                        "zosungIRTransmit",
+                        "zosungSendIRCode00",
+                        {
+                            seq: seq,
+                            length: irMsg.length,
+                            unk1: 0x00000000,
+                            unk2: 0xe004,
+                            unk3: 0x01,
+                            cmd: 0x02,
+                            unk4: 0x0000,
+                        },
+                        {disableDefaultResponse: true},
+                    );
+                // Wait until the transfer completes (Code04) so the next send cannot replace it
+                const {promise: completed, resolve, reject} = Promise.withResolvers<void>();
+                const pending: PendingSend = {started: false, sendCode00, resolve, reject};
+                globalStore.putValue(entity, "irPendingSend", pending);
+                const timeout = setTimeout(() => reject(new Error("IR transmission timed out")), 8000);
+                try {
+                    await Promise.all([sendCode00(), completed]);
+                } finally {
+                    clearTimeout(timeout);
+                    clearInterval(pending.retry);
+                    globalStore.clearValue(entity, "irPendingSend");
+                }
             });
-            logger.debug(`Sending IR code: ${JSON.stringify(value)}`, NS);
-            const seq = nextSeq(entity);
-            messagesSet(entity, seq, irMsg);
-            await entity.command<"zosungIRTransmit", "zosungSendIRCode00", ZosungIrTransmit>(
-                "zosungIRTransmit",
-                "zosungSendIRCode00",
-                {
-                    seq: seq,
-                    length: irMsg.length,
-                    unk1: 0x00000000,
-                    unk2: 0xe004,
-                    unk3: 0x01,
-                    cmd: 0x02,
-                    unk4: 0x0000,
-                },
-                {disableDefaultResponse: true},
-            );
-            logger.debug("Sending IR code initiated.", NS);
+            logger.debug("Sending IR code completed.", NS);
         },
     } satisfies Tz.Converter,
     zosung_learn_ir_code: {
         key: ["learn_ir_code"],
         convertSet: async (entity, key, value, meta) => {
-            logger.debug("Starting IR Code Learning...", NS);
-            await entity.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
-                "zosungIRControl",
-                "zosungControlIRCommand00",
-                {
-                    data: Buffer.from(JSON.stringify({study: 0})),
-                },
-                {disableDefaultResponse: true},
-            );
-            logger.debug("IR Code Learning started.", NS);
+            const stop = value === "OFF" || value === false;
+            logger.debug(stop ? "Stopping IR Code Learning..." : "Starting IR Code Learning...", NS);
+            const study = (off: boolean) =>
+                entity.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
+                    "zosungIRControl",
+                    "zosungControlIRCommand00",
+                    {
+                        data: Buffer.from(JSON.stringify({study: off ? 1 : 0})),
+                    },
+                    {disableDefaultResponse: true},
+                );
+            if (stop) {
+                globalStore.getValue(entity, "irLearnRelease")?.();
+                await study(true);
+            } else {
+                // Hold the IR queue until a code is learned, learning is stopped or it times out
+                const started = Promise.withResolvers<void>();
+                void runQueued(async () => {
+                    const learned = Promise.withResolvers<void>();
+                    globalStore.putValue(entity, "irLearnRelease", learned.resolve);
+                    const timeout = setTimeout(() => {
+                        learned.resolve();
+                        study(true).catch((error) => logger.error(`Failed to stop IR Code Learning: ${error}`, NS));
+                    }, 60000);
+                    try {
+                        await study(false);
+                        started.resolve();
+                        await learned.promise;
+                    } catch (error) {
+                        started.reject(error);
+                    } finally {
+                        clearTimeout(timeout);
+                        globalStore.clearValue(entity, "irLearnRelease");
+                    }
+                });
+                await started.promise;
+            }
+            logger.debug(stop ? "IR Code Learning stopped." : "IR Code Learning started.", NS);
         },
     } satisfies Tz.Converter,
 };
 
 export const presetsZosung = {
-    learn_ir_code: () => e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code"),
+    learn_ir_code: () =>
+        e
+            .binary("learn_ir_code", ea.SET, "ON", "OFF")
+            .withDescription("Turn on to learn a new IR code, turn off to stop learning")
+            .withHomeAssistant({type: "button"}),
     learned_ir_code: () => e.text("learned_ir_code", ea.STATE).withDescription("The IR code learned by device"),
-    ir_code_to_send: () => e.text("ir_code_to_send", ea.SET).withDescription("The IR code to send by device"),
+    learned_ir_timings: () =>
+        e.text("learned_ir_timings", ea.STATE).withDescription("The IR timings learned by device").withHomeAssistant({
+            type: "infrared",
+            schema: "receiver",
+            valueTemplate: "{{ value_json.learned_ir_timings | default(None) | tojson }}",
+        }),
+    ir_code_to_send: () => e.text("ir_code_to_send", ea.SET).withDescription("The IR code or timings to send by device"),
+    ir_emitter: () =>
+        e
+            .text("ir_emitter", ea.SET)
+            .withDescription("The IR code or timings to send by device")
+            .withHomeAssistant({type: "infrared", schema: "emitter", valueTemplate: null}),
 };

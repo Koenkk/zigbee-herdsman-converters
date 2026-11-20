@@ -1,8 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
 import {presets as e, access as ea} from "./exposes";
-import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
-import type {Configure, Expose, Fz, ModernExtend, Tz} from "./types";
-import {exposeEndpoints} from "./utils";
+import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, setupAttributes, temperature} from "./modernExtend";
+import type {Configure, Expose, Fz, KeyValue, ModernExtend, Tz} from "./types";
+import {exposeEndpoints, getFromLookup} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
@@ -45,6 +45,11 @@ export interface DevelcoSeMetering {
     };
     commands: never;
     commandResponses: never;
+}
+
+interface DevelcoVocArgs extends Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>> {
+    /** Upper end of the sensor's measurement range in ppb, as read from maxMeasuredValue. */
+    maxPpb?: number;
 }
 
 export const develcoModernExtend = {
@@ -193,26 +198,31 @@ export const develcoModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
-    voc: (args?: Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>>) =>
-        numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
+    voc: (args?: Partial<DevelcoVocArgs>) => {
+        // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
+        // "The mean molar mass of this mixture is 110 g/mol and hence,
+        // 1 ppb TVOC corresponds to 4.5 μg/m3."
+        const ppbToUgM3 = 4.5;
+        const {maxPpb, ...numericArgs} = args ?? {};
+
+        return numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
             name: "voc",
             cluster: "manuSpecificDevelcoAirQuality",
             attribute: "measuredValue",
             reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10},
             description: "Measured VOC value",
-            // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
-            // "The mean molar mass of this mixture is 110 g/mol and hence,
-            // 1 ppb TVOC corresponds to 4.5 μg/m3."
             scale: (value: number, type: "from" | "to") => {
                 if (type === "from") {
-                    return value * 4.5;
+                    return value * ppbToUgM3;
                 }
                 return value;
             },
             unit: "µg/m³",
             access: "STATE_GET",
-            ...args,
-        }),
+            ...(maxPpb !== undefined && {valueMin: 0, valueMax: maxPpb * ppbToUgM3}),
+            ...numericArgs,
+        });
+    },
     airQuality: (): ModernExtend => {
         // NOTE: do not setup reporting, this is handled by the voc() modernExtend
 
@@ -579,5 +589,46 @@ export const develcoModernExtend = {
             exposes,
             toZigbee,
         };
+    },
+    faultStatus: (): ModernExtend => {
+        const reliabilityExpose = e
+            .enum("reliability", ea.STATE, ["no_fault_detected", "unreliable_other", "process_error"])
+            .withDescription("Indicates reason if any fault");
+
+        const faultExpose = e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether the device are in fault state");
+
+        const fromZigbee: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "genBinaryInput",
+                type: ["attributeReport", "readResponse"],
+                convert: (_model, msg, _publish, _options, _meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.reliability !== undefined) {
+                        const lookup = {0: "no_fault_detected", 7: "unreliable_other", 8: "process_error"};
+                        result.reliability = getFromLookup(msg.data.reliability, lookup);
+                    }
+                    if (msg.data.statusFlags !== undefined) {
+                        result.fault = msg.data.statusFlags === 1;
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, _coordinatorEndpoint, _definition) => {
+                for (const ep of device.endpoints) {
+                    if (ep.supportsInputCluster("genBinaryInput")) {
+                        await setupAttributes(ep, _coordinatorEndpoint, "genBinaryInput", [
+                            {attribute: "reliability", min: "MIN", max: "MAX", change: 0},
+                            {attribute: "statusFlags", min: "MIN", max: "MAX", change: 0},
+                        ]);
+                        break;
+                    }
+                }
+            },
+        ];
+
+        return {exposes: [reliabilityExpose, faultExpose], fromZigbee, configure, isModernExtend: true};
     },
 };

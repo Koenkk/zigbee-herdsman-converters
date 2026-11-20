@@ -116,10 +116,29 @@ export const fzLocal = {
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["ESMLFzm_w6_Dimm"],
+        fingerprint: [
+            {
+                // Factory firmware: identifies as the Telink SDK default model until the AwoX app updates it over BLE
+                type: "Router",
+                manufacturerName: "AwoX",
+                modelID: "TLSR82xx",
+                hardwareVersion: 0,
+                softwareBuildID: "0122052017",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599, 10], outputClusters: [6]},
+                    {ID: 3, profileID: 4751, deviceID: 257, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
         model: "12226",
         vendor: "AwoX",
         description: "Dimmable filament lamp",
-        extend: [m.light()],
+        extend: [m.light({levelConfig: {features: ["current_level_startup"]}})],
+        whiteLabel: [
+            {vendor: "EGLO", model: "12226"},
+            {vendor: "EGLO", model: "12224", description: "G95 globe dimmable filament bulb, 2200K"},
+        ],
     },
     {
         fingerprint: [
@@ -398,6 +417,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AwoX",
         description: "Connect.Z GU10 tunable white",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
+    {
+        zigbeeModel: ["EZMB-RGB-TW-I2C"],
+        model: "EZMB-RGB-TW-I2C",
+        vendor: "AwoX",
+        description: "EGLO Connect-Z LED G95 13.5W RGB + tunable white",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        whiteLabel: [{vendor: "EGLO", model: "12254"}],
     },
     {
         fingerprint: [

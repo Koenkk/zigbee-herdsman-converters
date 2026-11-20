@@ -13,6 +13,7 @@ See [Zigbee2MQTT how to support new devices](https://www.zigbee2mqtt.io/advanced
 #### Github codespaces
 
 You can use Github codespaces to create pull requests with a fully setup editor, right from your web browser:
+
 - https://docs.github.com/en/codespaces/developing-in-a-codespace/creating-a-codespace-for-a-repository
 - https://docs.github.com/en/codespaces/developing-in-a-codespace/using-github-codespaces-for-pull-requests
 
@@ -58,7 +59,7 @@ If any of those commands finish with an error your PR won't pass the tests and w
 - `addDefinition` has been renamed to `addExternalDefinition`
 - An import of `zigbee-herdsman-converters` does not expose all `definitions` anymore. Use this instead:
 ```js
-(await import('zigbee-herdsman-converters/devices/index')).default.forEach((baseDefinition) => {
+(await import("zigbee-herdsman-converters/devices/index")).default.forEach((baseDefinition) => {
     const d = zhc.prepareDefinition(baseDefinition);
 });
 ```

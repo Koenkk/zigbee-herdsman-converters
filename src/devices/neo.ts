@@ -41,7 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("volume", ea.STATE_SET, ["low", "medium", "high"]),
             e.enum("power_type", ea.STATE, ["battery_full", "battery_high", "battery_medium", "battery_low", "usb"]),
         ],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true, mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_t1blo2bj", "_TZE204_t1blo2bj", "_TZE204_q76rtoa9"]),
@@ -63,7 +63,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("volume", ea.STATE_SET, ["low", "medium", "high"]),
             e.numeric("battpercentage", ea.STATE).withUnit("%"),
         ],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true, mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7hfcudw5"]),
@@ -72,7 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion, temperature & humidity sensor",
         fromZigbee: [legacy.fz.neo_nas_pd07, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_nas_pd07],
-        extend: [tuya.modernExtend.tuyaBase({mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase()],
         exposes: [
             e.occupancy(),
             e.humidity(),
@@ -93,14 +93,24 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny", "_TZE2841000000_nlrfgpny"]),
         model: "NAS-AB06B2",
         vendor: "NEO",
         description: "Outdoor solar alarm",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 21600,
+            }),
+        ],
         exposes: [
-            e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "normal"]).withDescription("Alarm status"),
-            e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm"),
+            e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "no_alarm"]).withDescription("Alarm status"),
+            e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm").withHomeAssistant({
+                type: "siren",
+                name: "Siren",
+            }),
             e.binary("tamper_alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable tamper alarm"),
             e.binary("tamper_alarm", ea.STATE, "ON", "OFF").withDescription("Indicates whether the device is tampered"),
             e.enum("alarm_melody", ea.STATE_SET, ["melody_1", "melody_2", "melody_3"]).withDescription("Alarm sound effect"),
@@ -112,10 +122,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("min")
                 .withDescription("Alarm duration in minutes"),
-            e.binary("charging", ea.STATE, true, false).withDescription("Charging status"),
+            e.binary("charging", ea.STATE, true, false).withDescription("Wired USB-C charging status (solar charging not monitored by hardware)"),
             e.battery(),
         ],
         meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (typeof payload.command_topic === "string" && payload.command_topic.endsWith("/set/alarm_switch")) {
+                    payload.command_template = "{{ value }}";
+                    payload.state_value_template = "{{ value_json.alarm_switch | default('') }}";
+                    delete payload.value_template;
+                    payload.payload_on = "ON";
+                    payload.payload_off = "OFF";
+                    payload.support_duration = false;
+                    payload.support_volume_set = false;
+                }
+            },
             tuyaDatapoints: [
                 [
                     1,
@@ -138,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [7, "alarm_time", tuya.valueConverter.raw],
                 [6, "charging", tuya.valueConverter.raw],
-                [15, "battery", tuya.valueConverter.raw],
+                [15, "battery", {from: (v: number) => (v === 0 ? 100 : v)}],
             ],
         },
     },
@@ -157,7 +178,15 @@ export const definitions: DefinitionWithExtend[] = [
         ]),
         model: "NAS-WV03B",
         vendor: "NEO",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        ota: true,
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970", // confirmed on _TZE284_nnhwcvbk
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+            }),
+        ],
         description: "Smart sprinkler timer with measurements",
         whiteLabel: [
             tuya.whitelabel("Nous", "L14", "Smart water valve", ["_TZE204_nnhwcvbk", "_TZE284_nnhwcvbk"]),
@@ -378,10 +407,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_1youk3hj", "_TZE284_1youk3hj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_1youk3hj", "_TZE284_1youk3hj", "_TZE28C1000000_1youk3hj"]),
         model: "NAS-PS10B2",
         vendor: "NEO",
         description: "Human presence sensor",
+        whiteLabel: [tuya.whitelabel("RTX", "ZPS4", "Human presence sensor", ["_TZE28C1000000_1youk3hj"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnDeviceAnnounce: true})],
         exposes: [
             e.presence(),

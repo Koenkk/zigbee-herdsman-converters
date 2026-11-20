@@ -13,7 +13,7 @@ const tvc = tuya.valueConverter;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd", "_TZE2841000000_sonkaxrd"]),
         model: "E12",
         vendor: "Nous",
         description: "Carbon monoxide alarm",
@@ -67,9 +67,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp", "_TZE284_pfbtmgo1"]),
         model: "E13",
         vendor: "Nous",
+        whiteLabel: [tuya.whitelabel("Sygonix", "W08-Z10T", "Water leakage or shortage sensor with sound alarm", ["_TZE284_pfbtmgo1"])],
         description: "Water leakage or shortage sensor with sound alarm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
@@ -254,7 +255,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_loejka0i", "_TZE284_loejka0i"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_loejka0i", "_TZE284_loejka0i", "_TZE200_loejka0i"]),
         model: "D4Z",
         vendor: "Nous",
         description: "Smart energy monitor for 3P+N system",
@@ -302,9 +303,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tvc.divideBy100],
                 [2, "produced_energy", tvc.divideBy100],
-                [6, null, tvc.raw], // phase a - duplicate measurements
-                [7, null, tvc.raw], // phase b - duplicate measurements
-                [8, null, tvc.raw], // phase c - duplicate measurements
+                // [6, null, tvc.raw], // phase a - duplicate measurements
+                // [7, null, tvc.raw], // phase b - duplicate measurements
+                // [8, null, tvc.raw], // phase c - duplicate measurements
                 [9, "faults", tvc.circuitBreakerFaults1],
                 [15, "power_factor", tvc.raw],
                 [16, "energy_reset", tvc.reset],
@@ -334,11 +335,81 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_agjqiu4h", "_TZE284_agjqiu4h", "_TZE200_agjqiu4h"]),
+        model: "D4Z-M",
+        vendor: "Nous",
+        description: "Smart energy monitor for 3P+N system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            te.voltageWithPhase("a"),
+            te.voltageWithPhase("b"),
+            te.voltageWithPhase("c"),
+            te.powerWithPhase("a"),
+            te.powerWithPhase("b"),
+            te.powerWithPhase("c"),
+            te.currentWithPhase("a"),
+            te.currentWithPhase("b"),
+            te.currentWithPhase("c"),
+            e.energy().withDescription("Total forward active energy"),
+            e.produced_energy().withDescription("Total reverse active energy"),
+            e.power_factor().withUnit("%").withDescription("Total power factor"),
+            e.power().withDescription("Total active power"),
+            e.ac_frequency(),
+            // e.binary('clear_energy', ea.SET, 'ON', 'OFF').withDescription('Switch to OFF to clear energy'),
+            e.binary("device_locating", ea.SET, "ON", "OFF").withDescription("Locate device"),
+            te.energyWithPhase("a"),
+            te.energyWithPhase("b"),
+            te.energyWithPhase("c"),
+            te.energyProducedWithPhase("a"),
+            te.energyProducedWithPhase("b"),
+            te.energyProducedWithPhase("c"),
+            te.powerFactorWithPhase("a"),
+            te.powerFactorWithPhase("b"),
+            te.powerFactorWithPhase("c"),
+            te.rs485ConfigAndHighPowerAlarm(),
+            te.alarmSet2(),
+            e
+                .numeric("update_frequency", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Update frequency")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withPreset("default", 30, "Default value"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [23, "produced_energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
+                [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
+                [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
+                [9, "faults", tvc.circuitBreakerFaults1],
+                [17, "alarm_set_1", tvc.threshold_7],
+                [18, "alarm_set_2", tvc.threshold_8],
+                [29, "power", tuya.valueConverter.raw],
+                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [50, "power_factor", tuya.valueConverter.raw],
+                // [12, 'clear_energy', tuya.valueConverter.onOff],
+                [101, "device_locating", tuya.valueConverter.onOff],
+                [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
+                [108, "power_factor_a", tuya.valueConverter.raw],
+                [53, "energy_a", tuya.valueConverter.divideBy100],
+                [57, "energy_produced_a", tuya.valueConverter.divideBy100],
+                [117, "power_factor_b", tuya.valueConverter.raw],
+                [54, "energy_b", tuya.valueConverter.divideBy100],
+                [58, "energy_produced_b", tuya.valueConverter.divideBy100],
+                [126, "power_factor_c", tuya.valueConverter.raw],
+                [55, "energy_c", tuya.valueConverter.divideBy100],
+                [59, "energy_produced_c", tuya.valueConverter.divideBy100],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_t9ffmdin"]),
         model: "D5Z",
         vendor: "Nous",
         description: "Zigbee smart energy meter with leakage and prepayment",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
             te
                 .switch()
@@ -414,6 +485,64 @@ export const definitions: DefinitionWithExtend[] = [
                 [126, "alarm_set_3", tvc.threshold_6],
                 [127, "status", tvc.circuitBreakerStatus],
                 [134, "power_on_behavior", tvc.powerOnBehaviorEnum], // relay_status_for_power_on
+            ],
+        },
+    },
+    {
+        // The older TS011F D1Z/D2Z variant uses standard Zigbee clusters instead of Tuya datapoints.
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vfnf7zhq"]),
+        model: "D1Z",
+        vendor: "Nous",
+        description: "DIN rail smart switch with power monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [
+            te.switch(),
+            te.countdown().withValueMax(86400),
+            te.powerOnBehavior().withAccess(ea.STATE_SET),
+            te.inchingSwitch2(),
+            te.circuitBreakerStatus(),
+            e.voltage(),
+            e.current(),
+            e.power(),
+            e.energy(),
+            e.device_temperature(),
+            te.circuitBreakerFaults(),
+            te.reclosing(),
+            te.reclosing_delay(),
+            te.reclosing_count().withValueMin(1).withValueMax(99),
+            te.energyPrepayment(),
+            te.energyBalance(),
+            te.energyBalanceAdd().withValueMax(9999.99),
+            te.energyBalanceReset(),
+            te.leakageCurrentAndTemperatureAlarm(),
+            te.currentAndVoltageAlarm(),
+            te.lostFlowAlarm(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tvc.divideBy100],
+                [6, null, tvc.phaseVariant4],
+                [9, "faults", tvc.circuitBreakerFaults],
+                [11, "prepayment", tvc.onOff],
+                [12, "energy_balance_reset", tvc.reset],
+                [13, "energy_balance", tvc.divideBy100],
+                [14, "energy_balance_add", tvc.energyBalanceAdd],
+                [16, "state", tvc.onOff],
+                [17, "alarm_set_1", tvc.threshold_4],
+                [18, "alarm_set_2", tvc.threshold_5],
+                [101, null, null], // Deprecated in the device schema.
+                [102, "reclosing_count", tvc.raw],
+                [103, "device_temperature", tvc.raw],
+                [104, "reclosing", tvc.onOff],
+                [105, "countdown", tvc.raw],
+                [106, "cycle_schedule", tvc.cycleSchedule],
+                [107, "reclosing_delay", tvc.raw],
+                [108, "random_timing", tvc.raw],
+                [109, "inching", tvc.inchingSwitch2],
+                [119, "power_on_delay", tvc.raw],
+                [126, "alarm_set_3", tvc.threshold_6],
+                [127, "status", tvc.circuitBreakerStatus],
+                [134, "power_on_behavior", tvc.powerOnBehaviorEnum],
             ],
         },
     },

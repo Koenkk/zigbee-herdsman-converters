@@ -45,6 +45,16 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    ewelink_countdown: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // genOnOff.onTime holds the remaining on-time in 1/10 s while a timed-off countdown is running.
+            if (msg.data.onTime !== undefined) {
+                return {countdown: Math.round(msg.data.onTime / 10)};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -59,9 +69,41 @@ const tzLocal = {
             await entity.read("genOnOff", ["onOff"]);
         },
     } satisfies Tz.Converter,
+    ewelink_countdown: {
+        key: ["countdown"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            const seconds = Math.round(value);
+            if (seconds <= 0) {
+                await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
+                return {state: {state: "OFF", countdown: 0}};
+            }
+            // genOnOff.onWithTimedOff expects ontime/offwaittime in 1/10 s; onTime is a uint16 capped at 0xFFFE.
+            const ontime = Math.min(seconds * 10, 0xfffe);
+            await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime, offwaittime: 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {state: "ON", countdown: Math.floor(ontime / 10)}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", ["onTime"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 const ewelinkExtend = {
+    countdown: (): ModernExtend => {
+        const exposes = [
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(6500)
+                .withValueStep(1)
+                .withDescription("Turn the device on and automatically turn it off again after this many seconds (0 disables the timer)"),
+        ];
+        const fromZigbee = [fzLocal.ewelink_countdown];
+        const toZigbee = [tzLocal.ewelink_countdown];
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
     addCustomClusterSiren: (): ModernExtend => {
         return m.deviceAddCustomCluster("customEwelinkSiren", {
             name: "customEwelinkSiren",
@@ -96,7 +138,7 @@ const ewelinkExtend = {
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku", "_TZ3000_piuensvr", "_TZ3000_mmzmkkd4"]),
-        zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
+        zigbeeModel: ["CK-BL702-ROUTER-01(7018)", "HS807Z"],
         model: "CK-BL702-ROUTER-01(7018)",
         vendor: "eWeLink",
         description: "USB router",
@@ -106,6 +148,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku", "HOBEIAN"]),
             tuya.whitelabel("COOLO", "ZG-807ZL", "USB signal repeater", ["_TZ3000_mmzmkkd4", "COOLO"]),
+            tuya.whitelabel("HYSYIOT", "HS807Z", "USB signal repeater", ["HS807Z"]),
         ],
     },
     {
@@ -113,7 +156,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CK-BL702-MSW-01(7010)",
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
-        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse(), ewelinkExtend.countdown()],
         whiteLabel: [
             {
                 vendor: "Mumubiz",
@@ -228,7 +271,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
-        zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
+        zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)", "CK-TLSR8656-Z23SE11HW-01(7019)"],
         model: "SNZB-05",
         vendor: "eWeLink",
         description: "Zigbee water sensor",
@@ -242,6 +285,17 @@ export const definitions: DefinitionWithExtend[] = [
                         type: "EndDevice",
                         manufacturerName: "eWeLink",
                         modelID: "CK-TLSR8656-SS5-01(7019)",
+                    },
+                ],
+            },
+            {
+                vendor: "eWeLink",
+                model: "CK-TLSR8656-Z23SE11HW-01(7019)",
+                fingerprint: [
+                    {
+                        type: "EndDevice",
+                        manufacturerName: "eWeLink",
+                        modelID: "CK-TLSR8656-Z23SE11HW-01(7019)",
                     },
                 ],
             },
@@ -494,5 +548,43 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: false,
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-01(7035)", "CK-TLSR8656-Z123SE22DY-01(7035)"],
+        model: "CK-TLSR8656-SS5-01(7035)",
+        vendor: "eWeLink",
+        description: "Zigbee smoke alarm",
+        ota: true,
+        whiteLabel: [
+            {
+                model: "CK-TLSR8656-Z123SE22DY-01(7035)",
+                vendor: "eWeLink",
+                fingerprint: [
+                    {
+                        modelID: "CK-TLSR8656-Z123SE22DY-01(7035)",
+                        manufacturerName: "eWeLink",
+                    },
+                ],
+            },
+        ],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1"]}),
+            m.binary({
+                name: "tamper",
+                cluster: 0xfc11,
+                attribute: {ID: 0x2000, type: 0x20},
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                access: "STATE_GET",
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+        },
     },
 ];

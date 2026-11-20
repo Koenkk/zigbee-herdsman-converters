@@ -137,6 +137,8 @@ export interface DefinitionMeta {
      */
     timeout?: number;
     tuyaSendCommand?: "sendData" | "dataRequest";
+    /** Keep color temperature in mireds in tuya.tz.led_control instead of scaling it to 0-254. */
+    tuyaColorTempInMireds?: boolean;
     /**
      * Set cover state based on tilt
      */
@@ -189,7 +191,7 @@ export interface DefinitionMeta {
      *
      * @defaultValue false
      */
-    omitOptionalLevelParams?: boolean;
+    omitOptionalLevelAndColorParams?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};
@@ -231,6 +233,8 @@ export interface DefinitionMeta {
      * Manufacturer specific
      */
     sinopeAlternateBacklightAutoDim?: boolean;
+    /** Indicates if the device does not report `swBuildId`, and a custom one was saved instead */
+    hasCustomFirmwareId?: boolean;
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
@@ -435,6 +439,7 @@ export namespace Tz {
         membersState?: {[s: string]: KeyValue};
         publish: Publish;
         converterOptions?: KeyValue;
+        deviceExposesChanged: () => void;
     }
     // biome-ignore lint/suspicious/noConfusingVoidType: ignored using `--suppress`
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;

@@ -6,11 +6,13 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tuya, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -22,14 +24,433 @@ const exposesLocal = {
     program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
+// Moes ADCBZI01 curtain robot: travel-range calibration is driven by the Tuya
+// vendor attribute tuyaMotorReversal (0xF002) on closuresWindowCovering, used as
+// a 3-value control (0 stop, 1 calibrate, 2 calibrate in the opposite direction).
+const adcbziCalibrationTo: {[k: string]: number} = {stop: 0, calibrate: 1, calibrate_reverse: 2};
+const adcbziCalibrationFrom: {[k: number]: string} = {0: "stop", 1: "calibrate", 2: "calibrate_reverse"};
+
+const tzLocal = {
+    adcbzi_calibration: {
+        key: ["calibration"],
+        convertSet: async (entity, key, value, meta) => {
+            const v = adcbziCalibrationTo[value as string];
+            if (v === undefined) throw new Error(`calibration: invalid value '${value}'`);
+            await entity.write<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: v});
+            return {state: {calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaMotorReversal"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    adcbzi_calibration: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            if (msg.data.tuyaMotorReversal !== undefined) {
+                return {calibration: adcbziCalibrationFrom[msg.data.tuyaMotorReversal] ?? String(msg.data.tuyaMotorReversal)};
+            }
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+};
+
+type MoesAlarmThreshold = {id: number; min: number; max: number};
+const moesAlarmThresholds: Record<string, MoesAlarmThreshold> = {
+    over_current_threshold: {id: 1, min: 1, max: 63},
+    over_voltage_threshold: {id: 3, min: 230, max: 300},
+    under_voltage_threshold: {id: 4, min: 90, max: 190},
+};
+
+function moesMeterBytes(value: unknown): Buffer {
+    if (Buffer.isBuffer(value)) return value;
+    if (value instanceof Uint8Array || Array.isArray(value)) return Buffer.from(value);
+    if (typeof value === "string") return Buffer.from(value, "base64");
+    return Buffer.alloc(0);
+}
+
+function moesMeterUInt24(buffer: Buffer, offset: number): number {
+    return (buffer[offset] << 16) + (buffer[offset + 1] << 8) + buffer[offset + 2];
+}
+
+function moesThreePhaseData(value: unknown, index: number): Record<string, number> {
+    const bytes = moesMeterBytes(value);
+    if (bytes.length !== 18 || bytes[0] !== 0x02 || bytes[1] !== 0x0f) return {};
+    const flags = bytes[17];
+    return {
+        [`voltage_l${index}`]: bytes.readUInt16BE(2) / 10,
+        [`current_l${index}`]: ((flags & 0x01 ? -1 : 1) * moesMeterUInt24(bytes, 4)) / 1000,
+        [`power_l${index}`]: (flags & 0x02 ? -1 : 1) * moesMeterUInt24(bytes, 7),
+        [`power_reactive_l${index}`]: (flags & 0x04 ? -1 : 1) * moesMeterUInt24(bytes, 10),
+        [`power_apparent_l${index}`]: moesMeterUInt24(bytes, 13),
+        [`power_factor_l${index}`]: bytes[16] / 100,
+    };
+}
+
+function moesMeterAlarmStatus(value: unknown): string {
+    const number = Number(value);
+    if (!Number.isInteger(number) || number < 0) return String(value);
+    const bits = number >>> 0;
+    if (bits === 0) return "normal";
+    const alarms: string[] = [];
+    if (bits & 0x01) alarms.push("over_current_alarm");
+    if (bits & 0x04) alarms.push("over_voltage_alarm");
+    if (bits & 0x08) alarms.push("under_voltage_alarm");
+    const unknown = (bits & ~0x0d) >>> 0;
+    if (unknown) alarms.push(`unknown_fault_bits_0x${unknown.toString(16)}`);
+    return alarms.join(", ");
+}
+
+function moesMeterAlarmSettings(value: unknown, names = Object.keys(moesAlarmThresholds)): Record<string, string | number> {
+    const bytes = moesMeterBytes(value);
+    const result: Record<string, string | number> = {alarm_settings_raw: bytes.toString("hex").toUpperCase()};
+    if (bytes.length === 0 || bytes.length % 4 !== 0) return result;
+    for (let offset = 0; offset < bytes.length; offset += 4) {
+        for (const name of names) {
+            const spec = moesAlarmThresholds[name];
+            if (spec.id === bytes[offset]) result[name] = bytes.readUInt16BE(offset + 2);
+        }
+    }
+    return result;
+}
+
+function moesMeterEncodeThreshold(value: unknown, meta: Tz.Meta | undefined, name: string, currentRange?: {min: number; max: number}): number[] {
+    const spec = moesAlarmThresholds[name];
+    if (!spec) throw new Error(`Unknown alarm threshold: ${name}`);
+    const {min, max} = currentRange ?? spec;
+    const threshold = Number(value);
+    if (!Number.isInteger(threshold) || threshold < min || threshold > max) {
+        throw new Error(`${name} must be an integer between ${min} and ${max}`);
+    }
+    const raw = meta?.state.alarm_settings_raw;
+    if (typeof raw !== "string" || !/^(?:[a-fA-F0-9]{8})+$/.test(raw)) {
+        throw new Error("Wait for a valid DP17 report before changing alarm thresholds");
+    }
+    const bytes = Buffer.from(raw, "hex");
+    let count = 0;
+    for (let offset = 0; offset < bytes.length; offset += 4) {
+        if (bytes[offset] === spec.id) {
+            bytes.writeUInt16BE(threshold, offset + 2);
+            count++;
+        }
+    }
+    if (count !== 1) throw new Error(`Expected exactly one DP17 record for ${name}`);
+    return Array.from(bytes);
+}
+
+function moesMeterThresholdEntry(name: string, range?: {min: number; max: number}): Tuya.MetaTuyaDataPointsSingle {
+    return [17, name, {to: (value, meta) => moesMeterEncodeThreshold(value, meta, name, range)}, {optimistic: false}];
+}
+
+function moesMeterThreePhaseExposes(index: number) {
+    return [
+        e.numeric(`voltage_l${index}`, ea.STATE).withUnit("V").withDescription(`Phase L${index} voltage`),
+        e.numeric(`current_l${index}`, ea.STATE).withUnit("A").withDescription(`Phase L${index} current`),
+        e.numeric(`power_l${index}`, ea.STATE).withUnit("W").withDescription(`Phase L${index} active power`),
+        e.numeric(`power_reactive_l${index}`, ea.STATE).withUnit("var").withDescription(`Phase L${index} reactive power`),
+        e.numeric(`power_apparent_l${index}`, ea.STATE).withUnit("VA").withDescription(`Phase L${index} apparent power`),
+        e.numeric(`power_factor_l${index}`, ea.STATE).withDescription(`Phase L${index} power factor (0 to 1)`),
+    ];
+}
+
+function moesMeterButton(name: string, description: string) {
+    return e.enum(name, ea.SET, ["press"]).withDescription(description).withCategory("config");
+}
+
+function moesMeterPress(value: unknown, name: string): void {
+    if (value !== "press") throw new Error(`${name} expects 'press'`);
+}
+
+interface MoesMeterSegmentedCluster {
+    attributes: never;
+    commands: {
+        zosungSendIRCode00: {seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number};
+        zosungSendIRCode01: {zero: number; seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number};
+        zosungSendIRCode02: {seq: number; position: number; maxlen: number};
+        zosungSendIRCode04: {zero0: number; seq: number; zero1: number};
+    };
+    commandResponses: {
+        zosungSendIRCode03Resp: {zero: number; seq: number; position: number; msgpart: Buffer; msgpartcrc: number};
+        zosungSendIRCode05Resp: {seq: number; zero: number};
+    };
+}
+
+type MoesMeterTransfer = {buffer: Buffer; position: number; started: number};
+const moesMeterTransfers = new Map<string, MoesMeterTransfer>();
+const moesMeterChunkLength = 0x38;
+const moesMeterMaxLength = 4096;
+
+function moesMeterTransferKey(ieeeAddr: string, endpoint: number, seq: number): string {
+    return `${ieeeAddr}:${endpoint}:${seq}`;
+}
+
+function moesMeterDecodePackedDps(payload: Buffer): Tuya.DpValue[] {
+    if (payload.length < 2) throw new Error("Segmented payload too short");
+    const datapoints: Tuya.DpValue[] = [];
+    let offset = 2;
+    while (offset < payload.length) {
+        if (offset + 4 > payload.length) throw new Error(`Incomplete Tuya DP header at ${offset}`);
+        const dp = payload[offset];
+        const datatype = payload[offset + 1];
+        const length = payload.readUInt16BE(offset + 2);
+        offset += 4;
+        if (offset + length > payload.length) throw new Error(`Incomplete Tuya DP${dp} at ${offset}`);
+        datapoints.push({dp, datatype, data: payload.subarray(offset, offset + length)});
+        offset += length;
+    }
+    if (!datapoints.length) throw new Error("No Tuya datapoints in segmented payload");
+    return datapoints;
+}
+
+const moesMeterFzStart = {
+    cluster: "zosungIRTransmit",
+    type: ["commandZosungSendIRCode00"],
+    convert: async (model, msg) => {
+        const {seq, length, unk1, unk2, unk3, cmd, unk4} = msg.data;
+        if (unk2 !== 0xef00 || cmd !== 2 || length < 2 || length > moesMeterMaxLength) return;
+        const now = Date.now();
+        for (const [key, transfer] of moesMeterTransfers) {
+            if (now - transfer.started > 60000) moesMeterTransfers.delete(key);
+        }
+        moesMeterTransfers.set(moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, seq), {
+            buffer: Buffer.alloc(length),
+            position: 0,
+            started: now,
+        });
+        await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode01", MoesMeterSegmentedCluster>(
+            "zosungIRTransmit",
+            "zosungSendIRCode01",
+            {zero: 0, seq, length, unk1, unk2, unk3, cmd, unk4},
+            {disableDefaultResponse: true},
+        );
+        await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", MoesMeterSegmentedCluster>(
+            "zosungIRTransmit",
+            "zosungSendIRCode02",
+            {seq, position: 0, maxlen: moesMeterChunkLength},
+            {disableDefaultResponse: true},
+        );
+    },
+} satisfies Fz.Converter<"zosungIRTransmit", MoesMeterSegmentedCluster, ["commandZosungSendIRCode00"]>;
+
+const moesMeterFzFragment = {
+    cluster: "zosungIRTransmit",
+    type: ["commandZosungSendIRCode03Resp"],
+    convert: async (model, msg, publish, options, meta) => {
+        const {seq, position, msgpart, msgpartcrc} = msg.data;
+        const key = moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, seq);
+        const transfer = moesMeterTransfers.get(key);
+        if (!transfer) return;
+        const part = Buffer.from(msgpart);
+        const crc = part.reduce((sum, byte) => (sum + byte) & 0xff, 0);
+        if (position !== transfer.position || !part.length || transfer.position + part.length > transfer.buffer.length || crc !== msgpartcrc) {
+            moesMeterTransfers.delete(key);
+            return;
+        }
+        part.copy(transfer.buffer, transfer.position);
+        transfer.position += part.length;
+        if (transfer.position < transfer.buffer.length) {
+            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", MoesMeterSegmentedCluster>(
+                "zosungIRTransmit",
+                "zosungSendIRCode02",
+                {seq, position: transfer.position, maxlen: moesMeterChunkLength},
+                {disableDefaultResponse: true},
+            );
+            return;
+        }
+        moesMeterTransfers.delete(key);
+        await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode04", MoesMeterSegmentedCluster>(
+            "zosungIRTransmit",
+            "zosungSendIRCode04",
+            {zero0: 0, seq, zero1: 0},
+            {disableDefaultResponse: true},
+        );
+        const dpValues = moesMeterDecodePackedDps(transfer.buffer);
+        const result = tuya.fz.datapoints.convert(
+            model,
+            {
+                ...msg,
+                cluster: "manuSpecificTuya",
+                type: "commandDataReport",
+                data: {seq: transfer.buffer.readUInt16LE(0), dpValues},
+                meta: {...msg.meta, zclTransactionSequenceNumber: undefined},
+            },
+            publish,
+            options,
+            meta,
+        );
+        if (result && Object.keys(result).length > 0) publish(result);
+    },
+} satisfies Fz.Converter<"zosungIRTransmit", MoesMeterSegmentedCluster, ["commandZosungSendIRCode03Resp"]>;
+
+const moesMeterFzFinish = {
+    cluster: "zosungIRTransmit",
+    type: ["commandZosungSendIRCode05Resp"],
+    convert: (model, msg) => {
+        moesMeterTransfers.delete(moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, msg.data.seq));
+    },
+} satisfies Fz.Converter<"zosungIRTransmit", MoesMeterSegmentedCluster, ["commandZosungSendIRCode05Resp"]>;
+
+const moesMeterSegments = [moesMeterFzStart, moesMeterFzFragment, moesMeterFzFinish];
+
+const ZC301_TIME_MULTIPLIER = 0.001;
+
+const zc301Cover = e.cover_position();
+const zc301PositionFeature = zc301Cover.features.find((feature) => feature.name === "position");
+if (zc301PositionFeature) zc301PositionFeature.access = ea.STATE_SET;
+
+const zc301PositionReport = {
+    from: (value: unknown, _meta?: Fz.Meta, options?: Record<string, unknown>) => {
+        const raw = Number(value);
+        if (!Number.isFinite(raw) || raw < 0 || raw > 100) return {};
+        return {position: options?.invert_cover ? raw : 100 - raw};
+    },
+};
+
+const zc301WorkStateReport = {
+    from: (value: unknown) => {
+        const raw = Number(value);
+        if (!Number.isInteger(raw) || raw < 0 || raw > 2) return {};
+        return {
+            work_state: ["standby", "opening", "closing"][raw],
+            state: ["STOP", "OPEN", "CLOSE"][raw],
+        };
+    },
+};
+
+const zc301Position: Tz.Converter = {
+    key: ["position"],
+    options: tz.cover_position_tilt.options,
+    convertSet: async (entity, key, value, meta) => {
+        await tz.cover_position_tilt.convertSet?.(entity, key, value, meta);
+    },
+};
+
+let zc301Tsn = 0;
+
+const nextZc301Seq = () => {
+    zc301Tsn = (zc301Tsn % 255) + 1;
+    return zc301Tsn << 8;
+};
+
+const zc301Stop = (entity: Parameters<NonNullable<Tz.Converter["convertSet"]>>[0]) =>
+    entity.command("closuresWindowCovering", "stop", {}, {disableResponse: true, disableDefaultResponse: false});
+
+const zc301State: Tz.Converter = {
+    key: ["state"],
+    convertSet: async (entity, key, value, meta) => {
+        if (typeof value !== "string") throw new Error("Invalid cover state");
+        if (value.toUpperCase() === "STOP") {
+            if (Array.isArray(meta.mapped)) throw new Error("ZC301 STOP does not support groups");
+            await zc301Stop(entity);
+            return {state: {state: "STOP"}};
+        }
+        await tz.cover_state.convertSet?.(entity, key, value, meta);
+    },
+};
+
+const zc301Calibration: Tz.Converter = {
+    key: ["calibration"],
+    convertSet: async (entity, _key, value, meta) => {
+        if (Array.isArray(meta.mapped)) throw new Error("ZC301 calibration does not support groups");
+        if (value === "save_limit") {
+            await zc301Stop(entity);
+            return;
+        }
+        const actions: Record<string, number> = {enter_mode: 0, up_start: 1, down_start: 2};
+        if (typeof value !== "string" || !Object.hasOwn(actions, value)) {
+            throw new Error(`Invalid ZC301 calibration action: ${String(value)}`);
+        }
+        await entity.write<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: actions[value]});
+        return {state: {calibration_completed: false}};
+    },
+};
+
+const zc301CalibrationReport: Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]> = {
+    cluster: "closuresWindowCovering",
+    type: ["attributeReport", "readResponse"],
+    convert: (_model, msg) => zc301CalibrationStatus.from(msg.data.tuyaMotorReversal),
+};
+
+const zc301CalibrationStatus = {
+    from: (value: unknown) => {
+        if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 3) return undefined;
+        return {calibration_completed: value === 3};
+    },
+};
+
+const zc301Config: Tz.Converter = {
+    key: ["curtain_close_direction", "charge_led_switch"],
+    convertSet: async (entity, key, value, meta) => {
+        if (Array.isArray(meta.mapped)) throw new Error("ZC301 configuration does not support groups");
+        if (key === "curtain_close_direction") {
+            if (value !== "UP" && value !== "DOWN") throw new Error("Invalid curtain_close_direction");
+            await tuya.sendDataPointBool(entity, 107, value === "DOWN", "sendData", nextZc301Seq());
+        } else if (key === "charge_led_switch") {
+            if (value !== "ON" && value !== "OFF") throw new Error("Invalid charge_led_switch");
+            await tuya.sendDataPointBool(entity, 155, value === "ON", "sendData", nextZc301Seq());
+        }
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6"]),
+        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_hs01bacp"]),
+        model: "ZC301",
+        vendor: "Moes",
+        description: "Zigbee curtain motor",
+        fromZigbee: [zc301CalibrationReport, tuya.fz.datapoints],
+        toZigbee: [zc301Position, zc301State, zc301Calibration, zc301Config],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
+        exposes: [
+            zc301Cover,
+            e.battery(),
+            e
+                .enum("calibration", ea.SET, ["enter_mode", "up_start", "save_limit", "down_start"])
+                .withCategory("config")
+                .withDescription(
+                    "Enter mode (F002=0) and wait for automatic movement to stop; start up (1), STOP to save, " +
+                        "start down (2), STOP to save. The motor reports completion (3).",
+                ),
+            e
+                .binary("calibration_completed", ea.STATE, true, false)
+                .withLabel("Calibration completed")
+                .withDescription("Whether the device has reported calibration completion since the last calibration action"),
+            e.enum("work_state", ea.STATE, ["standby", "opening", "closing"]).withCategory("diagnostic"),
+            e
+                .numeric("time_total", ea.STATE)
+                .withLabel("Total travel time")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(120)
+                .withDescription("Total travel time reported by the device after calibration"),
+            e.enum("charge_state", ea.STATE, ["uncharged", "charging", "charged"]).withCategory("diagnostic"),
+            e.binary("curtain_close_direction", ea.STATE_SET, "DOWN", "UP").withCategory("config"),
+            e.binary("charge_led_switch", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+        ],
+        configure: tuya.configureMagicPacket,
+        meta: {
+            tuyaDatapoints: [
+                [3, null, zc301PositionReport],
+                [5, null, zc301CalibrationStatus],
+                [7, null, zc301WorkStateReport],
+                [10, "time_total", {from: (value) => Number((Number(value) * ZC301_TIME_MULTIPLIER).toFixed(3))}],
+                [13, "battery", tuya.valueConverter.raw],
+                [101, "charge_state", tuya.valueConverterBasic.lookup({uncharged: tuya.enum(0), charging: tuya.enum(1), charged: tuya.enum(2)})],
+                [107, "curtain_close_direction", tuya.valueConverterBasic.lookup({UP: false, DOWN: true})],
+                [155, "charge_led_switch", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6", "_TZ3210_rundhkxp"]),
         model: "ADCBZI01",
         vendor: "Moes",
         description: "Curtain Robot",
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.datapoints],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state, tuya.tz.datapoints],
+        fromZigbee: [fz.cover_position_tilt, fzLocal.adcbzi_calibration, tuya.fz.datapoints],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.adcbzi_calibration, tuya.tz.datapoints],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         exposes: [
             e.cover_position(),
             e.position(),
@@ -49,6 +470,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("custom_week_prog_2", ea.STATE_SET).withDescription("Custom week program 2"),
             e.text("custom_week_prog_3", ea.STATE_SET).withDescription("Custom week program 3"),
             e.text("custom_week_prog_4", ea.STATE_SET).withDescription("Custom week program 4"),
+            e
+                .enum("calibration", ea.ALL, ["stop", "calibrate", "calibrate_reverse"])
+                .withDescription(
+                    "Travel-range calibration. With the curtain fully closed, set 'calibrate' and the motor free-runs " +
+                        "toward open; at the fully-open end set 'stop' to halt it and store the limit. Use 'calibrate_reverse' " +
+                        "if it runs the wrong way. Always start fully closed, otherwise the open/close commands end up reversed.",
+                ),
         ],
         meta: {
             tuyaDatapoints: [
@@ -82,13 +510,21 @@ export const definitions: DefinitionWithExtend[] = [
                 [112, "total_distance", tuya.valueConverter.raw], // Total running distance in meters
             ],
         },
+        // Poll EF00 datapoints so battery/illuminance/total_* populate (they were permanently N/A
+        // without a poll). This unit exposes no genPowerCfg, so bind only closuresWindowCovering.
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zxkwaztm"]),
         model: "ZHT-S03",
         vendor: "Moes",
         description: "Zigbee wall thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.child_lock(),
             e
@@ -136,7 +572,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [109, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [112, "temperature_delta", tuya.valueConverter.divideBy10],
                 [
                     31,
@@ -442,17 +878,32 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0", "_TZE28C1000000_i8sdouy0"]),
         model: "ZS-SF-EUC-WH-MS",
         vendor: "Moes",
         description: "Star feather Zigbee curtain switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
+        exposes: [
+            te.coverPosition(),
+            e.enum("calibration", ea.STATE_SET, ["start", "end"]).withDescription("Calibration mode"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable button backlight"),
+            te.motorDirection(),
+            e
+                .numeric("motor_working_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(10)
+                .withValueMax(180)
+                .withDescription("Full travel time of the motor (10-180s)"),
+        ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
+                [3, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
+                [7, "backlight_switch", tuya.valueConverter.onOff],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+                [10, "motor_working_time", tuya.valueConverter.raw],
             ],
         },
     },
@@ -461,32 +912,115 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZC-LS02",
         vendor: "Moes",
         description: "Roller blind motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
-            e.battery(),
+        // This motor never reports battery spontaneously; DP 13 (battery) is only sent in
+        // response to a dataQuery. Without polling, `battery` stays null forever. Confirmed
+        // on hardware: dp 13 -> 100 only arrives after a dataQuery. Poll periodically and on
+        // device announce so the battery level is reported reliably.
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 24 * 60 * 60,
+            }),
         ],
+        exposes: [te.coverPosition(), te.motorDirection(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPositionInverted],
                 [3, "position", tuya.valueConverter.coverPositionInverted],
-                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})], // maybe enum ?
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE200_ydkqbmpt", "_TZE200_z3u99qxt"]),
+        // Star Feather dimmer. Shares the same board/firmware family as the
+        // SFL02-Z switches (induction/vibration/indicator), plus the standard
+        // Tuya dimmer datapoints (min/max brightness, light_type, countdown,
+        // power_on_behavior, backlight_mode). Fully confirmed against real
+        // hardware (raw dp capture).
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_t88bjhfu"]),
+        model: "SFD02-Z",
+        vendor: "Moes",
+        description: "Star feather smart dimmer switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax(),
+            tuya.exposes.lightType(),
+            tuya.exposes.countdown(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffNormalInverted().withAccess(ea.STATE_SET),
+            exposes.enum("induction_mode", ea.ALL, ["ON", "OFF"]).withDescription("Induction mode"),
+            exposes.enum("indicator_status", ea.ALL, ["off", "relay", "invert"]).withDescription("Indicator status"),
+            exposes.enum("vibration_mode", ea.ALL, ["Gear 0", "Gear 1", "Gear 2", "Gear 3"]).withDescription("Vibration"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [3, "min_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [4, "light_type", tuya.valueConverter.lightType],
+                [5, "max_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [6, "countdown", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
+                [21, "backlight_mode", tuya.valueConverter.backlightModeOffNormalInverted],
+                [26, "induction_mode", tuya.valueConverter.onOff],
+                [101, "indicator_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), relay: tuya.enum(1), invert: tuya.enum(2)})],
+                [
+                    102,
+                    "vibration_mode",
+                    tuya.valueConverterBasic.lookup({"Gear 0": tuya.enum(0), "Gear 1": tuya.enum(1), "Gear 2": tuya.enum(2), "Gear 3": tuya.enum(3)}),
+                ],
+            ],
+        },
+    },
+    {
+        // Star Feather dimmer. Shares the same board/firmware family as the
+        // SFL02-Z switches (no induction/vibration/indicator), plus the standard
+        // Tuya dimmer datapoints (min/max brightness, light_type, countdown,
+        // power_on_behavior, backlight_mode, indicator_light_brightness). Fully confirmed against real
+        // hardware (dp specification). PS: Some hardware could not have the vibration module
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z98viqa6"]),
+        model: "SFD02-Z_2",
+        vendor: "Moes",
+        description: "Star feather smart dimmer switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax(),
+            tuya.exposes.lightType(),
+            tuya.exposes.countdown(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            e
+                .enum("indicator_status", ea.STATE_SET, ["none", "relay", "pos"])
+                .withDescription("Indicator status (none = off, relay = follows switch, pos = night location)"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable switch backlight"),
+            e.enum("indicator_light_brightness", ea.STATE_SET, ["0", "1", "2"]).withDescription("Indicator light brightness level"),
+            e.enum("vibration_gear", ea.STATE_SET, ["0", "1", "2", "3"]).withDescription("Haptic feedback / vibration level"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [3, "min_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [4, "light_type", tuya.valueConverter.lightType],
+                [5, "max_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [6, "countdown", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
+                [21, "indicator_status", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
+                [26, "backlight_switch", tuya.valueConverter.onOff],
+                [101, "indicator_light_brightness", tuya.valueConverterBasic.lookup({"0": tuya.enum(0), "1": tuya.enum(1), "2": tuya.enum(2)})],
+                [
+                    102,
+                    "vibration_gear",
+                    tuya.valueConverterBasic.lookup({"0": tuya.enum(0), "1": tuya.enum(1), "2": tuya.enum(2), "3": tuya.enum(3)}),
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_stvgmdjz", "_TZE284_stvgmdjz", "_TZE200_ydkqbmpt", "_TZE200_z3u99qxt"]),
         model: "SFL02-Z-1",
         vendor: "Moes",
         description: "Star feather smart switch 1 gang",
@@ -539,7 +1073,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE284_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
         model: "SFL02-Z-2",
         vendor: "Moes",
         description: "Star feather smart switch 2 gangs",
@@ -865,7 +1399,7 @@ export const definitions: DefinitionWithExtend[] = [
                         OFF: false,
                     }),
                 ],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [102, "position", tuya.valueConverter.raw],
                 [
                     103,
@@ -996,7 +1530,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.child_lock(),
                 e.deadzone_temperature(),
                 e.max_temperature_limit().withValueMax(80),
-                e.min_temperature_limit(),
+                e.min_temperature_limit().withValueMax(10),
                 e
                     .climate()
                     .withSetpoint("current_heating_setpoint", 5, 90, heatingStepSize, ea.STATE_SET)
@@ -1182,6 +1716,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_ubuikmgo"]),
+        model: "ZSS-QT-LTH-C",
+        vendor: "Moes",
+        description: "Smart 3-in-1 brightness, temperature and humidity sensor",
+        configure: tuya.configureMagicPacket,
+        extend: [m.battery(), m.temperature(), m.humidity(), m.illuminance()],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fhn3negr"]),
         model: "SH4-ZB",
         vendor: "Moes",
@@ -1227,7 +1769,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [45, "error_status", tuya.valueConverter.raw],
                 [101, "comfort_temperature", tuya.valueConverter.divideBy2],
                 [102, "eco_temperature", tuya.valueConverter.divideBy2],
-                [104, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [104, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [105, "auto_setpoint_override", tuya.valueConverter.divideBy2],
                 [106, "boost_heating", tuya.valueConverter.onOff],
                 [107, "window_detection", tuya.valueConverter.onOff],
@@ -1323,7 +1865,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.moes_cover],
         toZigbee: [legacy.tz.moes_cover],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("backlight", ea.STATE_SET, ["OFF", "ON"]),
             e.enum("calibration", ea.STATE_SET, ["OFF", "ON"]),
             e.enum("motor_reversal", ea.STATE_SET, ["OFF", "ON"]),
@@ -1352,7 +1894,15 @@ export const definitions: DefinitionWithExtend[] = [
             fz.battery,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
+        exposes: [
+            ez.learn_ir_code(),
+            ez.learned_ir_code(),
+            ez.learned_ir_timings(),
+            ez.ir_code_to_send(),
+            ez.ir_emitter(),
+            e.battery(),
+            e.battery_voltage(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
@@ -1382,7 +1932,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hr0tdd47", "_TZE200_rjxqso4a", "_TZE284_rjxqso4a"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hr0tdd47", "_TZE200_rjxqso4a", "_TZE284_rjxqso4a", "JM720ES-EF-3.0"]),
         model: "ZC-HM",
         vendor: "Moes",
         description: "Carbon monoxide alarm",
@@ -1478,7 +2028,11 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            // HOBEIAN ZG-101ZL replies UNSUPPORTED_ATTRIBUTE to this write while already being in event mode.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/31917
+            await utils.ignoreUnsupportedAttribute(async () => {
+                await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            }, "tuyaOperationMode write");
             await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
@@ -1498,22 +2052,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Star ring - smart curtain switch",
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
-        ],
+        exposes: [te.coverPosition(), e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [
                     2,
                     "position",
@@ -1540,14 +2082,7 @@ export const definitions: DefinitionWithExtend[] = [
                         END: tuya.enum(1),
                     }),
                 ],
-                [
-                    8,
-                    "motor_steering",
-                    tuya.valueConverterBasic.lookup({
-                        FORWARD: tuya.enum(0),
-                        BACKWARD: tuya.enum(1),
-                    }),
-                ],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
@@ -1695,9 +2230,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("automatic_mode", ea.STATE_SET, "ON", "OFF")
                 .withDescription("When set to `ON`, the device will start pushing in the same direction the window was pushed"),
-            e
-                .binary("slow_stop", ea.STATE_SET, "ON", "OFF")
-                .withDescription("When set to `ON`, the device decelerates gradually for quieter operation"),
+            te.slowMode(),
             e.enum("button_position", ea.STATE_SET, ["UP", "DOWN"]).withDescription("Swaps the behavior of the device's physical buttons"),
         ],
         meta: {
@@ -1714,7 +2247,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "position", tuya.valueConverter.coverPosition],
                 [105, "charging", tuya.valueConverter.trueFalse1],
                 [106, "automatic_mode", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
-                [110, "slow_stop", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [110, "slow_mode", tuya.valueConverter.onOffEnumOn1], // slow_stop
                 [112, "button_position", tuya.valueConverterBasic.lookup({UP: 1, DOWN: 0})],
             ],
         },
@@ -1726,16 +2259,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller Shade Blinds Motor for 38mm Tube",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [tuya.whitelabel("Tuya", "GM35TEQ-TYZ-2/25", "Roller Shade Blinds Motor for 38mm Tube", ["_TZE284_8whfphjv"])],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction"),
-        ],
+        exposes: [te.coverPosition(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
-                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
@@ -1852,7 +2382,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [71, "week_program_7", tuya.valueConverter.raw],
                 [101, "vacation_duration", tuya.valueConverter.raw],
                 [102, "boost_duration", tuya.valueConverter.raw],
-                [103, "electricity_statistics", tuya.valueConverter.raw],
+                [103, "electricity_statistics", tuya.valueConverter.divideBy10],
                 [104, "elec_statistics_day", tuya.valueConverter.raw],
                 [105, "elec_statistics_month", tuya.valueConverter.raw],
                 [106, "elec_statistics_year", tuya.valueConverter.raw],
@@ -1979,35 +2509,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg", "_TZE2841000000_u68q868h"]),
+        // u68q868h is incomplete: https://github.com/Koenkk/zigbee2mqtt/issues/33147
         model: "FWJZCEH18A001",
         vendor: "Moes",
         description: "Roller blind motor 17mm/25mm/28mm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
-            e.battery(),
-        ],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
-                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", {from: (v: string) => Buffer.from(v, "base64").readUInt32BE(0)}],
-                [
-                    16,
-                    "border",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                        up_delete: tuya.enum(2),
-                        down_delete: tuya.enum(3),
-                        remove_top_bottom: tuya.enum(4),
-                    }),
-                ],
+                [16, "cover_limit", tuya.valueConverter.coverLimit],
             ],
         },
     },
@@ -2451,31 +2967,43 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2fnssffc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_2fnssffc", "_TZE284_2fnssffc", "_TZE284_y7hpvgyp"]),
         model: "ZM6LT1",
         vendor: "Moes",
         description: "Smart 1-phase energy power meter with CT sensor clamp",
-        extend: [
-            tuya.modernExtend.tuyaBase({
-                dp: true,
-                queryOnConfigure: true,
-                queryIntervalSeconds: 60,
-            }),
-        ],
-        exposes: [
-            e.energy(),
-            e.voltage(),
-            e.current(),
-            e.power(),
-            e.ac_frequency(),
-            e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
-            e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Total active energy"),
-            e.numeric("fault", ea.STATE).withDescription("Fault status"),
-            e.binary("clear_event", ea.STATE_SET, "ON", "OFF").withDescription("Clear event"),
-            e.enum("online_state", ea.STATE, ["offline", "online"]).withDescription("Online state"),
-            e.numeric("countdown_1", ea.STATE_SET).withUnit("s").withDescription("Countdown timer").withValueMin(0).withValueMax(2000),
-            e.binary("device_restart", ea.SET, "ON", "OFF").withDescription("Device restart"),
-        ],
+        whiteLabel: [tuya.whitelabel("Moes", "ZM7LT1", "Single-phase energy meter with CT clamp", ["_TZE284_y7hpvgyp"])],
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        fromZigbee: moesMeterSegments,
+        exposes: (device) => {
+            const isZM7LT1 = device?.manufacturerName === "_TZE284_y7hpvgyp";
+            const exposes = [
+                e.energy(),
+                e.voltage(),
+                e.current(),
+                e.power(),
+                e.ac_frequency(),
+                e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
+                e.numeric("fault", ea.STATE).withDescription("Fault status"),
+                e
+                    .numeric("over_current_threshold", ea.STATE_SET)
+                    .withUnit("A")
+                    .withValueMin(1)
+                    .withValueMax(isZM7LT1 ? 63 : 120)
+                    .withValueStep(1)
+                    .withDescription("Overcurrent alarm threshold")
+                    .withCategory("config"),
+                e
+                    .binary("clear_event", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Clear accumulated energy")
+                    .withDescription("Clear accumulated energy")
+                    .withCategory("config"),
+                moesMeterButton("refresh_measurements", "Trigger fast measurement updates"),
+            ];
+            if (isZM7LT1) {
+                exposes.push(e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Combined active energy"));
+            }
+            return exposes;
+        },
         meta: {
             multiEndpointSkip: ["reverse_energy", "active_energy"],
             tuyaDatapoints: [
@@ -2483,20 +3011,129 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "reverse_energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant5],
                 [10, "fault", tuya.valueConverter.raw],
-                [17, "alarm_set_2", tuya.valueConverter.raw],
+                [17, null, {from: (value) => moesMeterAlarmSettings(value, ["over_current_threshold"])}],
+                [
+                    17,
+                    "over_current_threshold",
+                    {
+                        to: (value, meta) =>
+                            moesMeterEncodeThreshold(value, meta, "over_current_threshold", {
+                                min: 1,
+                                max: ["_TZE28C1000000_2fnssffc", "_TZE284_2fnssffc"].includes(meta?.device.manufacturerName) ? 120 : 63,
+                            }),
+                    },
+                    {optimistic: false},
+                ],
                 [20, "clear_event", tuya.valueConverter.onOff],
                 [
                     44,
-                    "online_state",
-                    tuya.valueConverterBasic.lookup({
-                        offline: tuya.enum(0),
-                        online: tuya.enum(1),
-                    }),
+                    "refresh_measurements",
+                    {
+                        to: (value) => {
+                            moesMeterPress(value, "refresh_measurements");
+                            return tuya.enum(1);
+                        },
+                    },
+                    {optimistic: false},
                 ],
                 [49, "ac_frequency", tuya.valueConverter.divideBy100],
-                [51, "active_energy", tuya.valueConverter.divideBy100],
-                [101, "countdown_1", tuya.valueConverter.raw],
-                [104, "device_restart", tuya.valueConverter.onOff],
+                [
+                    51,
+                    null,
+                    {
+                        from: (value, meta) => (meta?.device.manufacturerName === "_TZE284_y7hpvgyp" ? {active_energy: value / 100} : {}),
+                    },
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cf4b5ktf", "_TZE28C1000000_cf4b5ktf"]),
+        model: "ZM7LT3",
+        vendor: "Moes",
+        description: "Three-phase energy meter with CT clamps",
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        fromZigbee: moesMeterSegments,
+        exposes: [
+            e.energy().withDescription("Total forward active energy"),
+            e.produced_energy().withDescription("Total reverse active energy"),
+            e.numeric("combined_energy", ea.STATE).withUnit("kWh").withDescription("Combined active energy"),
+            e.power().withDescription("Total active power"),
+            e.power_reactive().withDescription("Total reactive power"),
+            e.power_apparent().withDescription("Total apparent power"),
+            e.ac_frequency().withDescription("Mains frequency"),
+            e.power_factor().withDescription("Total power factor"),
+            ...moesMeterThreePhaseExposes(1),
+            ...moesMeterThreePhaseExposes(2),
+            ...moesMeterThreePhaseExposes(3),
+            e.text("alarm_status", ea.STATE).withDescription("Active alarm conditions"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withValueMin(1)
+                .withValueMax(63)
+                .withValueStep(1)
+                .withDescription("Overcurrent alarm threshold")
+                .withCategory("config"),
+            e
+                .numeric("over_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(230)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withDescription("Overvoltage alarm threshold")
+                .withCategory("config"),
+            e
+                .numeric("under_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(90)
+                .withValueMax(190)
+                .withValueStep(1)
+                .withDescription("Undervoltage alarm threshold")
+                .withCategory("config"),
+            moesMeterButton("clear_energy", "Clear accumulated energy"),
+            moesMeterButton("refresh_measurements", "Trigger fast measurement updates"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [2, "produced_energy", tuya.valueConverter.divideBy100],
+                [9, "power", tuya.valueConverter.raw],
+                [47, "power_reactive", tuya.valueConverter.raw],
+                [48, "power_apparent", tuya.valueConverter.raw],
+                [49, "ac_frequency", tuya.valueConverter.divideBy100],
+                [51, "combined_energy", tuya.valueConverter.divideBy100],
+                [53, "power_factor", tuya.valueConverter.divideBy100],
+                [6, null, {from: (value) => moesThreePhaseData(value, 1)}],
+                [7, null, {from: (value) => moesThreePhaseData(value, 2)}],
+                [8, null, {from: (value) => moesThreePhaseData(value, 3)}],
+                [10, "alarm_status", {from: moesMeterAlarmStatus}],
+                [17, null, {from: (value) => moesMeterAlarmSettings(value)}],
+                moesMeterThresholdEntry("over_current_threshold"),
+                moesMeterThresholdEntry("over_voltage_threshold"),
+                moesMeterThresholdEntry("under_voltage_threshold"),
+                [
+                    20,
+                    "clear_energy",
+                    {
+                        to: (value) => {
+                            moesMeterPress(value, "clear_energy");
+                            return true;
+                        },
+                    },
+                    {optimistic: false},
+                ],
+                [
+                    44,
+                    "refresh_measurements",
+                    {
+                        to: (value) => {
+                            moesMeterPress(value, "refresh_measurements");
+                            return tuya.enum(1);
+                        },
+                    },
+                    {optimistic: false},
+                ],
             ],
         },
     },

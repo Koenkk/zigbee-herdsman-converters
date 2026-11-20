@@ -112,7 +112,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MOT-C1ZxxC/F",
         vendor: "Profalux",
         description: "Cover",
-        extend: [profaluxExtend.addManuSpecificProfalux1Cluster()],
+        // Motor reports its internal temperature (genDeviceTempCfg) from endpoint 2
+        extend: [profaluxExtend.addManuSpecificProfalux1Cluster(), m.deviceTemperature()],
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
@@ -248,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint2 = device.getEndpoint(2);
             // Bind clusters
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closureWindowCovering"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closuresWindowCovering"]);
             // Configure battery voltage reporting from endpoint 2
             await reporting.batteryVoltage(endpoint2, {min: 3600, max: repInterval.MAX, change: 1});
         },

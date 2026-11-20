@@ -7,6 +7,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DR3000",
         vendor: "Dowsing & Reynolds",
         description: "Antique brass double dimmer switch",
-        extend: [m.light()],
+        version: "0.0.1",
+        extend: [m.light({configureReporting: true})],
     },
 ];

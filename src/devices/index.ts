@@ -11,8 +11,10 @@ import {definitions as akuvox} from "./akuvox";
 import {definitions as alchemy} from "./alchemy";
 import {definitions as aldi} from "./aldi";
 import {definitions as alecto} from "./alecto";
+import {definitions as allesin} from "./allesin";
 import {definitions as amina} from "./amina";
 import {definitions as anchor} from "./anchor";
+import {definitions as ariston} from "./ariston";
 import {definitions as atlantic} from "./atlantic";
 import {definitions as atsmart} from "./atsmart";
 import {definitions as auroraLighting} from "./aurora_lighting";
@@ -22,8 +24,10 @@ import {definitions as awox} from "./awox";
 import {definitions as axis} from "./axis";
 import {definitions as bacchus} from "./bacchus";
 import {definitions as bankamp} from "./bankamp";
+import {definitions as beca} from "./beca";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
+import {definitions as besisglas} from "./besisglas";
 import {definitions as bitron} from "./bitron";
 import {definitions as bituoTechnik} from "./bituo_technik";
 import {definitions as blaupunkt} from "./blaupunkt";
@@ -49,6 +53,8 @@ import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
 import {definitions as commercialElectric} from "./commercial_electric";
+import {definitions as control4} from "./control4";
+import {definitions as coselig} from "./coselig";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
 import {definitions as currentProductsCorp} from "./current_products_corp";
@@ -79,9 +85,11 @@ import {definitions as ecodim} from "./ecodim";
 import {definitions as ecolink} from "./ecolink";
 import {definitions as ecosmart} from "./ecosmart";
 import {definitions as ecozy} from "./ecozy";
+import {definitions as edflab} from "./edflab";
 import {definitions as edp} from "./edp";
 import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
+import {definitions as ekaza} from "./ekaza";
 import {definitions as elko} from "./elko";
 import {definitions as enbrighten} from "./enbrighten";
 import {definitions as engo} from "./engo";
@@ -104,6 +112,7 @@ import {definitions as ezviz} from "./ezviz";
 import {definitions as fantem} from "./fantem";
 import {definitions as feibit} from "./feibit";
 import {definitions as fireangel} from "./fireangel";
+import {definitions as fontastic} from "./fontastic";
 import {definitions as frankever} from "./frankever";
 import {definitions as frient} from "./frient";
 import {definitions as futurehome} from "./futurehome";
@@ -114,6 +123,7 @@ import {definitions as giderwel} from "./giderwel";
 import {definitions as giex} from "./giex";
 import {definitions as girier} from "./girier";
 import {definitions as gledopto} from "./gledopto";
+import {definitions as gluon} from "./gluon";
 import {definitions as gmmts} from "./gmmts";
 import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
@@ -123,12 +133,15 @@ import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
+import {definitions as heatzy} from "./heatzy";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
+import {definitions as heiwa} from "./heiwa";
 import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
 import {definitions as hive} from "./hive";
+import {definitions as hobeian} from "./hobeian";
 import {definitions as hoftronic} from "./hoftronic";
 import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
@@ -149,6 +162,7 @@ import {definitions as imou} from "./imou";
 import {definitions as innr} from "./innr";
 import {definitions as inovelli} from "./inovelli";
 import {definitions as insta} from "./insta";
+import {definitions as intelbras} from "./intelbras";
 import {definitions as intuis} from "./intuis";
 import {definitions as iolloi} from "./iolloi";
 import {definitions as iotperfect} from "./iotperfect";
@@ -179,12 +193,15 @@ import {definitions as letsled} from "./letsled";
 import {definitions as letv} from "./letv";
 import {definitions as leviton} from "./leviton";
 import {definitions as lg} from "./lg";
+import {definitions as libraSoft} from "./librasoft";
 import {definitions as lidl} from "./lidl";
 import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
 import {definitions as lincukoo} from "./lincukoo";
 import {definitions as linkind} from "./linkind";
+import {definitions as linknlink} from "./linknlink";
 import {definitions as linptech} from "./linptech";
+import {definitions as linxura} from "./linxura";
 import {definitions as livingwise} from "./livingwise";
 import {definitions as livolo} from "./livolo";
 import {definitions as lixee} from "./lixee";
@@ -206,10 +223,12 @@ import {definitions as megaman} from "./megaman";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as miele} from "./miele";
 import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
+import {definitions as mowe} from "./mowe";
 import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multir} from "./multir";
@@ -230,6 +249,7 @@ import {definitions as nodieby} from "./nodieby";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
+import {definitions as novaDigital} from "./nova_digital";
 import {definitions as novo} from "./novo";
 import {definitions as nue3a} from "./nue_3a";
 import {definitions as nyce} from "./nyce";
@@ -249,10 +269,12 @@ import {definitions as peq} from "./peq";
 import {definitions as perenio} from "./perenio";
 import {definitions as philio} from "./philio";
 import {definitions as philips} from "./philips";
+import {definitions as pirogovx} from "./pirogovx";
 import {definitions as plaid} from "./plaid";
 import {definitions as plugwise} from "./plugwise";
 import {definitions as profalux} from "./profalux";
 import {definitions as prolight} from "./prolight";
+import {definitions as pulsar} from "./pulsar";
 import {definitions as purmo} from "./purmo";
 import {definitions as pushok} from "./pushok";
 import {definitions as qa} from "./qa";
@@ -265,8 +287,10 @@ import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
 import {definitions as repenicLtd} from "./repenic_ltd";
 import {definitions as rgbGenie} from "./rgb_genie";
+import {definitions as ribag} from "./ribag";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
+import {definitions as rtiTek} from "./rti_tek";
 import {definitions as rtx} from "./rtx";
 import {definitions as salusControls} from "./salus_controls";
 import {definitions as samotech} from "./samotech";
@@ -278,8 +302,10 @@ import {definitions as schneiderElectric} from "./schneider_electric";
 import {definitions as schwaiger} from "./schwaiger";
 import {definitions as seastarIntelligence} from "./seastar_intelligence";
 import {definitions as securifi} from "./securifi";
+import {definitions as selena} from "./selena";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
+import {definitions as sensyOne} from "./sensy_one";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shada} from "./shada";
 import {definitions as shadeControl} from "./shade_control";
@@ -287,6 +313,7 @@ import {definitions as shelly} from "./shelly";
 import {definitions as shenzhenHoma} from "./shenzhen_homa";
 import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
+import {definitions as siemens} from "./siemens";
 import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
 import {definitions as siliconLabs} from "./silicon_labs";
@@ -317,6 +344,8 @@ import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
 import {definitions as stelpro} from "./stelpro";
+import {definitions as streda} from "./streda";
+import {definitions as stuckatprototype} from "./stuckatprototype";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
@@ -327,6 +356,8 @@ import {definitions as tci} from "./tci";
 import {definitions as tcl} from "./tcl";
 import {definitions as tech} from "./tech";
 import {definitions as technicolor} from "./technicolor";
+import {definitions as teelicht} from "./teelicht";
+import {definitions as teploluxe} from "./teploluxe";
 import {definitions as terncy} from "./terncy";
 import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
@@ -390,8 +421,10 @@ const definitions: DefinitionWithExtend[] = [
     ...alchemy,
     ...aldi,
     ...alecto,
+    ...allesin,
     ...amina,
     ...anchor,
+    ...ariston,
     ...atlantic,
     ...atsmart,
     ...auroraLighting,
@@ -401,8 +434,10 @@ const definitions: DefinitionWithExtend[] = [
     ...axis,
     ...bacchus,
     ...bankamp,
+    ...beca,
     ...bega,
     ...belkin,
+    ...besisglas,
     ...bitron,
     ...bituoTechnik,
     ...blaupunkt,
@@ -428,6 +463,8 @@ const definitions: DefinitionWithExtend[] = [
     ...cleverio,
     ...climax,
     ...commercialElectric,
+    ...control4,
+    ...coselig,
     ...cree,
     ...ctm,
     ...currentProductsCorp,
@@ -458,8 +495,10 @@ const definitions: DefinitionWithExtend[] = [
     ...ecolink,
     ...ecosmart,
     ...ecozy,
+    ...edflab,
     ...edp,
     ...efekta,
+    ...ekaza,
     ...eglo,
     ...elko,
     ...enbrighten,
@@ -482,6 +521,7 @@ const definitions: DefinitionWithExtend[] = [
     ...fantem,
     ...feibit,
     ...fireangel,
+    ...fontastic,
     ...frankever,
     ...frient,
     ...futurehome,
@@ -492,6 +532,7 @@ const definitions: DefinitionWithExtend[] = [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gluon,
     ...gmmts,
     ...gmy,
     ...gs,
@@ -501,12 +542,15 @@ const definitions: DefinitionWithExtend[] = [
     ...hamptonBay,
     ...handshakeFinland,
     ...heatit,
+    ...heatzy,
     ...heiman,
     ...heimgardTechnologies,
+    ...heiwa,
     ...hej,
     ...hfh,
     ...hilux,
     ...hive,
+    ...hobeian,
     ...hoftronic,
     ...homeseer,
     ...hommyn,
@@ -526,6 +570,7 @@ const definitions: DefinitionWithExtend[] = [
     ...innr,
     ...inovelli,
     ...insta,
+    ...intelbras,
     ...intuis,
     ...iolloi,
     ...iotperfect,
@@ -557,12 +602,15 @@ const definitions: DefinitionWithExtend[] = [
     ...letv,
     ...leviton,
     ...lg,
+    ...libraSoft,
     ...lidl,
     ...lifecontrol,
     ...lightsolutions,
     ...lincukoo,
     ...linkind,
+    ...linknlink,
     ...linptech,
+    ...linxura,
     ...livingwise,
     ...livolo,
     ...lixee,
@@ -582,10 +630,12 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...miele,
     ...mill,
     ...mindy,
     ...modular,
     ...moes,
+    ...mowe,
     ...msh,
     ...mullerLicht,
     ...multir,
@@ -606,6 +656,7 @@ const definitions: DefinitionWithExtend[] = [
     ...nordtronic,
     ...nous,
     ...nobo,
+    ...novaDigital,
     ...novo,
     ...nue3a,
     ...nyce,
@@ -625,10 +676,12 @@ const definitions: DefinitionWithExtend[] = [
     ...perenio,
     ...philio,
     ...philips,
+    ...pirogovx,
     ...plaid,
     ...plugwise,
     ...profalux,
     ...prolight,
+    ...pulsar,
     ...purmo,
     ...pushok,
     ...qmotion,
@@ -640,9 +693,11 @@ const definitions: DefinitionWithExtend[] = [
     ...raex,
     ...repenicLtd,
     ...rgbGenie,
+    ...ribag,
     ...robb,
     ...roome,
     ...lumi,
+    ...rtiTek,
     ...rtx,
     ...salusControls,
     ...samotech,
@@ -654,8 +709,10 @@ const definitions: DefinitionWithExtend[] = [
     ...schwaiger,
     ...seastarIntelligence,
     ...securifi,
+    ...selena,
     ...sengled,
     ...senoro,
+    ...sensyOne,
     ...sercomm,
     ...shada,
     ...shadeControl,
@@ -663,6 +720,7 @@ const definitions: DefinitionWithExtend[] = [
     ...shenzhenHoma,
     ...shinasystem,
     ...shyugj,
+    ...siemens,
     ...siglis,
     ...siliconLabs,
     ...sikom,
@@ -693,6 +751,8 @@ const definitions: DefinitionWithExtend[] = [
     ...sprut,
     ...stello,
     ...stelpro,
+    ...streda,
+    ...stuckatprototype,
     ...sunricher,
     ...superled,
     ...swann,
@@ -703,6 +763,8 @@ const definitions: DefinitionWithExtend[] = [
     ...tcl,
     ...tech,
     ...technicolor,
+    ...teelicht,
+    ...teploluxe,
     ...terncy,
     ...theLightGroup,
     ...thirdReality,

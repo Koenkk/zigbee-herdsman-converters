@@ -25,6 +25,45 @@ const ea = exposes.access;
 
 const defaultResponseOptions = {disableDefaultResponse: false};
 
+/** Limit strings to the byte lengths supported by the camera firmware. */
+function validateCameraText(value: unknown, maxLength: number): void {
+    assert(typeof value === "string" && Buffer.byteLength(value, "utf8") <= maxLength, `Value must be a string of at most ${maxLength} bytes`);
+}
+
+function heimanCameraNumeric(
+    name: string,
+    attribute: keyof HeimanPrivateCluster["attributes"],
+    description: string,
+    valueMax: number,
+    unit?: string,
+): ModernExtend {
+    return m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+        name,
+        cluster: "heimanClusterSpecial",
+        attribute,
+        description,
+        access: "ALL",
+        entityCategory: "config",
+        valueMin: 0,
+        valueMax,
+        unit,
+    });
+}
+
+function heimanRawData(): ModernExtend {
+    return {
+        exposes: [e.text("secure", ea.STATE).withDescription("Unparsed raw Zigbee message in hexadecimal")],
+        fromZigbee: [
+            {
+                cluster: "genBasic",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => ({secure: (msg.data as Buffer).toString("hex")}),
+            } satisfies Fz.Converter<"genBasic", undefined, ["raw"]>,
+        ],
+        isModernExtend: true,
+    };
+}
+
 interface RadarSensorHeimanZcl {
     attributes: {
         enableIndicator: number;
@@ -83,6 +122,14 @@ interface HeimanPrivateCluster {
         occupanyControlOnOffIlluminanceThreshold: number;
         radarDetectionMinRange: number;
         radarDetectionMaxRange: number;
+        shieldingSensorDetection: number;
+        dewPoint: number;
+        vpd: number;
+        thi: number;
+        heatIndex: number;
+        soundVolume: number;
+        radarMicroCurrentSnr: number[];
+        radarPersenceCurrentSnr: number[];
 
         // Light/Switch 0x1000~0x1FFF
         indicatorLightControl: number;
@@ -95,6 +142,10 @@ interface HeimanPrivateCluster {
         interconnectable: number;
         indicatorLightOnOff: number;
         remoteSelfTest: number;
+        fixedRoomName: number;
+        language: number;
+        floors: number;
+        fixedVoices: number;
         temperatureOffset: number;
         switchType: number;
         humidityOffset: number;
@@ -103,6 +154,14 @@ interface HeimanPrivateCluster {
         reportedPackages: number;
         illuminanceThreshold: number;
         mcuSoftwareVersion: number;
+        cameraImageSize: number;
+        cameraVideoDuration: number;
+        cameraGop: number;
+        cameraAudioEnable: number;
+        cameraRtspUser: string;
+        cameraRtspPassword: string;
+        cameraDayNightMode: number;
+        cameraStatus: Buffer;
 
         // wifi classes
         wifiSsid: string;
@@ -112,7 +171,7 @@ interface HeimanPrivateCluster {
         pictureQuantity: number;
         pictureQuality: number;
         serverAddress: string;
-        serverAddressCandidae: string;
+        serverAddressCandidate: string;
         serverPort: number;
         authToken: string;
         zoneCaptureMode: number;
@@ -123,8 +182,32 @@ interface HeimanPrivateCluster {
         serverStatus: number;
         serverCandidateStatus: number;
         cameraReady: number;
+        wifiProvisioningStatus: number;
         flashLightBrightness: number;
         cameraMode: number;
+        cameraSubtype: number;
+        cameraCaptureMethod: number;
+        cameraCaptureInterval: number;
+        cameraInitQp: number;
+        cameraFlip: number;
+        cameraMirror: number;
+        cameraOsdEnable: number;
+        cameraOsdText: string;
+        cameraVideoCodec: number;
+        cameraFrameRate: number;
+        cameraBitRate: number;
+
+        // light effects:
+        lightEffect: number;
+        lightSpeed: number;
+        lightIntensity: number;
+        lightPalette: number;
+        lightCustom1: number;
+        lightCustom2: number;
+        lightCustom3: number;
+        lightOptions: number;
+        lightEffectCount: number;
+        lightPixelCount: number;
     };
     commands: {
         cameraActiveTrigger: {
@@ -140,6 +223,286 @@ interface HeimanPrivateCluster {
 }
 
 const iasWarningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
+
+const languageLookup = {english: 0, german: 1, french: 2, italian: 3, spanish: 4};
+const roomLookup = {
+    no_location: 0,
+    attic: 1,
+    basement: 2,
+    bedroom: 3,
+    child_room: 4,
+    den: 5,
+    dining_room: 6,
+    entryway: 7,
+    family_room: 8,
+    guest_bedroom: 9,
+    hallway: 10,
+    kitchen: 11,
+    living_room: 12,
+    master_bedroom: 13,
+    office: 14,
+    utility_room: 15,
+    other_room: 16,
+};
+const floorLookup = {no_floor: 0, ground_floor: 1, first_floor: 2, second_floor: 3, third_floor: 4, fourth_floor: 5};
+const voiceLookup = {
+    unset: 0,
+    boot_ready: 1,
+    test_intro: 2,
+    smoke_warning: 3,
+    smoke_silenced: 4,
+    co_warning: 5,
+    co_silenced: 6,
+    smoke_cannot_be_silenced: 7,
+    co_cannot_be_silenced: 8,
+    low_battery: 9,
+    smoke_sensor_malfunction: 10,
+    co_sensor_open_circuit: 11,
+    co_sensor_short_circuit: 12,
+    end_of_life: 13,
+    room_selection_instructions: 14,
+    floor_selection_instructions: 15,
+    room_saved: 16,
+    floor_saved: 17,
+    no_room_saved: 18,
+    no_floor_saved: 19,
+    language_change: 20,
+    selected: 21,
+    evacuate: 22,
+    count_five: 23,
+    count_four: 24,
+    count_three: 25,
+    count_two: 26,
+    count_one: 27,
+    communication_mode_matter: 28,
+    communication_mode_zigbee: 29,
+    network_joined: 30,
+    network_join_failed: 31,
+    language_set: 32,
+};
+const lightEffectNames = [
+    "solid",
+    "blink",
+    "breathe",
+    "wipe",
+    "wipe_random",
+    "random_colors",
+    "sweep",
+    "dynamic",
+    "colorloop",
+    "rainbow",
+    "scan",
+    "dual_scan",
+    "fade",
+    "theater",
+    "theater_rainbow",
+    "running",
+    "saw",
+    "twinkle",
+    "dissolve",
+    "dissolve_random",
+    "sparkle",
+    "dark_sparkle",
+    "sparkle_plus",
+    "strobe",
+    "strobe_rainbow",
+    "mega_strobe",
+    "blink_rainbow",
+    "android",
+    "chase",
+    "chase_random",
+    "chase_rainbow",
+    "chase_flash",
+    "chase_flash_random",
+    "rainbow_runner",
+    "colorful",
+    "traffic_light",
+    "sweep_random",
+    "running_2",
+    "aurora",
+    "stream",
+    "scanner",
+    "comet",
+    "fireworks",
+    "rain",
+    "tetrix",
+    "fire_flicker",
+    "gradient",
+    "loading",
+    "rolling_balls",
+    "fairy",
+    "two_dots",
+    "fairy_twinkle",
+    "running_dual",
+    "image",
+    "tricolor_chase",
+    "tricolor_wipe",
+    "tricolor_fade",
+    "lightning",
+    "icu",
+    "multi_comet",
+    "dual_scanner",
+    "random_chase",
+    "oscillate",
+    "pride_2015",
+    "juggle",
+    "palette",
+    "fire_2012",
+    "colorwaves",
+    "bpm",
+    "fill_noise",
+    "noise_1",
+    "noise_2",
+    "noise_3",
+    "noise_4",
+    "color_twinkle",
+    "lake",
+    "meteor",
+    "copy",
+    "railway",
+    "ripple",
+    "twinklefox",
+    "twinklecat",
+    "halloween_eyes",
+    "static_pattern",
+    "tri_static_pattern",
+    "spots",
+    "spots_fade",
+    "glitter",
+    "candle",
+    "starburst",
+    "exploding_fireworks",
+    "bouncing_balls",
+    "sinelon",
+    "sinelon_dual",
+    "sinelon_rainbow",
+    "popcorn",
+    "drip",
+    "plasma",
+    "percent",
+    "ripple_rainbow",
+    "heartbeat",
+    "pacifica",
+    "candle_multi",
+    "solid_glitter",
+    "sunrise",
+    "phased",
+    "twinkleup",
+    "noisepal",
+    "sinewave",
+    "phased_noise",
+    "flow",
+    "chunchun",
+    "dancing_shadows",
+    "washing_machine",
+    "2d_plasma_rotozoom",
+    "blends",
+    "tv_simulator",
+    "dynamic_smooth",
+    "2d_spaceships",
+    "2d_crazy_bees",
+    "2d_ghost_rider",
+    "2d_blobs",
+    "2d_scroll_text",
+    "2d_drift_rose",
+    "2d_distortion_waves",
+    "2d_soap",
+    "2d_octopus",
+    "2d_waving_cell",
+    "pixels",
+    "pixelwave",
+    "juggles",
+    "matripix",
+    "gravimeter",
+    "plasmoid",
+    "puddles",
+    "midnoise",
+    "noisemeter",
+    "freqwave",
+    "freqmatrix",
+    "2d_geq",
+    "waterfall",
+    "freqpixels",
+    "binmap",
+    "noisefire",
+    "puddlepeak",
+    "noisemove",
+    "2d_noise",
+    "perlinmove",
+    "ripplepeak",
+    "2d_firenoise",
+    "2d_squared_swirl",
+    "pacman",
+    "2d_dna",
+    "2d_matrix",
+    "2d_metaballs",
+    "freqmap",
+    "gravcenter",
+    "gravcentric",
+    "gravfreq",
+    "dj_light",
+    "2d_funky_plank",
+    "shimmer",
+    "2d_pulser",
+    "blurz",
+    "2d_drift",
+    "2d_waverly",
+    "2d_sun_radiation",
+    "2d_colored_bursts",
+    "2d_julia",
+    "reserved_169",
+    "reserved_170",
+    "reserved_171",
+    "2d_game_of_life",
+    "2d_tartan",
+    "2d_polar_lights",
+    "2d_swirl",
+    "2d_lissajous",
+    "2d_frizzles",
+    "2d_plasma_ball",
+    "flow_stripe",
+    "2d_hiphotic",
+    "2d_sin_dots",
+    "2d_dna_spiral",
+    "2d_black_hole",
+    "wavesins",
+    "rocktaves",
+    "2d_akemi",
+    "particle_volcano",
+    "particle_fire",
+    "particle_fireworks",
+    "particle_vortex",
+    "particle_perlin",
+    "particle_pit",
+    "particle_box",
+    "particle_attractor",
+    "particle_impact",
+    "particle_waterfall",
+    "particle_spray",
+    "particles_geq",
+    "particle_center_geq",
+    "particle_ghost_rider",
+    "particle_blobs",
+    "ps_drip",
+    "ps_pinball",
+    "ps_dancing_shadows",
+    "ps_fireworks_1d",
+    "ps_sparkler",
+    "ps_hourglass",
+    "ps_1d_spray",
+    "ps_balance",
+    "ps_chase",
+    "ps_starburst",
+    "ps_1d_geq",
+    "ps_fire_1d",
+    "ps_1d_sonic_stream",
+    "ps_1d_sonic_boom",
+    "ps_1d_springy",
+    "particle_galaxy",
+    "color_clouds",
+    "slow_transition",
+];
+const lightEffectLookup = Object.fromEntries(lightEffectNames.map((name, index) => [name, index]));
 
 const heimanExtend = {
     heimanClusterRadar: () =>
@@ -206,6 +569,14 @@ const heimanExtend = {
                 radarDetectionTargetRange: {name: "radarDetectionTargetRange", ID: 0x0029, type: Zcl.DataType.UINT16},
                 radarDetectionMinRange: {name: "radarDetectionMinRange", ID: 0x002b, type: Zcl.DataType.UINT16, write: true},
                 radarDetectionMaxRange: {name: "radarDetectionMaxRange", ID: 0x002c, type: Zcl.DataType.UINT16, write: true},
+                shieldingSensorDetection: {name: "shieldingSensorDetection", ID: 0x002d, type: Zcl.DataType.UINT16, write: true},
+                dewPoint: {name: "dewPoint", ID: 0x0033, type: Zcl.DataType.INT16},
+                vpd: {name: "vpd", ID: 0x0034, type: Zcl.DataType.UINT16},
+                thi: {name: "thi", ID: 0x0035, type: Zcl.DataType.UINT16},
+                heatIndex: {name: "heatIndex", ID: 0x0036, type: Zcl.DataType.INT16},
+                soundVolume: {name: "soundVolume", ID: 0x0047, type: Zcl.DataType.UINT8, write: true},
+                radarMicroCurrentSnr: {name: "radarMicroCurrentSnr", ID: 0x004a, type: Zcl.DataType.OCTET_STR},
+                radarPersenceCurrentSnr: {name: "radarPersenceCurrentSnr", ID: 0x004b, type: Zcl.DataType.OCTET_STR},
 
                 // Light/Switch 0x1000~0x1FFF
                 indicatorLightControl: {name: "indicatorLightControl", ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
@@ -218,6 +589,10 @@ const heimanExtend = {
                 interconnectable: {name: "interconnectable", ID: 0x1007, type: Zcl.DataType.UINT8},
                 indicatorLightOnOff: {name: "indicatorLightOnOff", ID: 0x1008, type: Zcl.DataType.UINT8, write: true},
                 remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
+                fixedRoomName: {name: "fixedRoomName", ID: 0x100b, type: Zcl.DataType.ENUM8, write: true},
+                language: {name: "language", ID: 0x100c, type: Zcl.DataType.ENUM8, write: true},
+                floors: {name: "floors", ID: 0x100e, type: Zcl.DataType.ENUM8, write: true},
+                fixedVoices: {name: "fixedVoices", ID: 0x100f, type: Zcl.DataType.ENUM8, write: true},
                 temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16, write: true},
                 switchType: {name: "switchType", ID: 0x1010, type: Zcl.DataType.ENUM8, write: true},
                 humidityOffset: {name: "humidityOffset", ID: 0x1012, type: Zcl.DataType.INT16, write: true},
@@ -227,27 +602,59 @@ const heimanExtend = {
                 illuminanceThreshold: {name: "illuminanceThreshold", ID: 0x002a, type: Zcl.DataType.UINT16, write: true},
                 mcuSoftwareVersion: {name: "mcuSoftwareVersion", ID: 0x0030, type: Zcl.DataType.UINT8},
 
-                // wifi classes
+                // Camera and Wi-Fi attributes
+                cameraImageSize: {name: "cameraImageSize", ID: 0x1ff8, type: Zcl.DataType.UINT8, write: true},
+                cameraVideoDuration: {name: "cameraVideoDuration", ID: 0x1ff9, type: Zcl.DataType.UINT16, write: true},
+                cameraGop: {name: "cameraGop", ID: 0x1ffa, type: Zcl.DataType.UINT16, write: true},
+                cameraAudioEnable: {name: "cameraAudioEnable", ID: 0x1ffb, type: Zcl.DataType.UINT8, write: true},
+                cameraRtspUser: {name: "cameraRtspUser", ID: 0x1ffc, type: Zcl.DataType.CHAR_STR, write: true},
+                cameraRtspPassword: {name: "cameraRtspPassword", ID: 0x1ffd, type: Zcl.DataType.CHAR_STR, write: true},
+                cameraDayNightMode: {name: "cameraDayNightMode", ID: 0x1ffe, type: Zcl.DataType.UINT8, write: true},
+                cameraStatus: {name: "cameraStatus", ID: 0x1fff, type: Zcl.DataType.OCTET_STR},
                 wifiSsid: {name: "wifiSsid", ID: 0x2000, type: Zcl.DataType.CHAR_STR, write: true},
                 wifiPassword: {name: "wifiPassword", ID: 0x2001, type: Zcl.DataType.CHAR_STR, write: true},
                 wifiSsidCandidate: {name: "wifiSsidCandidate", ID: 0x2002, type: Zcl.DataType.CHAR_STR, write: true},
                 wifiPasswordCandidate: {name: "wifiPasswordCandidate", ID: 0x2003, type: Zcl.DataType.CHAR_STR, write: true},
                 pictureQuantity: {name: "pictureQuantity", ID: 0x2004, type: Zcl.DataType.UINT8, write: true},
                 pictureQuality: {name: "pictureQuality", ID: 0x2005, type: Zcl.DataType.UINT8, write: true},
-                serverAddress: {name: "serverAddress", ID: 0x2006, type: Zcl.DataType.CHAR_STR},
-                serverAddressCandidae: {name: "serverAddressCandidae", ID: 0x2007, type: Zcl.DataType.CHAR_STR},
-                serverPort: {name: "serverPort", ID: 0x2008, type: Zcl.DataType.UINT8},
-                authToken: {name: "authToken", ID: 0x2009, type: Zcl.DataType.CHAR_STR},
-                zoneCaptureMode: {name: "zoneCaptureMode", ID: 0x200a, type: Zcl.DataType.UINT8},
+                serverAddress: {name: "serverAddress", ID: 0x2006, type: Zcl.DataType.CHAR_STR, write: true},
+                serverAddressCandidate: {name: "serverAddressCandidate", ID: 0x2007, type: Zcl.DataType.CHAR_STR, write: true},
+                serverPort: {name: "serverPort", ID: 0x2008, type: Zcl.DataType.UINT16, write: true},
+                authToken: {name: "authToken", ID: 0x2009, type: Zcl.DataType.CHAR_STR, write: true},
+                zoneCaptureMode: {name: "zoneCaptureMode", ID: 0x200a, type: Zcl.DataType.UINT8, write: true},
                 sensorArmed: {name: "sensorArmed", ID: 0x200b, type: Zcl.DataType.UINT8, write: true},
                 wifiStatus: {name: "wifiStatus", ID: 0x200c, type: Zcl.DataType.UINT8},
                 wifiCandidateStatus: {name: "wifiCandidateStatus", ID: 0x200d, type: Zcl.DataType.UINT8},
-                wifiRssi: {name: "wifiRssi", ID: 0x200e, type: Zcl.DataType.INT8, write: true},
-                serverStatus: {name: "serverStatus", ID: 0x200f, type: Zcl.DataType.INT8},
-                serverCandidateStatus: {name: "serverCandidateStatus", ID: 0x2010, type: Zcl.DataType.INT8},
-                cameraReady: {name: "cameraReady", ID: 0x2013, type: Zcl.DataType.INT8},
-                flashLightBrightness: {name: "flashLightBrightness", ID: 0x2012, type: Zcl.DataType.INT8},
-                cameraMode: {name: "cameraMode", ID: 0x2014, type: Zcl.DataType.INT8},
+                wifiRssi: {name: "wifiRssi", ID: 0x200e, type: Zcl.DataType.UINT8, write: true},
+                serverStatus: {name: "serverStatus", ID: 0x200f, type: Zcl.DataType.UINT8},
+                serverCandidateStatus: {name: "serverCandidateStatus", ID: 0x2010, type: Zcl.DataType.UINT8},
+                cameraReady: {name: "cameraReady", ID: 0x2011, type: Zcl.DataType.UINT8},
+                wifiProvisioningStatus: {name: "wifiProvisioningStatus", ID: 0x2012, type: Zcl.DataType.UINT8, write: true},
+                flashLightBrightness: {name: "flashLightBrightness", ID: 0x2013, type: Zcl.DataType.UINT8, write: true},
+                cameraMode: {name: "cameraMode", ID: 0x2014, type: Zcl.DataType.UINT8, write: true},
+                cameraSubtype: {name: "cameraSubtype", ID: 0x2015, type: Zcl.DataType.UINT8, write: true},
+                cameraCaptureMethod: {name: "cameraCaptureMethod", ID: 0x2016, type: Zcl.DataType.UINT8, write: true},
+                cameraCaptureInterval: {name: "cameraCaptureInterval", ID: 0x2017, type: Zcl.DataType.UINT32, write: true},
+                cameraInitQp: {name: "cameraInitQp", ID: 0x2018, type: Zcl.DataType.UINT16, write: true},
+                cameraFlip: {name: "cameraFlip", ID: 0x2019, type: Zcl.DataType.UINT8, write: true},
+                cameraMirror: {name: "cameraMirror", ID: 0x201a, type: Zcl.DataType.UINT8, write: true},
+                cameraOsdEnable: {name: "cameraOsdEnable", ID: 0x201b, type: Zcl.DataType.UINT8, write: true},
+                cameraOsdText: {name: "cameraOsdText", ID: 0x201c, type: Zcl.DataType.CHAR_STR, write: true},
+                cameraVideoCodec: {name: "cameraVideoCodec", ID: 0x201d, type: Zcl.DataType.UINT8, write: true},
+                cameraFrameRate: {name: "cameraFrameRate", ID: 0x201e, type: Zcl.DataType.UINT8, write: true},
+                cameraBitRate: {name: "cameraBitRate", ID: 0x201f, type: Zcl.DataType.UINT32, write: true},
+
+                // light effects
+                lightEffect: {name: "lightEffect", ID: 0x2020, type: Zcl.DataType.ENUM8, write: true},
+                lightSpeed: {name: "lightSpeed", ID: 0x2021, type: Zcl.DataType.UINT8, write: true},
+                lightIntensity: {name: "lightIntensity", ID: 0x2022, type: Zcl.DataType.UINT8, write: true},
+                lightPalette: {name: "lightPalette", ID: 0x2023, type: Zcl.DataType.ENUM8, write: true},
+                lightCustom1: {name: "lightCustom1", ID: 0x2024, type: Zcl.DataType.UINT8, write: true},
+                lightCustom2: {name: "lightCustom2", ID: 0x2025, type: Zcl.DataType.UINT8, write: true},
+                lightCustom3: {name: "lightCustom3", ID: 0x2026, type: Zcl.DataType.UINT8, write: true},
+                lightOptions: {name: "lightOptions", ID: 0x2027, type: Zcl.DataType.BITMAP8, write: true},
+                lightEffectCount: {name: "lightEffectCount", ID: 0x2028, type: Zcl.DataType.UINT16},
+                lightPixelCount: {name: "lightPixelCount", ID: 0x2029, type: Zcl.DataType.UINT16, write: true},
             },
             commands: {
                 cameraActiveTrigger: {
@@ -889,7 +1296,7 @@ const heimanExtend = {
         };
     },
     iasZoneInitiateTestMode: (): ModernExtend => {
-        const exposes = utils.exposeEndpoints(e.enum("trigger_selftest", ea.SET, ["test"]).withDescription("Trigger smoke alarm self-check test."));
+        const exposes = utils.exposeEndpoints(e.enum("trigger_selftest", ea.SET, ["test"]).withDescription("Trigger alarm self-check."));
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["trigger_selftest"],
@@ -916,7 +1323,7 @@ const heimanExtend = {
 
         const invalidModes = displayModes.filter((m) => !defaultModes.includes(m));
         if (invalidModes.length > 0) {
-            throw new Error(`Invalid alarm mode: ${invalidModes.join(", ")}, 
+            throw new Error(`Invalid alarm mode: ${invalidModes.join(", ")},
             Legal values: ${defaultModes.join(", ")}`);
         }
 
@@ -982,9 +1389,7 @@ const heimanExtend = {
         };
     },
     iasWarningDeviceMute: (): ModernExtend => {
-        const exposes = utils.exposeEndpoints(
-            e.enum("temporary_mute", ea.SET, ["mute"]).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."),
-        );
+        const exposes = utils.exposeEndpoints(e.enum("temporary_mute", ea.SET, ["mute"]).withDescription("Silence the alarm temporarily"));
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["temporary_mute"],
@@ -1025,9 +1430,7 @@ const heimanExtend = {
     },
     heimanClusterSensorMutable: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
-        const exposes = utils.exposeEndpoints(
-            e.binary("temporary_mute", ea.ALL, true, false).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."),
-        );
+        const exposes = utils.exposeEndpoints(e.binary("temporary_mute", ea.ALL, true, false).withDescription("Silence the alarm temporarily"));
 
         const fromZigbee = [
             {
@@ -1244,6 +1647,7 @@ const heimanExtend = {
             attribute: {ID: attributeId, type: Zcl.DataType.UINT16},
             description: "device fault state",
             access: "STATE_GET",
+            entityCategory: "diagnostic",
         });
         const fromZigbee = [
             {
@@ -1260,100 +1664,6 @@ const heimanExtend = {
         return {
             ...mExtend,
             fromZigbee,
-        };
-    },
-    heimanClusterSensorWifiExposure: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-
-        const attrIds: Record<string, number> = {
-            wifiSsid: 0x2000,
-            wifiPassword: 0x2001,
-            wifiSsidCandidate: 0x2002,
-            wifiPasswordCandidate: 0x2003,
-            serverUrl: 0x2006,
-            serverUrlCandidate: 0x2007,
-        };
-
-        const exposes = [
-            e.text("wifi_ssid", ea.ALL).withDescription("Current WiFi SSID"),
-            e.text("wifi_password", ea.ALL).withDescription("Current WiFi Password"),
-            e.text("wifi_ssid_candidate", ea.ALL).withDescription("Candidate WiFi SSID"),
-            e.text("wifi_password_candidate", ea.ALL).withDescription("Candidate WiFi Password"),
-            e.text("server_url", ea.ALL).withDescription("Current Server URL"),
-            e.text("server_url_candidate", ea.ALL).withDescription("Candidate WiFi Server URL"),
-        ];
-
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: Record<string, unknown> = {};
-                    const data = msg.data as Record<string, unknown>;
-
-                    if (data.wifiSsid !== undefined) result.wifi_ssid = data.wifiSsid;
-                    if (data.wifiPassword !== undefined) result.wifi_password = data.wifiPassword;
-                    if (data.wifiSsidCandidate !== undefined) result.wifi_ssid_candidate = data.wifiSsidCandidate;
-                    if (data.wifiPasswordCandidate !== undefined) result.wifi_password_candidate = data.wifiPasswordCandidate;
-                    if (data.serverUrl !== undefined) result.server_url = data.serverUrl;
-                    if (data.serverUrlCandidate !== undefined) result.server_url_candidate = data.serverUrlCandidate;
-
-                    return result;
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["wifi_ssid", "wifi_password", "wifi_ssid_candidate", "wifi_password_candidate", "server_url", "server_url_candidate"],
-                convertSet: async (entity, key, value, meta) => {
-                    const attrNameMap: Record<string, string> = {
-                        wifi_ssid: "wifiSsid",
-                        wifi_password: "wifiPassword",
-                        wifi_ssid_candidate: "wifiSsidCandidate",
-                        wifi_password_candidate: "wifiPasswordCandidate",
-                        server_url: "serverUrl",
-                        server_url_candidate: "serverUrlCandidate",
-                    };
-
-                    const attrName = attrNameMap[key];
-                    const attrId = attrIds[attrName];
-
-                    if (attrId !== undefined) {
-                        const payload = {
-                            [attrId]: {
-                                value: value,
-                                type: Zcl.DataType.CHAR_STR,
-                            },
-                        };
-                        await entity.write(clusterName, payload, defaultResponseOptions);
-                        // await entity.write<typeof clusterName, HeimanPrivateCluster>(clusterName, {[attrId]: value}, defaultResponseOptions);
-                    }
-                    return {state: {[key]: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    const attrNameMap: Record<string, string> = {
-                        wifi_ssid: "wifiSsid",
-                        wifi_password: "wifiPassword",
-                        wifi_ssid_candidate: "wifiSsidCandidate",
-                        wifi_password_candidate: "wifiPasswordCandidate",
-                        server_url: "serverUrl",
-                        server_url_candidate: "serverUrlCandidate",
-                    };
-
-                    const attrId = attrIds[attrNameMap[key]];
-                    if (attrId !== undefined) {
-                        await entity.read(clusterName, [attrId], defaultResponseOptions);
-                    }
-                },
-            },
-        ];
-
-        return {
-            exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
         };
     },
     heimanClusterSensorActiveTrigger: (): ModernExtend => {
@@ -1425,11 +1735,23 @@ const heimanExtend = {
             access: "ALL",
             ...args,
         }),
+    shieldingSensorDetection: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "shielding_sensor_detection",
+            unit: "min",
+            valueMin: 0,
+            valueMax: 20,
+            cluster: "heimanClusterSpecial",
+            attribute: "shieldingSensorDetection",
+            description: "Duration of shielding sensor detection",
+            access: "ALL",
+            ...args,
+        }),
     smokeConcentrationLevel: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "smoke_level",
             unit: "",
-            scale: 0.1,
+            scale: 100,
             valueMin: 0,
             valueMax: 20,
             cluster: "heimanClusterSpecial",
@@ -1461,7 +1783,7 @@ const heimanExtend = {
     linkAvailable: (args?: Partial<m.EnumLookupArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
         m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "link_available",
-            lookup: {inactive: 0, smoke_active: 1, co_active: 2, heat_active: 3},
+            lookup: {inactive: 0, smoke_active: 1, co_active: 2, gas_active: 3, heat_active: 4},
             cluster: "heimanClusterSpecial",
             attribute: "interconnectable",
             description: "used for interconnection automation.",
@@ -1475,6 +1797,133 @@ const heimanExtend = {
             cluster: "heimanClusterSpecial",
             attribute: "deviceCascadeState",
             description: "siren effect",
+            access: "ALL",
+            ...args,
+        }),
+    language: (args?: Partial<m.EnumLookupArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "language",
+            lookup: languageLookup,
+            cluster: "heimanClusterSpecial",
+            attribute: "language",
+            description: "Device language",
+            access: "ALL",
+            ...args,
+        }),
+    room: (args?: Partial<m.EnumLookupArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "room",
+            lookup: roomLookup,
+            cluster: "heimanClusterSpecial",
+            attribute: "fixedRoomName",
+            description: "Device room location",
+            access: "ALL",
+            ...args,
+        }),
+    floor: (args?: Partial<m.EnumLookupArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "floor",
+            lookup: floorLookup,
+            cluster: "heimanClusterSpecial",
+            attribute: "floors",
+            description: "Device floor location",
+            access: "ALL",
+            ...args,
+        }),
+    voice: (args?: Partial<m.EnumLookupArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "voice",
+            lookup: voiceLookup,
+            cluster: "heimanClusterSpecial",
+            attribute: "fixedVoices",
+            description: "Play a device voice prompt",
+            access: "ALL",
+            ...args,
+        }),
+    lightEffect: (args?: Partial<m.EnumLookupArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_effect",
+            lookup: lightEffectLookup,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightEffect",
+            description: "Light effect",
+            access: "ALL",
+            ...args,
+        }),
+    lightSpeed: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_speed",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightSpeed",
+            description: "Light effect speed",
+            access: "ALL",
+            ...args,
+        }),
+    lightIntensity: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_intensity",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightIntensity",
+            description: "Light effect intensity",
+            access: "ALL",
+            ...args,
+        }),
+    lightPalette: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_palette",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightPalette",
+            description: "Light effect palette",
+            access: "ALL",
+            ...args,
+        }),
+    lightOptions: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_options",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightOptions",
+            description: "Light effect options bitmap",
+            access: "ALL",
+            ...args,
+        }),
+    lightEffectCount: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_effect_count",
+            valueMin: 0,
+            valueMax: 200,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightEffectCount",
+            description: "Number of available light effects",
+            access: "STATE_GET",
+            ...args,
+        }),
+    lightPixelCount: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_pixel_count",
+            valueMin: 0,
+            valueMax: 1000,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightPixelCount",
+            description: "Number of light pixels",
+            access: "ALL",
+            ...args,
+        }),
+    soundVolume: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "sound_volume",
+            valueMin: 0,
+            valueMax: 100,
+            cluster: "heimanClusterSpecial",
+            attribute: "soundVolume",
+            description: "Sound volume",
             access: "ALL",
             ...args,
         }),
@@ -1506,6 +1955,39 @@ const heimanExtend = {
             access: "ALL",
             ...args,
         }),
+    dewPoint: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "dew_point",
+            cluster: "heimanClusterSpecial",
+            attribute: "dewPoint",
+            description: "Dew point",
+            access: "STATE_GET",
+            homeassistant: {name: "Dew point"},
+        }),
+    vpd: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "vpd",
+            cluster: "heimanClusterSpecial",
+            attribute: "vpd",
+            description: "Saturated vapor pressure",
+            access: "STATE_GET",
+        }),
+    thi: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "thi",
+            cluster: "heimanClusterSpecial",
+            attribute: "thi",
+            description: "Temperature humidity index",
+            access: "STATE_GET",
+        }),
+    heatIndex: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "heat_index",
+            cluster: "heimanClusterSpecial",
+            attribute: "heatIndex",
+            description: "Heat index",
+            access: "STATE_GET",
+        }),
     reportedPackages: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "reported_packages",
@@ -1516,6 +1998,7 @@ const heimanExtend = {
             attribute: "reportedPackages",
             description: "for diagnostic purpose, how many zigbee packages has the reported in a day.",
             access: "STATE_GET",
+            entityCategory: "diagnostic",
             ...args,
         }),
     rejoinedCount: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
@@ -1528,6 +2011,7 @@ const heimanExtend = {
             attribute: "rejoinedCount",
             description: "for diagnostic purpose, how many times has the product rejoined to zigbee network.",
             access: "STATE_GET",
+            entityCategory: "diagnostic",
             ...args,
         }),
     rebootedCount: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
@@ -1540,6 +2024,7 @@ const heimanExtend = {
             attribute: "rebootedCount",
             description: "for diagnostic purpose, how many times has the product rebooted.",
             access: "STATE_GET",
+            entityCategory: "diagnostic",
             ...args,
         }),
 };
@@ -1608,6 +2093,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    heiman_camera_status: {
+        cluster: "heimanClusterSpecial",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data.cameraStatus;
+            if (value !== undefined) return {camera_status: Buffer.from(value).toString("hex")};
+        },
+    } satisfies Fz.Converter<"heimanClusterSpecial", HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
     heimanClusterSpecialfz: {
         cluster: "heimanClusterSpecial",
         type: ["attributeReport", "readResponse"],
@@ -1841,7 +2334,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0212", ["_TYZB01_wpmo3ja3"]),
         zigbeeModel: ["CO_V15", "CO_YDLV10", "CO_V16", "1ccaa94c49a84abaa9e38687913947ba", "CO_CTPG"],
         model: "HS1CA-M",
-        description: "Smart carbon monoxide sensor",
+        description: "Smart carbon monoxide alarm",
         vendor: "Heiman",
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
@@ -1852,6 +2345,18 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryAlarmState(endpoint);
         },
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
+    },
+    {
+        zigbeeModel: ["JM720ES-EF-3.0"],
+        model: "HS-720ES-ZB",
+        vendor: "Heiman",
+        description: "Smart carbon monoxide alarm",
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.iasWarning(),
+        ],
     },
     {
         zigbeeModel: ["PIRSensor-N", "PIRSensor-N-3.0", "PIRSensor-EM", "PIRSensor-EF-3.0", "PIR_TPV13"],
@@ -1916,7 +2421,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "HS1SA-E",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke alarm",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -1930,7 +2435,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SmokeSensor-N", "SmokeSensor-EM"],
         model: "HS3SA/HS1SA",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke alarm",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -1944,7 +2449,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS2SA-EF-3.0"],
         model: "HS2SA-EF-3.0",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke alarm",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -2025,8 +2530,36 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["D1-EF2-3.0"],
         model: "D1-EFA",
         vendor: "Heiman",
-        description: "Door sensor",
+        description: "Smart door sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+    },
+    {
+        zigbeeModel: ["D1-E"],
+        model: "D1-E",
+        vendor: "Heiman",
+        description: "Smart door sensor",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+        },
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight("alarm_indicator"),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
     },
     {
         zigbeeModel: ["DoorSensor-EM", "DoorSensor-EF-3.0"],
@@ -2084,6 +2617,34 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["L1-E"],
+        model: "L1-E",
+        vendor: "Heiman",
+        description: "Smart Water leakage sensor",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+        },
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight("alarm_indicator"),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+    },
+    {
         fingerprint: [{modelID: "RC-N", manufacturerName: "HEIMAN"}],
         model: "HS1RC-N",
         vendor: "Heiman",
@@ -2133,7 +2694,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["COSensor-EM", "COSensor-N", "COSensor-EF-3.0"],
         model: "HS1CA-E",
         vendor: "Heiman",
-        description: "Smart carbon monoxide sensor",
+        description: "Smart carbon monoxide alarm",
         fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -2149,30 +2710,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WD-E",
         vendor: "Heiman",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ias_wd],
-        toZigbee: [tz.warning, tz.ias_max_duration],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read("ssIasWd", ["maxDuration"]);
-        },
-        exposes: [
-            e.battery(),
-            e
-                .numeric("max_duration", ea.ALL)
-                .withUnit("s")
-                .withValueMin(0)
-                .withValueMax(600)
-                .withDescription("Max duration of Siren")
-                .withCategory("config"),
-            e
-                .warning()
-                .removeFeature("level")
-                .removeFeature("strobe_level")
-                .removeFeature("mode")
-                .withFeature(e.enum("mode", ea.SET, ["stop", "emergency"]).withDescription("Mode of the warning (sound effect)")),
+        extend: [
+            m.battery(),
+            {
+                exposes: [
+                    e
+                        .numeric("max_duration", ea.ALL)
+                        .withUnit("s")
+                        .withValueMin(0)
+                        .withValueMax(65534)
+                        .withDescription("Max duration of Siren")
+                        .withCategory("config"),
+                    e
+                        .warning()
+                        .removeFeature("level")
+                        .removeFeature("strobe_level")
+                        .removeFeature("mode")
+                        .withFeature(e.enum("mode", ea.SET, ["stop", "emergency"]).withDescription("Mode of the warning (sound effect)")),
+                ],
+                fromZigbee: m.iasWarning({maxDuration: true}).fromZigbee,
+                toZigbee: m.iasWarning({maxDuration: true}).toZigbee,
+                isModernExtend: true,
+            },
         ],
     },
     {
@@ -2324,6 +2884,47 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint2);
         },
         exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
+    {
+        zigbeeModel: ["H1-E"],
+        model: "H1-E",
+        vendor: "Heiman",
+        description: "Smart Temperature & humidity sensor",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint1.read("msTemperatureMeasurement", [0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["humidityOffset", "temperatureOffset", "rebootedCount", "rejoinedCount", "reportedPackages"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["msRelativeHumidity"]);
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        extend: [
+            m.battery(),
+            heimanExtend.heimanClusterSpecial(),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                lookup: {celsius: 0, fahrenheit: 1},
+                description: "Temperature unit displayed on the device screen",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
     },
     {
         zigbeeModel: ["GASSensor-EM", "358e4e3e03c644709905034dae81433e"],
@@ -2705,17 +3306,186 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS9MS-E",
         vendor: "Heiman",
         description: "Smart motion sensor",
-        fromZigbee: [fzLocal.heimanClusterSpecialfz],
-        toZigbee: [],
-        exposes: [],
+        fromZigbee: [fzLocal.heimanClusterSpecialfz, fzLocal.heiman_camera_status],
+        toZigbee: [
+            {
+                key: ["camera_status"],
+                convertGet: async (entity) => {
+                    await entity.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraStatus"]);
+                },
+            },
+        ],
+        exposes: [e.text("camera_status", ea.STATE_GET).withDescription("Raw 9-byte camera status in hexadecimal").withCategory("diagnostic")],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            const options = {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD};
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["sensorSensitivityLevel", "illuminanceThreshold", "mcuSoftwareVersion", "sensorArmed"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["pictureQuantity", "pictureQuality", "zoneCaptureMode", "serverPort"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["wifiStatus", "wifiCandidateStatus", "wifiRssi", "serverStatus"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["serverCandidateStatus", "cameraReady", "wifiProvisioningStatus", "flashLightBrightness"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["cameraGop", "cameraAudioEnable", "cameraDayNightMode", "cameraMode"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["cameraImageSize", "cameraVideoDuration"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["cameraSubtype", "cameraCaptureMethod", "cameraCaptureInterval", "cameraInitQp"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["cameraFlip", "cameraMirror", "cameraOsdEnable", "cameraVideoCodec"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraFrameRate", "cameraBitRate"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraStatus"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["wifiSsid"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["wifiSsidCandidate"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraRtspUser"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraOsdText"], options);
+        },
         extend: [
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
             m.battery(),
             heimanExtend.heimanClusterSpecial(),
-            heimanExtend.heimanClusterSensorTestTrigger(),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "pir_sensitivity_level",
+                lookup: {disabled: 0, low: 1, medium: 2, high: 3},
+                cluster: "heimanClusterSpecial",
+                // HS9MS-E rejects the shared UINT8 type for this attribute.
+                attribute: {ID: 0x0004, type: Zcl.DataType.ENUM8},
+                description: "The sensitivity of PIR Sensor",
+                access: "ALL",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "sensor_armed",
+                valueOn: ["Armed", 1],
+                valueOff: ["Disarmed", 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorArmed",
+                description: "armed",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "illuminance_threshold",
+                unit: "Lx",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 1000,
+                cluster: "heimanClusterSpecial",
+                attribute: "illuminanceThreshold",
+                description: "when the illuminance exceeds the threshold, it activates local linkages.",
+                access: "ALL",
+            }),
             heimanExtend.heimanClusterSensorActiveTrigger(),
-            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
-            heimanExtend.heimanClusterSensorWifiExposure(),
+            heimanExtend.heimanClusterSensorTestTrigger(),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_ready",
+                lookup: {unavailable: 0, low_power: 1, normal: 2, advanced: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraReady",
+                description: "Camera readiness status",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_mode",
+                lookup: {capture: 0, video: 1, ota: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraMode",
+                description: "Camera operating mode",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_image_size",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraImageSize",
+                description: "Image size: 0 640x360, 1 640x480, 2 1280x720, 3 960x1080, 4 1920x1080; takes effect on next start",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 0,
+                valueMax: 4,
+                valueStep: 1,
+                scale: (value, direction) => {
+                    if (direction === "to") assert(Number.isInteger(value) && value >= 0 && value <= 4, "Image size must be an integer from 0 to 4");
+                    return value;
+                },
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_video_duration",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraVideoDuration",
+                description: "Video runtime; takes effect on next start",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 600,
+                valueStep: 1,
+                unit: "s",
+                scale: (value, direction) => {
+                    if (direction === "to")
+                        assert(Number.isInteger(value) && value >= 1 && value <= 600, "Video duration must be an integer from 1 to 600");
+                    return value;
+                },
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_subtype",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraSubtype",
+                description: "Subtype: capture 0 JPEG / 1 H.265; video 0 RTSP / 1 HTTP JPEG; OTA 0 APP / 1 firmware",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 0,
+                valueMax: 1,
+                valueStep: 1,
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_capture_method",
+                lookup: {aov: 0, normal: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraCaptureMethod",
+                description: "Capture method (capture mode only)",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_capture_interval",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraCaptureInterval",
+                description: "Capture interval; AOV requires at least 1 second, 0 means no additional wait in Normal or HTTP JPEG mode",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 0,
+                valueMax: 2147483,
+                valueStep: 1,
+                unit: "s",
+            }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "picture_quantity",
                 unit: "",
@@ -2738,45 +3508,209 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "picture quality",
                 access: "ALL",
             }),
+            heimanCameraNumeric("zone_capture_mode", "zoneCaptureMode", "Zone capture mode", 0xff),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "mcu_software_version",
-                unit: "",
-                scale: 1,
-                valueMin: 0,
-                valueMax: 255,
+                name: "camera_init_qp",
                 cluster: "heimanClusterSpecial",
-                attribute: "mcuSoftwareVersion",
-                description: "version of mcu",
-                access: "STATE_GET",
-            }),
-            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "illuminance_threshold",
-                unit: "Lx",
-                scale: 1,
-                valueMin: 0,
-                valueMax: 1000,
-                cluster: "heimanClusterSpecial",
-                attribute: "illuminanceThreshold",
-                description: "when the illuminance exceeds the threshold, it activates local linkages.",
+                attribute: "cameraInitQp",
+                description: "Initial QP (capture mode only)",
                 access: "ALL",
-            }),
-            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "sensor_armed",
-                valueOn: ["Armed", 1],
-                valueOff: ["Disarmed", 0],
-                cluster: "heimanClusterSpecial",
-                attribute: "sensorArmed",
-                description: "armed",
-                access: "ALL",
+                entityCategory: "config",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "pir_sensitivity_level",
-                lookup: {disabled: 0, low: 1, medium: 2, high: 3},
+                name: "camera_day_night_mode",
+                lookup: {day_color: 0, day_black_and_white: 1, night_color: 2, night_black_and_white: 3},
                 cluster: "heimanClusterSpecial",
-                attribute: "sensorSensitivityLevel",
-                description: "The sensitivity of PIR Sensor",
+                attribute: "cameraDayNightMode",
+                description: "Camera day/night mode",
                 access: "ALL",
+                entityCategory: "config",
             }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_flip",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraFlip",
+                description: "Flip camera image vertically",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_mirror",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraMirror",
+                description: "Mirror camera image horizontally",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            heimanCameraNumeric("flash_light_brightness", "flashLightBrightness", "Camera flash brightness", 0xff),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_osd_enable",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraOsdEnable",
+                description: "Enable camera on-screen display",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_osd_text",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraOsdText",
+                description: "OSD text: printable ASCII and newlines, up to 64 bytes; empty when OSD is disabled",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => {
+                    validateCameraText(value, 64);
+                    assert(typeof value === "string" && /^[\x20-\x7e\n]*$/.test(value), "OSD text must contain only printable ASCII and newlines");
+                },
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_video_codec",
+                lookup: {h264: 0, h265: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraVideoCodec",
+                description: "Video codec (RTSP only)",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_frame_rate",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraFrameRate",
+                description: "Video frame rate (RTSP only; reference value 15)",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 30,
+                valueStep: 1,
+                unit: "fps",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_bit_rate",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraBitRate",
+                description: "Video bit rate (RTSP only; reference value 2048)",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 65535,
+                valueStep: 1,
+                unit: "kbps",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_gop",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraGop",
+                description: "GOP length in frames (RTSP only; reference value 15)",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 65535,
+                valueStep: 1,
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_audio_enable",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraAudioEnable",
+                description: "Enable camera audio",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_rtsp_user",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraRtspUser",
+                description: "Camera RTSP user name (1–32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => {
+                    validateCameraText(value, 32);
+                    assert(
+                        typeof value === "string" && value.length > 0 && !value.includes("\0"),
+                        "RTSP user name must be nonempty and contain no null characters",
+                    );
+                },
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_rtsp_password",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraRtspPassword",
+                description: "Camera RTSP password (1–64 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => {
+                    validateCameraText(value, 64);
+                    assert(
+                        typeof value === "string" && value.length > 0 && !value.includes("\0"),
+                        "RTSP password must be nonempty and contain no null characters",
+                    );
+                },
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_ssid",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiSsid",
+                description: "Name of the current Wi-Fi network (SSID; up to 32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_password",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiPassword",
+                description: "Password for the current Wi-Fi network (up to 64 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 64),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_ssid_candidate",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiSsidCandidate",
+                description: "Name of the candidate Wi-Fi network (SSID; up to 32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_password_candidate",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiPasswordCandidate",
+                description: "Password for the candidate Wi-Fi network (up to 32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "server_url",
+                cluster: "heimanClusterSpecial",
+                attribute: "serverAddress",
+                description: "URL of the current camera server (up to 251 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 251),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "server_url_candidate",
+                cluster: "heimanClusterSpecial",
+                attribute: "serverAddressCandidate",
+                description: "URL of the candidate camera server (up to 251 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 251),
+            }),
+            heimanCameraNumeric("server_port", "serverPort", "Port of the camera server (0–65535)", 0xffff),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "wifi_status",
                 lookup: {unconfigurated: 0, unconnected: 1, connected: 2, connection_timeout: 3},
@@ -2793,6 +3727,18 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "wifi candidate status",
                 access: "STATE_GET",
             }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_rssi",
+                unit: "dBm",
+                scale: (value, type) => (type === "from" ? (value > 127 ? value - 256 : value) : value < 0 ? value + 256 : value),
+                valueMin: -128,
+                valueMax: 127,
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiRssi",
+                description: "wifi rssi",
+                access: "ALL",
+            }),
+            heimanCameraNumeric("wifi_provisioning_status", "wifiProvisioningStatus", "Wi-Fi provisioning status", 0xff),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "server_status",
                 lookup: {unconfigurated: 0, unconnected: 1, connected: 2, api_timeout: 3},
@@ -2809,24 +3755,25 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "server candidate status",
                 access: "STATE_GET",
             }),
-            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_ready",
-                lookup: {unavailable: 0, low_power: 1, normal: 2, advanced: 3},
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "auth_token",
                 cluster: "heimanClusterSpecial",
-                attribute: "cameraReady",
-                description: "wifi candidate status",
-                access: "STATE_GET",
+                attribute: "authToken",
+                description: "Camera server authentication token",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
             }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "wifi_rssi",
+                name: "mcu_software_version",
                 unit: "",
                 scale: 1,
-                valueMin: -127,
-                valueMax: 127,
+                valueMin: 0,
+                valueMax: 255,
                 cluster: "heimanClusterSpecial",
-                attribute: "wifiRssi",
-                description: "wifi rssi",
-                access: "ALL",
+                attribute: "mcuSoftwareVersion",
+                description: "version of mcu",
+                access: "STATE_GET",
             }),
         ],
     },
@@ -2905,7 +3852,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS15A-M"],
         model: "HS15A-M",
         vendor: "Heiman",
-        description: "Smoke detector relabeled for zipato",
+        description: "Smart smoke alarm relabeled for zipato",
         extend: [m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery(), m.iasWarning()],
     },
     {
@@ -3163,7 +4110,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS1SA-EF-3.0", "HS1SA-E-PLUS"],
         model: "HS1SA-E-PLUS",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke alarm",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3219,10 +4166,282 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["S1-TL"],
+        model: "S1-TL",
+        vendor: "Heiman",
+        description: "Smart smoke alarm",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "deviceMuteControl",
+                    "deviceMuteState",
+                    "sensorPrealarmState",
+                    "indicatorLightLevelControlOf1",
+                    "interconnectable",
+                    "smokeConcentrationLevel",
+                    "smokeChamberContaminationLevel",
+                    "smokeConcentationUnit",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["humidityOffset", "temperatureOffset", "shieldingSensorDetection"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "alarm_state",
+                lookup: {normal: 0, prealarm: 1, alarmed: 2, critical_alarm: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPrealarmState",
+                description: "It indicates the level of alarm states",
+                access: "STATE_GET",
+            }),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            heimanExtend.smokeConcentrationLevel(),
+            heimanExtend.smokeConcentationUnit(),
+            heimanExtend.smokeChamberContaminationLevel(),
+            heimanExtend.linkAvailable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.shieldingSensorDetection(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["S1-M"],
+        model: "S1-M",
+        vendor: "Heiman",
+        description: "Smart smoke alarm",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "deviceMuteControl",
+                    "deviceMuteState",
+                    "sensorPrealarmState",
+                    "indicatorLightLevelControlOf1",
+                    "interconnectable",
+                    "smokeConcentrationLevel",
+                    "smokeChamberContaminationLevel",
+                    "smokeConcentationUnit",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["humidityOffset", "temperatureOffset", "shieldingSensorDetection"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "alarm_state",
+                lookup: {normal: 0, prealarm: 1, alarmed: 2, critical_alarm: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPrealarmState",
+                description: "It indicates the level of alarm states",
+                access: "STATE_GET",
+            }),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            heimanExtend.smokeConcentrationLevel(),
+            heimanExtend.smokeConcentationUnit(),
+            heimanExtend.smokeChamberContaminationLevel(),
+            heimanExtend.linkAvailable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.shieldingSensorDetection(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["S1-TL-AI", "SC6-EF2-AI"],
+        model: "S1-TL-AI",
+        vendor: "Heiman",
+        description: "Smart smoke alarm",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["deviceMuteControl", "deviceMuteState", "interconnectable"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanRawData(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["S2-E"],
+        model: "S2-E",
+        vendor: "Heiman",
+        description: "Smart smoke alarm",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "deviceMuteControl",
+                    "deviceMuteState",
+                    "sensorPrealarmState",
+                    "indicatorLightLevelControlOf1",
+                    "interconnectable",
+                    "smokeConcentrationLevel",
+                    "smokeChamberContaminationLevel",
+                    "smokeConcentationUnit",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["temperatureOffset", "shieldingSensorDetection"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "alarm_state",
+                lookup: {normal: 0, prealarm: 1, alarmed: 2, critical_alarm: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPrealarmState",
+                description: "It indicates the level of alarm states",
+                access: "STATE_GET",
+            }),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            heimanExtend.smokeConcentrationLevel(),
+            heimanExtend.smokeConcentationUnit(),
+            heimanExtend.smokeChamberContaminationLevel(),
+            heimanExtend.linkAvailable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.shieldingSensorDetection(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
         zigbeeModel: ["HM-722ESY-E-PLUS"],
         model: "HM-722ESY-E Plus",
         vendor: "Heiman",
-        description: "Co detector",
+        description: "Smart carbon monoxide alarm",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3318,8 +4537,101 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS1CA-E-PLUS"],
         model: "HS1CA-E-PLUS",
         vendor: "Heiman",
-        description: "Co detector",
+        description: "Smart carbon monoxide alarm",
         version: "0.0.1",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "deviceMuteControl",
+                    "deviceMuteState",
+                    "indicatorLightLevelControlOf1",
+                    "interconnectable",
+                    "temperatureOffset",
+                    "sensorLifeState",
+                    "sensorPrealarmState",
+                    "sensorPreheatingState",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "1_SECOND", max: "4_HOURS", change: 0.00001},
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "endoflife",
+                lookup: {normal: 0, expires_soon: 1, expired: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorLifeState",
+                description: "It indicates if the sensor expired",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "alarm_state",
+                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPrealarmState",
+                description: "It indicates the level of alarm states",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "preheating",
+                lookup: {normal: 0, preheating: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPreheatingState",
+                description: "It indicates if the sensor is under preheating status",
+                access: "STATE_GET",
+            }),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.linkAvailable(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["C1-M"],
+        model: "C1-M",
+        vendor: "Heiman",
+        description: "Smart carbon monoxide alarm",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3412,7 +4724,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Smokesensor-EF2-3.0"],
         model: "HS1SA-E Lover",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke alarm",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3449,7 +4761,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HM-636THV-AC-M"],
         model: "HM-636THV-AC-M",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke&CO alarm",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3547,55 +4859,261 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["WarningDevice-EFA1-3.0"],
-        model: "HS2WD-EF",
+        zigbeeModel: ["SC6"],
+        model: "SC6",
         vendor: "Heiman",
-        description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ias_wd],
-        toZigbee: [tz.warning, tz.ias_max_duration],
-        meta: {disableDefaultResponse: true},
+        description: "Smart smoke&CO alarm",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read("ssIasWd", ["maxDuration"]);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "deviceMuteControl",
+                    "deviceMuteState",
+                    "indicatorLightLevelControlOf1",
+                    "interconnectable",
+                    "smokeConcentrationLevel",
+                    "smokeChamberContaminationLevel",
+                    "smokeConcentationUnit",
+                    "sensorLifeState",
+                    "sensorPrealarmState",
+                    "sensorPreheatingState",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorSensitivityLevel",
+                    "occupanySensorWorkMode",
+                    "occupiedToOccupiedDuration",
+                    "radarLearningState",
+                    "radarDetectionTargetRange",
+                    "occupanyControlOnOffIlluminanceThreshold",
+                    "radarDetectionMaxRange",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
         },
-        exposes: [
-            e.battery(),
-            e
-                .numeric("max_duration", ea.ALL)
-                .withUnit("s")
-                .withValueMin(0)
-                .withValueMax(1800)
-                .withDescription("Max duration of Siren")
-                .withCategory("config"),
-            e
-                .warning()
-                .removeFeature("strobe_level")
-                .removeFeature("mode")
-                .withFeature(e.enum("mode", ea.SET, ["stop", "burglar", "fire", "emergency"]).withDescription("Mode of the warning(sound effect)")),
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.humidity(),
+            m.illuminance({reporting: {min: 10, max: 1800, change: 16990}}),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 900,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+                scale: 0.000001,
+                reporting: {min: "1_SECOND", max: "4_HOURS", change: 0.00001},
+            }),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            heimanExtend.smokeConcentrationLevel(),
+            heimanExtend.smokeConcentationUnit(),
+            heimanExtend.smokeChamberContaminationLevel(),
+            heimanExtend.linkAvailable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.temperatureOffset(),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "target_distance",
+                unit: "m",
+                valueMin: 1,
+                valueMax: 10,
+                valueStep: 0.01,
+                scale: 100,
+                cluster: "heimanClusterSpecial",
+                attribute: "radarDetectionTargetRange",
+                description: "The distance of target",
+                access: "STATE_GET",
+            }),
+            m.numeric({
+                name: "unoccupied_delay",
+                unit: "s",
+                valueMin: 5,
+                valueMax: 3600,
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                description: "occupied to unoccupied delay",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_detection_max_range",
+                unit: "m",
+                valueMin: 0,
+                valueMax: 6,
+                valueStep: 0.25,
+                scale: 100,
+                cluster: "heimanClusterSpecial",
+                attribute: "radarDetectionMaxRange",
+                description: "The maximum detection range of the radar",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "illuminance_threshold",
+                unit: "lx",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 1000,
+                cluster: "heimanClusterSpecial",
+                attribute: "illuminanceThreshold",
+                description: "when the illuminance exceeds the threshold, it activates local linkages.",
+                access: "ALL",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "sensitivity_level",
+                lookup: {low: 0, medium: 1, high: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorSensitivityLevel",
+                description: "The sensitivity of Sensor",
+                access: "ALL",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "work_mode",
+                lookup: {pir: 1, radar: 2, pir_and_radar: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "occupanySensorWorkMode",
+                description: "occupany sensor work mode",
+                access: "ALL",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_learning",
+                valueOn: ["start", 65534],
+                valueOff: ["idle", 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "radarLearningControl",
+                description: "Radar learning. Please keep it unoccupied.",
+                access: "ALL",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_learning_reset",
+                valueOn: ["reset", 65535],
+                valueOff: ["idle", 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "radarLearningControl",
+                description: "Reset radar learning and restore default parameters.",
+                access: "ALL",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_learning_state",
+                lookup: {normal: 0, learning: 1, completed: 2, failed: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "radarLearningState",
+                description: "radar learning state",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "preheating",
+                lookup: {normal: 0, preheating: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPreheatingState",
+                description: "It indicates if the sensor is under preheating status",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "endoflife",
+                lookup: {normal: 0, expires_soon: 1, expired: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorLifeState",
+                description: "It indicates if the sensor expired",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "alarm_state",
+                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPrealarmState",
+                description: "It indicates the level of alarm states",
+                access: "STATE_GET",
+            }),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
         ],
         ota: true,
     },
     {
-        zigbeeModel: ["M1-PE"],
-        model: "M1-PE",
+        zigbeeModel: ["WarningDevice-EFA1-3.0"],
+        model: "HS2WD-EF",
+        vendor: "Heiman",
+        description: "Smart siren",
+        meta: {disableDefaultResponse: true},
+        extend: [
+            m.battery(),
+            {
+                exposes: [
+                    e
+                        .numeric("max_duration", ea.ALL)
+                        .withUnit("s")
+                        .withValueMin(0)
+                        .withValueMax(1800)
+                        .withDescription("Max duration of Siren")
+                        .withCategory("config"),
+                    e
+                        .warning()
+                        .removeFeature("strobe_level")
+                        .removeFeature("mode")
+                        .withFeature(
+                            e.enum("mode", ea.SET, ["stop", "burglar", "fire", "emergency"]).withDescription("Mode of the warning(sound effect)"),
+                        ),
+                ],
+                fromZigbee: m.iasWarning({maxDuration: true}).fromZigbee,
+                toZigbee: m.iasWarning({maxDuration: true}).toZigbee,
+                isModernExtend: true,
+            },
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["M1-PE", "M1P-E"],
+        model: "M1P-E",
         vendor: "Heiman",
         description: "Smart occupancy sensor",
         configure: async (device, cordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, cordinatorEndpoint, [
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, cordinatorEndpoint, [
                 "genPowerCfg",
                 "msIlluminanceMeasurement",
                 "msOccupancySensing",
                 "heimanClusterSpecial",
             ]);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
-            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
-            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
-            await endpoint.read("msOccupancySensing", ["occupancy", "pirOToUDelay"]);
-            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+            await endpoint1.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint1.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint1.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint1.read("msOccupancySensing", ["occupancy", "pirOToUDelay"]);
+            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
                     "sensorFaultState",
@@ -3605,7 +5123,6 @@ export const definitions: DefinitionWithExtend[] = [
                     "radarLearningState",
                     "radarDetectionTargetRange",
                     "occupanyControlOnOffIlluminanceThreshold",
-                    "radarDetectionMinRange",
                     "radarDetectionMaxRange",
                     "humidityOffset",
                     "temperatureOffset",
@@ -3618,17 +5135,19 @@ export const definitions: DefinitionWithExtend[] = [
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
             );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
         },
+        version: "0.0.1",
         extend: [
             m.battery(),
-            m.occupancy(),
+            m.occupancy({reportingConfig: {min: 1, max: 0, change: 0}}),
             heimanExtend.heimanClusterSpecial(),
-            m.illuminance(),
-            m.temperature(),
-            m.humidity(),
+            m.illuminance({reporting: {min: 10, max: 1800, change: 16990}}),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "target_distance",
-                unit: "meter(s)",
+                unit: "m",
                 valueMin: 1,
                 valueMax: 10,
                 valueStep: 0.01,
@@ -3650,7 +5169,18 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "occupied to unoccupied delay",
                 access: "ALL",
             }),
-            heimanExtend.heimanClusterRadarDetectionRange(),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_detection_max_range",
+                unit: "m",
+                valueMin: 0,
+                valueMax: 6,
+                valueStep: 0.25,
+                scale: 100,
+                cluster: "heimanClusterSpecial",
+                attribute: "radarDetectionMaxRange",
+                description: "The maximum detection range of the radar",
+                access: "ALL",
+            }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "illuminance_threshold",
                 unit: "lx",
@@ -3663,11 +5193,11 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "pir_sensitivity_level",
+                name: "sensitivity_level",
                 lookup: {low: 0, medium: 1, high: 2},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorSensitivityLevel",
-                description: "The sensitivity of PIR Sensor",
+                description: "The sensitivity of Sensor",
                 access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
@@ -3681,16 +5211,25 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
             m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "learning_control",
+                name: "radar_learning",
                 valueOn: ["start", 65534],
-                valueOff: ["reset", 65535],
+                valueOff: ["idle", 0],
                 cluster: "heimanClusterSpecial",
                 attribute: "radarLearningControl",
-                description: "Radar learning mode, please wake up the device first.",
-                access: "STATE_SET",
+                description: "Radar learning. Please keep it unoccupied.",
+                access: "ALL",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_learning_reset",
+                valueOn: ["reset", 65535],
+                valueOff: ["idle", 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "radarLearningControl",
+                description: "Reset radar learning and restore default parameters.",
+                access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "learning_state",
+                name: "radar_learning_state",
                 lookup: {normal: 0, learning: 1, completed: 2, failed: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: "radarLearningState",
@@ -3716,7 +5255,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HM-5HA-E", "HM-5HA-EF-3.0"],
         model: "HM-5HA-E",
         vendor: "Heiman",
-        description: "Heat detector",
+        description: "Smart heat alarm",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3756,9 +5295,249 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterSensorMutable(),
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.heimanClusterSensorInterconnectable(),
-            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.sirenForAutomationOnly({lookup: {stop: 0, smoke_siren: 1, co_siren: 2, heat_siren: 5}}),
             heimanExtend.temperatureOffset(),
             heimanExtend.linkAvailable(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2VTD"],
+        model: "HS2VTD",
+        vendor: "Heiman",
+        description: "Smart 4 in 1 door sensor",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "indicatorLightLevelControlOf1",
+                    "sensorSensitivityLevel",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "dewPoint",
+                    "vpd",
+                    "thi",
+                    "heatIndex",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+            await endpoint2.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"], endpointId: 1}),
+            m.iasZoneAlarm({zoneType: "vibration", zoneAttributes: ["alarm_2"], endpointId: 2}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight("alarm_indicator"),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "sensitivity_level",
+                lookup: {low: 0, medium: 1, high: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorSensitivityLevel",
+                description: "The sensitivity of Sensor",
+                access: "ALL",
+            }),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2TD"],
+        model: "HS2TD",
+        vendor: "Heiman",
+        description: "Smart 3 in 1 door sensor",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "indicatorLightLevelControlOf1",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "dewPoint",
+                    "vpd",
+                    "thi",
+                    "heatIndex",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight("alarm_indicator"),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.dewPoint(),
+            heimanExtend.vpd(),
+            heimanExtend.thi(),
+            heimanExtend.heatIndex(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2HT"],
+        model: "HS2HT",
+        vendor: "Heiman",
+        description: "Smart temperature & humidity sensor",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "indicatorLightLevelControlOf1",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "dewPoint",
+                    "vpd",
+                    "thi",
+                    "heatIndex",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight("alarm_indicator"),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.dewPoint(),
+            heimanExtend.vpd(),
+            heimanExtend.thi(),
+            heimanExtend.heatIndex(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2NLV"],
+        model: "HS2NLV",
+        vendor: "Heiman",
+        description: "Smart notifier",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("genOnOff", ["onOff", "startUpOnOff"]);
+            await endpoint.read("genLevelCtrl", ["currentLevel"]);
+            await endpoint.read("lightingColorCtrl", ["currentX", "currentY", "colorMode"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "lightSpeed",
+                    "lightIntensity",
+                    "lightPalette",
+                    "lightOptions",
+                    "lightEffectCount",
+                    "lightPixelCount",
+                    "soundVolume",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.identify(),
+            m.light({
+                color: {modes: ["hs"]},
+                colorTemp: {range: [153, 500]},
+                effect: false,
+                configureReporting: true,
+            }),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.lightEffect(),
+            heimanExtend.lightSpeed(),
+            heimanExtend.lightIntensity(),
+            heimanExtend.lightPalette(),
+            heimanExtend.lightOptions(),
+            heimanExtend.lightEffectCount(),
+            heimanExtend.lightPixelCount(),
+            heimanExtend.soundVolume(),
+            heimanExtend.language(),
+            heimanExtend.room(),
+            heimanExtend.floor(),
+            heimanExtend.voice(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),

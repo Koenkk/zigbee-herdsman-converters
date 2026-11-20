@@ -5,7 +5,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import type {BatteryArgs} from "../lib/modernExtend";
 import * as m from "../lib/modernExtend";
-import {repInterval} from "./constants";
+import {repInterval, thermostatDayOfWeek} from "./constants";
 import {logger} from "./logger";
 import type {ElectricityMeterArgs} from "./modernExtend";
 import {payload} from "./reporting";
@@ -2945,8 +2945,8 @@ export const boschSmokeAlarmExtend = {
         }),
     alarmControl: (): ModernExtend => {
         const alarmModeLookup = {
-            manual_smoke_alarm: 0x00,
-            manual_burglar_alarm: 0x01,
+            smoke: 0x00,
+            burglar: 0x01,
         };
 
         const onOffLookup = {
@@ -2989,11 +2989,12 @@ export const boschSmokeAlarmExtend = {
 
         const exposes: Expose[] = [
             e
-                .binary("manual_smoke_alarm", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
-                .withDescription("Indicates whether the smoke alarm siren is being manually activated on the device"),
-            e
-                .binary("manual_burglar_alarm", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
-                .withDescription("Indicates whether the burglar alarm siren is being manually activated on the device"),
+                .enum("alarm_control", ea.ALL, ["off", "smoke", "burglar"])
+                .withDescription(
+                    "Manually controls the alarm siren of the device. Set to 'smoke' or 'burglar' to activate the " +
+                        "respective alarm, or 'off' to deactivate it.",
+                )
+                .withHomeAssistant({type: "siren"}),
             e
                 .binary("broadcast_alarms", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
                 .withLabel("Broadcast alarms")
@@ -3002,7 +3003,8 @@ export const boschSmokeAlarmExtend = {
                         "that a detected smoke alarm is not being transmitted automatically to other devices. " +
                         "To achieve that, you must set up an automation, e.g., in Home Assistant.",
                 )
-                .withCategory("config"),
+                .withCategory("config")
+                .withHomeAssistant({icon: "mdi:broadcast"}),
         ];
 
         const fromZigbee = [
@@ -3019,10 +3021,18 @@ export const boschSmokeAlarmExtend = {
                     const result: KeyValue = {};
 
                     const smokeAlarmEnabled = (zoneStatus & (1 << 1)) > 0;
-                    result.manual_smoke_alarm = utils.getFromLookupByValue(smokeAlarmEnabled, onOffLookup);
-
                     const burglarAlarmEnabled = (zoneStatus & (1 << 7)) > 0;
-                    result.manual_burglar_alarm = utils.getFromLookupByValue(burglarAlarmEnabled, onOffLookup);
+
+                    // The smoke and burglar alarms are mutually exclusive on the device.
+                    // If both are reported as enabled (which shouldn't happen during normal
+                    // operation), we prioritise the smoke alarm for safety reasons.
+                    if (smokeAlarmEnabled) {
+                        result.alarm_control = "smoke";
+                    } else if (burglarAlarmEnabled) {
+                        result.alarm_control = "burglar";
+                    } else {
+                        result.alarm_control = "off";
+                    }
 
                     return result;
                 },
@@ -3031,9 +3041,9 @@ export const boschSmokeAlarmExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["manual_smoke_alarm", "manual_burglar_alarm", "broadcast_alarms"],
+                key: ["alarm_control", "broadcast_alarms"],
                 convertSet: async (entity, key, value, meta) => {
-                    if (key === "manual_smoke_alarm" || key === "manual_burglar_alarm") {
+                    if (key === "alarm_control") {
                         let broadcastAlarm: boolean;
 
                         try {
@@ -3043,28 +3053,48 @@ export const boschSmokeAlarmExtend = {
                             broadcastAlarm = defaultBroadcastAlarms;
                         }
 
-                        const alarmMode = utils.getFromLookup(key, alarmModeLookup);
-                        const enableAlarm = utils.getFromLookup(value, onOffLookup);
-                        const timeoutInSeconds = enableAlarm ? 0xf0 : 0;
-
+                        utils.assertString(value, "alarm_control");
+                        utils.validateValue(value, ["off", "smoke", "burglar"]);
                         utils.assertEndpoint(entity);
-                        await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds);
-                        clearTimeout(globalStore.getValue("boschSmokeAlarm", "alarmTimer"));
 
-                        if (enableAlarm) {
+                        if (value === "off") {
+                            const existingAlarmTimer = globalStore.getValue("boschSmokeAlarm", "alarmTimer");
+                            clearTimeout(existingAlarmTimer);
+                            globalStore.clearValue("boschSmokeAlarm", "alarmTimer");
+
+                            const activeAlarm = meta.state?.alarm_control;
+                            const alarmModesToStop =
+                                typeof activeAlarm === "string" && activeAlarm in alarmModeLookup
+                                    ? [alarmModeLookup[activeAlarm as keyof typeof alarmModeLookup]]
+                                    : Object.values(alarmModeLookup);
+
+                            for (const alarmMode of alarmModesToStop) {
+                                await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, 0);
+                            }
+                        } else {
+                            const existingAlarmTimer = globalStore.getValue("boschSmokeAlarm", "alarmTimer");
+                            clearTimeout(existingAlarmTimer);
+                            globalStore.clearValue("boschSmokeAlarm", "alarmTimer");
+
+                            const alarmMode = utils.getFromLookup(value, alarmModeLookup);
+                            const timeoutInSeconds = 0xf0;
+
+                            await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds);
                             const alarmTimer = setTimeout(
                                 async () => await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds),
                                 (timeoutInSeconds - 60) * 1000,
                             ).unref();
                             globalStore.putValue("boschSmokeAlarm", "alarmTimer", alarmTimer);
                         }
+
+                        return {state: {alarm_control: value}};
                     }
                     if (key === "broadcast_alarms") {
                         return {state: {broadcast_alarms: value}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
-                    if (key === "manual_smoke_alarm" || key === "manual_burglar_alarm") {
+                    if (key === "alarm_control") {
                         await entity.read("ssIasZone", ["zoneStatus"]);
                     }
                     if (key === "broadcast_alarms" && meta.state[key] === undefined) {
@@ -3289,6 +3319,8 @@ export interface BoschThermostatCluster {
         heatingDemand: number;
         /** ID: 16418 | Type: ENUM8 | Only used on BTH-RA */
         valveAdaptStatus: number;
+        /** ID: 16419 | Type: ENUM8 | Only used on BTH-RM230Z, controls humidity/temperature warning LEDs */
+        humidityAlarmLed: number;
         /** ID: 16421 | Type: ENUM8 | Only used on BTH-RM230Z with value depending on heaterType */
         unknownAttribute0: number;
         /** ID: 16448 | Type: INT16 | Only used on BTH-RA */
@@ -3378,6 +3410,14 @@ export const boschThermostatExtend = {
                 valveAdaptStatus: {
                     name: "valveAdaptStatus",
                     ID: 0x4022,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                    max: 0xff,
+                },
+                humidityAlarmLed: {
+                    name: "humidityAlarmLed",
+                    ID: 0x4023,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: manufacturerOptions.manufacturerCode,
                     write: true,
@@ -3621,6 +3661,22 @@ export const boschThermostatExtend = {
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
             reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
+        }),
+    humidityAlarmLed: () =>
+        m.binary<"hvacThermostat", BoschThermostatCluster>({
+            name: "humidity_alarm_led",
+            cluster: "hvacThermostat",
+            attribute: "humidityAlarmLed",
+            description:
+                "Enables/disables the LED warning when measured humidity is outside the comfortable range " +
+                "(below 30% or above 70%). Only the two observed raw values (0x07 on / 0x06 off) are supported; " +
+                "the meaning of the other bits of this attribute is not confirmed. The attribute is present on " +
+                "firmware 0x03086a90 (0.3.8) as well (confirmed by reading it on an unupgraded device); seemd the Bosch app " +
+                "only added a UI toggle for it in 0x03096a90 (0.3.9).",
+            valueOn: ["ON", 0x07],
+            valueOff: ["OFF", 0x06],
+            reporting: false,
+            entityCategory: "config",
         }),
     childLock: () =>
         m.binary({
@@ -4161,6 +4217,288 @@ export const boschThermostatExtend = {
                 access: ea.STATE_GET,
             }),
             m.setupConfigureForReading<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", ["automaticValveAdapt"]),
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    raWeeklySchedule: (): ModernExtend => {
+        // The thermostat stores and runs 10 transitions per day, more than its numberOfDailyTrans
+        // attribute advertises. 10 is also the most zigbee-herdsman accepts in one command.
+        const maxTransitions = 10;
+        const minSetpoint = 5;
+        const maxSetpoint = 30;
+        const heatMode = 0x01;
+        const readAttempts = 3;
+        const retryDelay = 2000;
+        const sendOptions = {sendPolicy: <SendPolicy>"immediate"};
+        const transitionRegex = /^([01]?\d|2[0-3]):([0-5]\d)\/(\d{1,2}(?:[.,]\d)?)$/;
+
+        const days = ([1, 2, 3, 4, 5, 6, 0] as const).map((dayNumber) => {
+            const dayName = thermostatDayOfWeek[dayNumber];
+
+            return {
+                key: `weekly_schedule_${dayName}`,
+                name: `${dayName.charAt(0).toUpperCase()}${dayName.slice(1)}`,
+                bit: 1 << dayNumber,
+            };
+        });
+        type Day = (typeof days)[number];
+        type Transition = {transitionTime: number; heatSetpoint?: number};
+
+        const statusName = (statusCode: number) => Zcl.Status[statusCode] ?? `status ${statusCode}`;
+        const quote = (text: string) => JSON.stringify(text.length > 24 ? `${text.slice(0, 24)}...` : text);
+        const formatTime = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+        const formatTransitions = (transitions: Transition[]) =>
+            transitions
+                .filter((transition) => transition.heatSetpoint !== undefined)
+                .sort((a, b) => a.transitionTime - b.transitionTime)
+                .map((transition) => `${formatTime(transition.transitionTime)}/${transition.heatSetpoint / 100}`)
+                .join(" ");
+
+        const parseTransitions = (day: Day, value: string) => {
+            const rawTransitions = value.trim().split(/\s+/).filter(Boolean);
+
+            if (rawTransitions.length === 0) {
+                throw new Error(`${day.name}: at least one transition is required!`);
+            }
+
+            if (rawTransitions.length > maxTransitions) {
+                throw new Error(`${day.name}: at most ${maxTransitions} transitions are possible, got ${rawTransitions.length}!`);
+            }
+
+            const transitions = rawTransitions.map((rawTransition) => {
+                const match = transitionRegex.exec(rawTransition);
+
+                if (!match) {
+                    throw new Error(
+                        `${day.name}: ${quote(rawTransition)} is not a transition, expected HH:MM/temperature (e.g. 06:00/21 or 22:30/17.5)!`,
+                    );
+                }
+
+                const temperature = Number(match[3].replace(",", "."));
+
+                if (temperature < minSetpoint || temperature > maxSetpoint) {
+                    throw new Error(`${day.name}: ${temperature} °C in ${quote(rawTransition)} is outside of ${minSetpoint}-${maxSetpoint} °C!`);
+                }
+
+                return {transitionTime: Number(match[1]) * 60 + Number(match[2]), heatSetpoint: Math.round(temperature * 100)};
+            });
+
+            transitions.sort((a, b) => a.transitionTime - b.transitionTime);
+
+            for (let i = 1; i < transitions.length; i++) {
+                if (transitions[i].transitionTime === transitions[i - 1].transitionTime) {
+                    throw new Error(`${day.name}: two transitions at ${formatTime(transitions[i].transitionTime)}!`);
+                }
+            }
+
+            return transitions;
+        };
+
+        const singleEndpoint = (entity: Zh.Endpoint | Zh.Group) => {
+            if (!utils.isEndpoint(entity)) {
+                throw new Error("The weekly schedule can only be set or read per device, not for a group!");
+            }
+
+            return entity;
+        };
+
+        // Requests to one thermostat are sent one after the other, also across messages. Otherwise,
+        // several days set at once pile up at the parent of the sleeping thermostat and fail more often.
+        const serialized = async <T>(endpoint: Zh.Endpoint, task: () => Promise<T>) => {
+            const previous: Promise<unknown> = globalStore.getValue(endpoint, "weeklyScheduleQueue", Promise.resolve());
+            const current = previous.then(task, task);
+            globalStore.putValue(endpoint, "weeklyScheduleQueue", current);
+
+            return await current;
+        };
+
+        // Only the newest value per day is sent. A write still waiting in the queue is skipped
+        // when a newer one for the same day comes in.
+        const registerWrite = (endpoint: Zh.Endpoint, day: Day) => {
+            const storeKey = `weeklyScheduleWrite_${day.bit}`;
+            const ticket: number = globalStore.getValue(endpoint, storeKey, 0) + 1;
+            globalStore.putValue(endpoint, storeKey, ticket);
+
+            return () => globalStore.getValue(endpoint, storeKey) === ticket;
+        };
+
+        // The response also reaches the fromZigbee converter, which publishes it.
+        const readDay = async (endpoint: Zh.Endpoint, day: Day, options: KeyValue, sendError?: string) => {
+            const writeNote = sendError ? `, the write was not confirmed either (${sendError})` : "";
+            let lastError = "";
+
+            for (let attempt = 1; attempt <= readAttempts; attempt++) {
+                if (attempt > 1) {
+                    await sleep(retryDelay);
+                }
+
+                let response: KeyValue;
+
+                try {
+                    response = await endpoint.command(
+                        "hvacThermostat",
+                        "getWeeklySchedule",
+                        {daystoreturn: day.bit, modetoreturn: heatMode},
+                        options,
+                    );
+                } catch (error) {
+                    lastError = (error as Error).message;
+                    logger.debug(`${day.name}: weekly schedule read attempt ${attempt} failed (${lastError})`, NS);
+                    continue;
+                }
+
+                if (response?.dayofweek === day.bit && Array.isArray(response.transitions)) {
+                    const transitions = formatTransitions(response.transitions);
+
+                    if (transitions === "") {
+                        logger.warning(
+                            `Weekly schedule for ${day.name} on device '${endpoint.deviceIeeeAddress}' is empty, ` +
+                                "this can result in a setpoint of 0 °C in operating mode 'schedule'",
+                            NS,
+                        );
+                    }
+
+                    return transitions;
+                }
+
+                if (typeof response?.statusCode === "number" && response.statusCode !== Zcl.Status.SUCCESS) {
+                    throw new Error(
+                        `${day.name}: the thermostat refused to read the weekly schedule (${statusName(response.statusCode)})${writeNote}!`,
+                    );
+                }
+
+                lastError = "no weekly schedule for this day in the response";
+                logger.debug(`${day.name}: weekly schedule read attempt ${attempt} failed (${lastError})`, NS);
+            }
+
+            throw new Error(`${day.name}: no weekly schedule received after ${readAttempts} attempts (${lastError})${writeNote}!`);
+        };
+
+        // The thermostat often stores a day but acknowledges it too late, which zigbee-herdsman reports as a
+        // failed delivery. Only a rejection by the thermostat is an error here, the read-back decides the rest.
+        const sendDay = async (endpoint: Zh.Endpoint, day: Day, transitions: Transition[], options: KeyValue) => {
+            let response: KeyValue;
+
+            try {
+                response = await endpoint.command(
+                    "hvacThermostat",
+                    "setWeeklySchedule",
+                    {dayofweek: day.bit, numoftrans: transitions.length, mode: heatMode, transitions},
+                    options,
+                );
+            } catch (error) {
+                const sendError = (error as Error).message;
+                logger.debug(`${day.name}: weekly schedule write not confirmed (${sendError}), checking with a read-back`, NS);
+                await sleep(retryDelay);
+
+                return sendError;
+            }
+
+            if (typeof response?.statusCode === "number" && response.statusCode !== Zcl.Status.SUCCESS) {
+                throw new Error(`${day.name}: the thermostat refused the weekly schedule (${statusName(response.statusCode)})!`);
+            }
+        };
+
+        // If the read-back differs, the write most likely got lost and the day is sent once more. The cached
+        // state is not used for comparison, as it is outdated once a request had to wait in the queue.
+        const writeDay = async (endpoint: Zh.Endpoint, day: Day, transitions: Transition[], options: KeyValue) => {
+            const expected = formatTransitions(transitions);
+            const firstError = await sendDay(endpoint, day, transitions, options);
+            const first = await readDay(endpoint, day, options, firstError);
+
+            if (first === expected) {
+                return;
+            }
+
+            logger.debug(`${day.name}: thermostat reports '${first}' after the weekly schedule write, sending it once more`, NS);
+            const secondError = await sendDay(endpoint, day, transitions, options);
+            const second = await readDay(endpoint, day, options, secondError);
+
+            if (second !== expected) {
+                throw new Error(
+                    `${day.name}: weekly schedule not stored after two attempts ` +
+                        `(first: ${firstError ?? "acknowledged"}, second: ${secondError ?? "acknowledged"}), ` +
+                        `the thermostat reports '${second}' instead of '${expected}'!`,
+                );
+            }
+        };
+
+        const exposes: Expose[] = days.map((day) => e.text(day.key, ea.ALL).withCategory("config"));
+
+        const fromZigbee = [
+            {
+                cluster: "hvacThermostat",
+                type: ["commandGetWeeklyScheduleRsp"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const day = days.find((entry) => entry.bit === msg.data.dayofweek);
+
+                    if (day && msg.data.mode & heatMode) {
+                        result[day.key] = formatTransitions(msg.data.transitions);
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
+        ];
+
+        // One converter per day, as Zigbee2MQTT uses a converter only once per message. No state is
+        // returned, it is published from the read-back.
+        const toZigbee: Tz.Converter[] = days.map((day) => ({
+            key: [day.key],
+            convertSet: async (entity, key, value, meta) => {
+                const endpoint = singleEndpoint(entity);
+                utils.assertString(value, key);
+                const transitions = parseTransitions(day, value);
+                const isNewest = registerWrite(endpoint, day);
+                const options = utils.getOptions(meta.mapped, endpoint, sendOptions);
+
+                await serialized(endpoint, async () => {
+                    if (isNewest()) {
+                        await writeDay(endpoint, day, transitions, options);
+                    } else {
+                        logger.debug(`${day.name}: weekly schedule write skipped, a newer one is queued`, NS);
+                    }
+                });
+            },
+            convertGet: async (entity, key, meta) => {
+                const endpoint = singleEndpoint(entity);
+                const options = utils.getOptions(meta.mapped, endpoint, sendOptions);
+
+                await serialized(endpoint, () => readDay(endpoint, day, options));
+            },
+        }));
+
+        // Read at pairing and on reconfigure. A thermostat that does not answer must not fail the whole configure.
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                if (!endpoint) {
+                    return;
+                }
+
+                const options = utils.getOptions(definition, endpoint, sendOptions);
+
+                for (const day of days) {
+                    try {
+                        await serialized(endpoint, () => readDay(endpoint, day, options));
+                    } catch (error) {
+                        logger.warning(
+                            `Reading the weekly schedule of device '${device.ieeeAddr}' failed during configure: ${(error as Error).message}`,
+                            NS,
+                        );
+                        return;
+                    }
+                }
+            },
         ];
 
         return {

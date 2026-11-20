@@ -1,7 +1,15 @@
-import {beforeEach, describe, expect, it} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {Tz} from "../src/lib/types";
-import {batteryVoltageToPercentage, getFromLookup, getFromLookupByValue, getTransition, mapNumberRange, toNumber} from "../src/lib/utils";
+import {
+    batteryVoltageToPercentage,
+    getFromLookup,
+    getFromLookupByValue,
+    getTransition,
+    hasAlreadyProcessedMessage,
+    mapNumberRange,
+    toNumber,
+} from "../src/lib/utils";
 import {mockDevice} from "./utils";
 
 describe("utils", () => {
@@ -229,6 +237,56 @@ describe("utils", () => {
             it("should return first matching key", () => {
                 expect(getFromLookupByValue("same", {first: "same", second: "same", third: "different"})).toStrictEqual("first");
             });
+        });
+    });
+
+    describe("hasAlreadyProcessedMessage", () => {
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        // The transaction store is module-global, each test uses its own device.
+        let deviceCounter = 0;
+        const nextAddr = () => `0x000000dedup${(deviceCounter++).toString().padStart(4, "0")}`;
+        const makeMsg = (seq: number, ieeeAddr: string) =>
+            ({
+                meta: {zclTransactionSequenceNumber: seq},
+                device: {ieeeAddr},
+                endpoint: {ID: 1},
+            }) as never;
+        const model = {meta: {}} as never;
+
+        it("detects a duplicate transaction within the dedup window", () => {
+            const msg = makeMsg(41, nextAddr());
+            expect(hasAlreadyProcessedMessage(msg, model)).toBe(false);
+            expect(hasAlreadyProcessedMessage(msg, model)).toBe(true);
+        });
+
+        it("keeps the last 5 transactions, which can arrive out of order", () => {
+            const addr = nextAddr();
+            for (const seq of [1, 2, 3, 4, 5, 6]) {
+                expect(hasAlreadyProcessedMessage(makeMsg(seq, addr), model)).toBe(false);
+            }
+            // seq 1 was evicted from the store, seq 6 is still cached
+            expect(hasAlreadyProcessedMessage(makeMsg(1, addr), model)).toBe(false);
+            expect(hasAlreadyProcessedMessage(makeMsg(6, addr), model)).toBe(true);
+        });
+
+        it("accepts a transaction number reused after the dedup window expires", () => {
+            vi.useFakeTimers();
+            const msg = makeMsg(41, nextAddr());
+            expect(hasAlreadyProcessedMessage(msg, model)).toBe(false);
+            vi.advanceTimersByTime(10_001);
+            expect(hasAlreadyProcessedMessage(msg, model)).toBe(false);
+            // a resend inside the new window is still a duplicate
+            expect(hasAlreadyProcessedMessage(msg, model)).toBe(true);
+        });
+
+        it("does not deduplicate when the model sets publishDuplicateTransaction", () => {
+            const msg = makeMsg(7, nextAddr());
+            const dupModel = {meta: {publishDuplicateTransaction: true}} as never;
+            expect(hasAlreadyProcessedMessage(msg, dupModel)).toBe(false);
+            expect(hasAlreadyProcessedMessage(msg, dupModel)).toBe(false);
         });
     });
 });

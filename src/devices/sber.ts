@@ -166,9 +166,6 @@ const sdevices = {
                 if (msg.data.sdevicesCalibrationTime !== undefined) {
                     result[utils.postfixWithEndpointName("calibration_time", msg, model, meta)] = msg.data.sdevicesCalibrationTime * 0.1;
                 }
-                if (msg.data.sdevicesButtonsMode !== undefined) {
-                    result[utils.postfixWithEndpointName("buttons_mode", msg, model, meta)] = msg.data.sdevicesButtonsMode ? "inverted" : "normal";
-                }
                 if (msg.data.sdevicesMotorTimeout !== undefined) {
                     result[utils.postfixWithEndpointName("motor_timeout", msg, model, meta)] = msg.data.sdevicesMotorTimeout;
                 }
@@ -385,7 +382,7 @@ const sdevices = {
             },
         } satisfies Tz.Converter,
         closures_custom: {
-            key: ["calibration_time", "buttons_mode", "motor_timeout"],
+            key: ["calibration_time", "motor_timeout"],
             convertSet: async (entity, key, value, meta) => {
                 if (key === "calibration_time") {
                     utils.assertNumber(value);
@@ -396,17 +393,6 @@ const sdevices = {
                         manufacturerOptions,
                     );
                     return {state: {calibration_time: value}};
-                }
-                if (key === "buttons_mode") {
-                    utils.assertString(value, key);
-                    value = value.toLowerCase();
-                    const lookup = {normal: 0, inverted: 1};
-                    await entity.write<"closuresWindowCovering", SberClosures>(
-                        "closuresWindowCovering",
-                        {sdevicesButtonsMode: utils.getFromLookup(value, lookup)},
-                        manufacturerOptions,
-                    );
-                    return {state: {buttons_mode: value}};
                 }
                 if (key === "motor_timeout") {
                     utils.assertNumber(value);
@@ -424,13 +410,6 @@ const sdevices = {
                         await entity.read<"closuresWindowCovering", SberClosures>(
                             "closuresWindowCovering",
                             ["sdevicesCalibrationTime"],
-                            manufacturerOptions,
-                        );
-                        break;
-                    case "buttons_mode":
-                        await entity.read<"closuresWindowCovering", SberClosures>(
-                            "closuresWindowCovering",
-                            ["sdevicesButtonsMode"],
                             manufacturerOptions,
                         );
                         break;
@@ -543,7 +522,6 @@ interface SberDiagnostics {
 interface SberClosures {
     attributes: {
         sdevicesCalibrationTime: number;
-        sdevicesButtonsMode: number;
         sdevicesMotorTimeout: number;
     };
     commands: never;
@@ -636,14 +614,6 @@ const sdevicesExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
                     write: true,
                     max: 0xffff,
-                },
-                sdevicesButtonsMode: {
-                    name: "sdevicesButtonsMode",
-                    ID: 0x1002,
-                    type: Zcl.DataType.ENUM8,
-                    manufacturerCode: Zcl.ManufacturerCode.SBERDEVICES_LTD,
-                    write: true,
-                    max: 0x01,
                 },
                 sdevicesMotorTimeout: {
                     name: "sdevicesMotorTimeout",
@@ -1653,7 +1623,6 @@ export const definitions: DefinitionWithExtend[] = [
                         .withDescription("Timeout for continuous motor action")
                         .withUnit("s")
                         .withEndpoint(coversEpName),
-                    e.enum("Buttons mode", ea.ALL, ["normal", "inverted"]).withProperty("buttons_mode").withEndpoint(coversEpName),
                     e
                         .enum("identify", ea.SET, ["identify"])
                         .withLabel("Identify")
@@ -1839,7 +1808,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .getEndpoint(3)
                     .read<"closuresWindowCovering", SberClosures>(
                         "closuresWindowCovering",
-                        ["sdevicesCalibrationTime", "sdevicesButtonsMode", "sdevicesMotorTimeout"],
+                        ["sdevicesCalibrationTime", "sdevicesMotorTimeout"],
                         manufacturerOptions,
                     );
                 await device
@@ -1978,7 +1947,6 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription("Timeout for continuous motor action")
                     .withUnit("s")
                     .withEndpoint(coversEpName),
-                e.enum("buttons_mode", ea.ALL, ["normal", "inverted"]).withProperty("buttons_mode").withEndpoint(coversEpName),
                 e
                     .enum("identify", ea.SET, ["identify"])
                     .withLabel("Identify")
@@ -2166,7 +2134,7 @@ export const definitions: DefinitionWithExtend[] = [
                     .getEndpoint(3)
                     .read<"closuresWindowCovering", SberClosures>(
                         "closuresWindowCovering",
-                        ["sdevicesCalibrationTime", "sdevicesButtonsMode", "sdevicesMotorTimeout"],
+                        ["sdevicesCalibrationTime", "sdevicesMotorTimeout"],
                         manufacturerOptions,
                     );
                 await device
@@ -2347,7 +2315,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_heating_setpoint", 1, 50, 0.5)
                 .withLocalTemperature(ea.STATE_GET, "Current temperature value used by thermostat")
                 .withSystemMode(["heat", "off", "sleep"])
-                .withLocalTemperatureCalibration()
+                .withLocalTemperatureCalibration(-12.8, 12.7, 0.1, ea.ALL)
                 .withControlSequenceOfOperation(["heating_only"], ea.ALL)
                 .withRunningMode(["off", "heat"])
                 .withRunningState(["idle", "heat"], ea.STATE_GET),

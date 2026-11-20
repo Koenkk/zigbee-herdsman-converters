@@ -1,10 +1,10 @@
 import * as exposes from "../lib/exposes";
-import * as legacy from "../lib/legacy";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -12,23 +12,36 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FK_V02",
         vendor: "FrankEver",
         description: "Zigbee smart water valve",
-        fromZigbee: [legacy.fz.frankever_valve],
-        toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.frankever_threshold, legacy.tz.frankever_timer],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.switch().setAccess("state", ea.STATE_SET),
-            e
-                .numeric("threshold", exposes.access.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withUnit("%")
-                .withDescription("Valve open percentage (multiple of 10)"),
-            e
-                .numeric("timer", exposes.access.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(600)
-                .withUnit("min")
-                .withDescription("Countdown timer in minutes"),
+            tuya.exposes.switch(),
+            e.enum("power_off_state", ea.STATE_SET, ["off", "on", "maintain"]).withDescription("Power-off status behavior"),
+            e.numeric("set_valve_position", ea.STATE_SET).withUnit("%").withValueStep(10).withValueMin(0).withValueMax(100),
+            e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(43200).withDescription("Countdown timer in seconds"),
         ],
+        endpoint: () => ({
+            state: 1,
+            power_off_state: 1,
+            set_valve_position: 1,
+            countdown: 1,
+        }),
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [9, "countdown", tuya.valueConverter.countdown],
+                [
+                    27,
+                    "power_off_state",
+                    tuya.valueConverterBasic.lookup({
+                        off: new tuya.Enum(0),
+                        on: new tuya.Enum(1),
+                        maintain: new tuya.Enum(2),
+                    }),
+                ],
+                [101, "set_valve_position", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_nbqnmkee"}],
@@ -58,8 +71,14 @@ export const definitions: DefinitionWithExtend[] = [
 
             // --- Sensors ---
             e.numeric("water_temperature", ea.STATE).withUnit("°C").withDescription("Water temperature"),
-            e.numeric("water_consumed_last", ea.STATE).withUnit("L").withDescription("Single water consumption (Last irrigation)"),
-            e.numeric("water_consumed_total", ea.STATE).withUnit("L").withDescription("Daily water consumption total"),
+            e
+                .numeric("water_consumed_last", ea.STATE)
+                .withUnit("L")
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withValueStep(0.1)
+                .withDescription("Single water consumption (last irrigation)"),
+            e.numeric("water_consumed", ea.STATE).withUnit("L").withValueMin(0).withDescription("Total water consumption"),
             e.enum("water_leakage_state", ea.STATE, ["water_leakage_yes", "water_leakage_no"]).withDescription("Leak detection status"),
 
             // --- Irrigation Volume Limits ---
@@ -99,23 +118,42 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(120)
                 .withDescription("Alarm water temperature minimum setting"),
+            e.binary("water_volume_alarm", ea.STATE, true, false).withDescription("Water volume alarm is active (configured volume exceeded)"),
+            e.binary("water_temp_alarm", ea.STATE, true, false).withDescription("Water temperature alarm is active (configured range exceeded)"),
 
             // --- Maintenance ---
             e
                 .binary("creep_switch", ea.STATE_SET, "ON", "OFF")
                 .withDescription("Peristaltic function switch (Auto cycle anti-calc) - KEEP OFF for normal use"),
+            te.fault(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
                 [2, "threshold", tuya.valueConverter.raw],
                 [3, "position", tuya.valueConverter.raw],
-                [5, "water_consumed_last", tuya.valueConverter.raw],
-                [6, "water_consumed_total", tuya.valueConverter.raw],
-                [10, "weather_delay", tuya.valueConverterBasic.lookup({cancel: 0, "24h": 1, "48h": 2, "72h": 3})],
+                [4, "fault", tuya.valueConverter.fault],
+                // The vendor datapoint spec marks dp 5 with "Multiple: 1" (0.1 L per unit) and dp 6 with
+                // "Multiple: 0" (1 L per unit), so the last irrigation volume is reported in dL.
+                [5, "water_consumed_last", tuya.valueConverter.divideBy10],
+                [6, "water_consumed", tuya.valueConverter.raw],
+                [
+                    10,
+                    "weather_delay",
+                    tuya.valueConverterBasic.lookup({
+                        cancel: new tuya.Enum(0),
+                        "24h": new tuya.Enum(1),
+                        "48h": new tuya.Enum(2),
+                        "72h": new tuya.Enum(3),
+                    }),
+                ],
                 [11, "countdown", tuya.valueConverter.raw],
                 [22, "water_temperature", tuya.valueConverter.raw],
-                [101, "water_leakage_state", tuya.valueConverterBasic.lookup({water_leakage_yes: 0, water_leakage_no: 1})],
+                [
+                    101,
+                    "water_leakage_state",
+                    tuya.valueConverterBasic.lookup({water_leakage_yes: new tuya.Enum(0), water_leakage_no: new tuya.Enum(1)}),
+                ],
                 [102, "single_irrigation_switch", tuya.valueConverter.onOff],
                 [103, "single_irrigation_set", tuya.valueConverter.raw],
                 [104, "day_irrigation_switch", tuya.valueConverter.onOff],
@@ -124,9 +162,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "water_volume_alarm_set", tuya.valueConverter.raw],
                 [108, "water_temp_alarm_switch", tuya.valueConverter.onOff],
                 [109, "water_temp_alarm_max", tuya.valueConverter.raw],
-                [110, "power_off_state", tuya.valueConverterBasic.lookup({off: 0, on: 1, maintain: 2})],
+                [110, "power_off_state", tuya.valueConverterBasic.lookup({off: new tuya.Enum(0), on: new tuya.Enum(1), maintain: new tuya.Enum(2)})],
                 [112, "creep_switch", tuya.valueConverter.onOff],
                 [113, "water_temp_alarm_min", tuya.valueConverter.raw],
+                [114, "water_temp_alarm", tuya.valueConverter.raw],
+                [115, "water_volume_alarm", tuya.valueConverter.raw],
             ],
         },
     },
