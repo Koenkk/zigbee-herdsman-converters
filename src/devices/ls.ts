@@ -34,7 +34,7 @@ const fzLocal = {
 const lsModernExtend = {
     groupIdExpose(): ModernExtend {
         const result: ModernExtend = {
-            exposes: [e.numeric("action_group", ea.STATE).withDescription("Group where the action was triggered on")],
+            exposes: [e.action_group()],
             isModernExtend: true,
         };
 
