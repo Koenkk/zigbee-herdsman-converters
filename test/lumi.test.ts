@@ -1418,6 +1418,12 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             expect(w100.encodeHaState({mode: 3, setpoint: 26.5, fan: 5}).toString("hex")).toStrictEqual("01300302295a0a033005");
         });
 
+        it("encodes the default setpoint limits", () => {
+            expect(w100.encodeHaState({mode: 4, setpoint: 20, fan: 1}, w100.getSetpointLimits({})).toString("hex")).toStrictEqual(
+                "0130040229d0070330010429c2010529740e0629c2010729740e",
+            );
+        });
+
         it("accepts an uint16 setpoint and ignores the bool tag 0", () => {
             expect(w100.decodeHaState(Buffer.from("00100001300402215a0a", "hex"))).toStrictEqual({mode: 4, setpoint: 26.5});
         });
@@ -1586,18 +1592,25 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             const endpoint = device.getEndpoint(1);
             const state = {system_mode: "cool", occupied_heating_setpoint: 26.5, fan_mode: "auto"};
 
-            await toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "ON", tzMeta(device, state, {setpoint_step: "0.5"}));
+            await toZigbee.w100_mode.convertSet(
+                endpoint,
+                "thermostat_mode",
+                "ON",
+                tzMeta(device, state, {setpoint_step: "0.5", min_target_temp: 12, max_target_temp: 26}),
+            );
 
             expect(endpoint.write).toHaveBeenNthCalledWith(
                 1,
                 "manuSpecificLumi",
-                {373: {value: 50, type: Zcl.DataType.INT16}},
+                {373: {value: 50, type: Zcl.DataType.UINT16}},
                 {manufacturerCode: 0x115f},
             );
+            // State followed by the setpoint limits (tags 4-7), 12°C = 0x04b0, 26°C = 0x0a28
+            const value = Buffer.concat([exampleFrame, Buffer.from("0429b0040529280a0629b0040729280a", "hex")]);
             expect(endpoint.write).toHaveBeenNthCalledWith(
                 2,
                 "manuSpecificLumi",
-                {372: {value: exampleFrame, type: Zcl.DataType.OCTET_STR}},
+                {372: {value, type: Zcl.DataType.OCTET_STR}},
                 {manufacturerCode: 0x115f},
             );
         });

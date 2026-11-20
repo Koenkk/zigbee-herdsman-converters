@@ -2777,21 +2777,25 @@ export const lumiModernExtend = {
                 try {
                     await w100.writeSetpointStep(endpoint, options);
                     if (state.thermostat_mode === "ON") {
-                        await w100.writeHaState(endpoint, {...w100Defaults, ...state} as W100State, options);
+                        await w100.writeHaState(endpoint, {...w100Defaults, ...state} as W100State, options, true);
                     }
                 } catch (error) {
                     logger.warning(`Aqara W100: failed to restore thermostat state of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
                 }
             } else if (event.type === "deviceOptionsChanged") {
-                const {device, from, to, deviceExposesChanged} = event.data;
-                if (from?.thermostat_protocol === to?.thermostat_protocol && from?.setpoint_step === to?.setpoint_step) return;
-                deviceExposesChanged();
-                if (from?.setpoint_step !== to?.setpoint_step && w100.getProtocol(device, to) === "ha") {
-                    try {
-                        await w100.writeSetpointStep(device.getEndpoint(1), to);
-                    } catch (error) {
-                        logger.warning(`Aqara W100: failed to write setpoint step of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
+                const {device, from, to, state, deviceExposesChanged} = event.data;
+                const changed = (key: string) => from?.[key] !== to?.[key];
+                if (changed("thermostat_protocol") || changed("setpoint_step")) deviceExposesChanged();
+                if (w100.getProtocol(device, to) !== "ha") return;
+                const endpoint = device.getEndpoint(1);
+                try {
+                    if (changed("setpoint_step")) await w100.writeSetpointStep(endpoint, to);
+                    // Writing 0x0174 subscribes the W100, only send the new limits when the thermostat mode is on.
+                    if ((changed("min_target_temp") || changed("max_target_temp")) && state.thermostat_mode === "ON") {
+                        await w100.writeHaState(endpoint, {...w100Defaults, ...state} as W100State, to, true);
                     }
+                } catch (error) {
+                    logger.warning(`Aqara W100: failed to apply the options of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
                 }
             }
         };
@@ -7794,8 +7798,9 @@ function w100CheckSetpointRange(
  * - 0x0174 (octet string): thermostat state as TLV `[tag][ZCL data type][value LE]`, tags: 0x01 mode (enum8),
  *   0x02 setpoint (int16, °C x 100, 4.5-37°C), 0x03 fan (enum8). Writing it subscribes the W100 to the thermostat;
  *   the W100 reports it after every user action. Example (cool, 26.5°C, fan auto): 01 30 03 02 29 5a 0a 03 30 05
- *   Writing data without any valid tag (e.g. only tag 0x00 bool 0) unsubscribes the W100.
- * - 0x0175 (int16): setpoint step in °C x 100 (e.g. 10 = 0.1°C). Not persisted by the device, it has to be
+ *   Tags 0x04-0x07 (int16, °C x 100): min/max heat and cool setpoint, sent once and again after a reboot.
+ *   Unknown tags are ignored; writing data without any valid tag (e.g. only tag 0x00 bool 0) unsubscribes the W100.
+ * - 0x0175 (uint16): setpoint step in °C x 100 (e.g. 10 = 0.1°C). Not persisted by the device, it has to be
  *   written again after every reboot.
  *
  * Older firmware only supports the PMTSD protocol (0xFFF2 frames). The protocol is detected by reading 0x0175:
@@ -7810,7 +7815,7 @@ export interface W100HaState {
 }
 
 const w100HaAttribute = {thermostatState: 0x0174, setpointStep: 0x0175};
-const w100HaTag = {mode: 0x01, setpoint: 0x02, fan: 0x03};
+const w100HaTag = {mode: 0x01, setpoint: 0x02, fan: 0x03, minHeat: 0x04, maxHeat: 0x05, minCool: 0x06, maxCool: 0x07};
 const w100HaModeLookup: Record<string, number> = {off: 0, cool: 3, heat: 4};
 const w100HaFanLookup: Record<string, number> = {low: 1, medium: 2, high: 3, auto: 5};
 const w100HaSetpointRange: Range = [4.5, 37];
@@ -7857,19 +7862,27 @@ export const w100 = {
         }
         return result;
     },
-    encodeHaState: (state: Required<W100HaState>): Buffer => {
-        const buffer = Buffer.alloc(10);
-        buffer.writeUInt8(w100HaTag.mode, 0);
-        buffer.writeUInt8(Zcl.DataType.ENUM8, 1);
-        buffer.writeUInt8(state.mode, 2);
-        buffer.writeUInt8(w100HaTag.setpoint, 3);
-        buffer.writeUInt8(Zcl.DataType.INT16, 4);
-        buffer.writeInt16LE(Math.round(state.setpoint * 100), 5);
-        buffer.writeUInt8(w100HaTag.fan, 7);
-        buffer.writeUInt8(Zcl.DataType.ENUM8, 8);
-        buffer.writeUInt8(state.fan, 9);
-        return buffer;
+    /** Encodes 0x0174, `limits` (min/max setpoint, tags 0x04-0x07) only has to be sent once and after a reboot. */
+    encodeHaState: (state: Required<W100HaState>, limits?: Range): Buffer => {
+        const enum8 = (tag: number, value: number) => [tag, Zcl.DataType.ENUM8, value];
+        const int16 = (tag: number, value: number) => {
+            const buffer = Buffer.alloc(2);
+            buffer.writeInt16LE(Math.round(value * 100));
+            return [tag, Zcl.DataType.INT16, ...buffer];
+        };
+        const tlv = [...enum8(w100HaTag.mode, state.mode), ...int16(w100HaTag.setpoint, state.setpoint), ...enum8(w100HaTag.fan, state.fan)];
+        if (limits) {
+            const [min, max] = limits;
+            tlv.push(...int16(w100HaTag.minHeat, min), ...int16(w100HaTag.maxHeat, max));
+            tlv.push(...int16(w100HaTag.minCool, min), ...int16(w100HaTag.maxCool, max));
+        }
+        return Buffer.from(tlv);
     },
+    /** Setpoint limits sent to the W100, so that its +/- buttons follow the min/max_target_temp options. */
+    getSetpointLimits: (options: KeyValue | undefined): Range => [
+        options?.min_target_temp !== undefined ? Number(options.min_target_temp) : w100HaSetpointRange[0],
+        options?.max_target_temp !== undefined ? Number(options.max_target_temp) : w100HaSetpointRange[1],
+    ],
     /** Converts a decoded 0x0174 value to Z2M state, unknown values are skipped. */
     haStateToPayload: (state: W100HaState): KeyValue => {
         const payload: KeyValue = {};
@@ -7931,7 +7944,7 @@ export const w100 = {
         const value = Math.round(w100.getSetpointStep(options) * 100);
         await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
             "manuSpecificLumi",
-            {[w100HaAttribute.setpointStep]: {value, type: Zcl.DataType.INT16}},
+            {[w100HaAttribute.setpointStep]: {value, type: Zcl.DataType.UINT16}},
             {manufacturerCode},
         );
     },
@@ -7940,12 +7953,16 @@ export const w100 = {
         entity: Zh.Endpoint | Zh.Group,
         state: Pick<W100State, "system_mode" | "occupied_heating_setpoint" | "fan_mode">,
         options: KeyValue | undefined,
+        withLimits = false,
     ) => {
-        const value = w100.encodeHaState({
-            mode: getFromLookup(state.system_mode, w100HaModeLookup),
-            setpoint: w100.roundToStep(Number(state.occupied_heating_setpoint), w100.getSetpointStep(options)),
-            fan: getFromLookup(state.fan_mode, w100HaFanLookup),
-        });
+        const value = w100.encodeHaState(
+            {
+                mode: getFromLookup(state.system_mode, w100HaModeLookup),
+                setpoint: w100.roundToStep(Number(state.occupied_heating_setpoint), w100.getSetpointStep(options)),
+                fan: getFromLookup(state.fan_mode, w100HaFanLookup),
+            },
+            withLimits ? w100.getSetpointLimits(options) : undefined,
+        );
         await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
             "manuSpecificLumi",
             {[w100HaAttribute.thermostatState]: {value, type: Zcl.DataType.OCTET_STR}},
@@ -11421,7 +11438,7 @@ export const toZigbee = {
                 if (value === "ON") {
                     // Writing the thermostat state subscribes the W100 to the thermostat.
                     await w100.writeSetpointStep(entity, meta.options);
-                    await w100.writeHaState(entity, base, meta.options);
+                    await w100.writeHaState(entity, base, meta.options, true);
                 } else {
                     await w100.unsubscribe(entity);
                 }
