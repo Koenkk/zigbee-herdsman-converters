@@ -1544,6 +1544,10 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
 
             expect(climateStep(exposes)).toStrictEqual(1);
             expect(exposes.find((e) => e.name === "PMTSD_from_W100_Data")).toBeDefined();
+            const limited = (definition.exposes as DefinitionExposesFunction)(device, {min_target_temp: 12, max_target_temp: 26});
+            // biome-ignore lint/suspicious/noExplicitAny: test
+            const setpoint = (limited.find((e) => e.type === "climate") as any).features.find((f: Expose) => f.name === "occupied_heating_setpoint");
+            expect(setpoint).toMatchObject({value_min: 12, value_max: 26});
         });
 
         it("hides the PMTSD data and uses the configured step with the ha protocol", async () => {

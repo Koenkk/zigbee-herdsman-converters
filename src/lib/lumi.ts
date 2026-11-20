@@ -2728,7 +2728,8 @@ export const lumiModernExtend = {
     w100Thermostat: (): ModernExtend => {
         const exposes: DefinitionExposesFunction = (device, options) => {
             const ha = w100.getProtocol(device, options) === "ha";
-            const [min, max] = ha ? w100HaSetpointRange : [w100Defaults.min_target_temp, w100Defaults.max_target_temp];
+            // Follow the min/max_target_temp options so that HA does not offer setpoints the converter refuses.
+            const [min, max] = w100SetpointRange(options, ha ? w100HaSetpointRange : [w100Defaults.min_target_temp, w100Defaults.max_target_temp]);
             const result: Expose[] = [
                 e
                     .climate()
@@ -2785,7 +2786,7 @@ export const lumiModernExtend = {
             } else if (event.type === "deviceOptionsChanged") {
                 const {device, from, to, state, deviceExposesChanged} = event.data;
                 const changed = (key: string) => from?.[key] !== to?.[key];
-                if (changed("thermostat_protocol") || changed("setpoint_step")) deviceExposesChanged();
+                if (["thermostat_protocol", "setpoint_step", "min_target_temp", "max_target_temp"].some(changed)) deviceExposesChanged();
                 if (w100.getProtocol(device, to) !== "ha") return;
                 const endpoint = device.getEndpoint(1);
                 try {
@@ -7780,13 +7781,20 @@ async function w100SendPMTSD(entity: Zh.Endpoint | Zh.Group, pmtsd: W100Pmtsd, m
     meta.device.meta.lastPMTSDSend = Date.now();
 }
 
+/** Setpoint range from the min/max_target_temp options, or the given default range. */
+function w100SetpointRange(options: KeyValue | undefined, defaultRange: Range): Range {
+    return [
+        options?.min_target_temp !== undefined ? Number(options.min_target_temp) : defaultRange[0],
+        options?.max_target_temp !== undefined ? Number(options.max_target_temp) : defaultRange[1],
+    ];
+}
+
 function w100CheckSetpointRange(
     temp: number,
     options: KeyValue | undefined,
     defaultRange: Range = [w100Defaults.min_target_temp, w100Defaults.max_target_temp],
 ) {
-    const minTarget = options?.min_target_temp !== undefined ? Number(options.min_target_temp) : defaultRange[0];
-    const maxTarget = options?.max_target_temp !== undefined ? Number(options.max_target_temp) : defaultRange[1];
+    const [minTarget, maxTarget] = w100SetpointRange(options, defaultRange);
     if (Number.isNaN(temp) || temp < minTarget || temp > maxTarget) {
         throw new Error(`occupied_heating_setpoint must be between ${minTarget} and ${maxTarget}`);
     }
@@ -7879,10 +7887,7 @@ export const w100 = {
         return Buffer.from(tlv);
     },
     /** Setpoint limits sent to the W100, so that its +/- buttons follow the min/max_target_temp options. */
-    getSetpointLimits: (options: KeyValue | undefined): Range => [
-        options?.min_target_temp !== undefined ? Number(options.min_target_temp) : w100HaSetpointRange[0],
-        options?.max_target_temp !== undefined ? Number(options.max_target_temp) : w100HaSetpointRange[1],
-    ],
+    getSetpointLimits: (options: KeyValue | undefined): Range => w100SetpointRange(options, w100HaSetpointRange),
     /** Converts a decoded 0x0174 value to Z2M state, unknown values are skipped. */
     haStateToPayload: (state: W100HaState): KeyValue => {
         const payload: KeyValue = {};
