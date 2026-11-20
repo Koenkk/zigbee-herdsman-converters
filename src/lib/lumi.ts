@@ -2733,7 +2733,7 @@ export const lumiModernExtend = {
             const result: Expose[] = [
                 e
                     .climate()
-                    .withSystemMode(ha ? ["off", "heat", "cool"] : ["off", "heat", "cool", "auto"])
+                    .withSystemMode(["off", "heat", "cool", "auto"])
                     .withFanMode(["auto", "low", "medium", "high"])
                     .withSetpoint("occupied_heating_setpoint", min, max, ha ? w100.getSetpointStep(options) : 1)
                     .withLocalTemperature()
@@ -7829,7 +7829,8 @@ export interface W100HaState {
 
 const w100HaAttribute = {thermostatState: 0x0174, setpointStep: 0x0175};
 const w100HaTag = {mode: 0x01, setpoint: 0x02, fan: 0x03, minHeat: 0x04, maxHeat: 0x05, minCool: 0x06, maxCool: 0x07};
-const w100HaModeLookup: Record<string, number> = {off: 0, cool: 3, heat: 4};
+// auto (1) is not in the specification but reported by the W100 (no setpoint in this mode).
+const w100HaModeLookup: Record<string, number> = {off: 0, auto: 1, cool: 3, heat: 4};
 const w100HaFanLookup: Record<string, number> = {low: 1, medium: 2, high: 3, auto: 5};
 const w100HaSetpointRange: Range = [4.5, 37];
 const w100HaUnsubscribe = Buffer.from([0x00, Zcl.DataType.BOOLEAN, 0x00]);
@@ -7877,14 +7878,17 @@ export const w100 = {
         return result;
     },
     /** Encodes 0x0174, `limits` (min/max setpoint, tags 0x04-0x07) only has to be sent once and after a reboot. */
-    encodeHaState: (state: Required<W100HaState>, limits?: Range): Buffer => {
+    encodeHaState: (state: W100HaState, limits?: Range): Buffer => {
         const enum8 = (tag: number, value: number) => [tag, Zcl.DataType.ENUM8, value];
         const int16 = (tag: number, value: number) => {
             const buffer = Buffer.alloc(2);
             buffer.writeInt16LE(Math.round(value * 100));
             return [tag, Zcl.DataType.INT16, ...buffer];
         };
-        const tlv = [...enum8(w100HaTag.mode, state.mode), ...int16(w100HaTag.setpoint, state.setpoint), ...enum8(w100HaTag.fan, state.fan)];
+        const tlv: number[] = [];
+        if (state.mode !== undefined) tlv.push(...enum8(w100HaTag.mode, state.mode));
+        if (state.setpoint !== undefined) tlv.push(...int16(w100HaTag.setpoint, state.setpoint));
+        if (state.fan !== undefined) tlv.push(...enum8(w100HaTag.fan, state.fan));
         if (limits) {
             const [min, max] = limits;
             tlv.push(...int16(w100HaTag.minHeat, min), ...int16(w100HaTag.maxHeat, max));
@@ -7974,6 +7978,9 @@ export const w100 = {
             },
             withLimits ? w100.getSetpointLimits(options) : undefined,
         );
+        await w100.writeHaValues(entity, value);
+    },
+    writeHaValues: async (entity: Zh.Endpoint | Zh.Group, value: Buffer) => {
         await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
             "manuSpecificLumi",
             {[w100HaAttribute.thermostatState]: {value, type: Zcl.DataType.OCTET_STR}},
@@ -8018,23 +8025,27 @@ async function w100HaConvertSet(entity: Zh.Endpoint | Zh.Group, key: string, val
         logger.warning(`Aqara W100: Ignoring ${key} command - thermostat_mode is not ON`, NS);
         return {state: {}};
     }
-    const base = w100EnsureDefaults(meta);
-    const target = {system_mode: base.system_mode, occupied_heating_setpoint: Number(base.occupied_heating_setpoint), fan_mode: base.fan_mode};
+    // Only the changed field is written: the W100 keeps a setpoint per mode (e.g. 26 °C in cool) and reports the
+    // resulting state, sending the current setpoint with a mode change would overwrite the setpoint of the new mode.
+    let values: W100HaState;
+    let state: KeyValue;
     if (key === "system_mode") {
         assertString(value, key);
-        getFromLookup(value, w100HaModeLookup); // validates
-        target.system_mode = value.toLowerCase();
+        values = {mode: getFromLookup(value, w100HaModeLookup)};
+        state = {system_mode: value.toLowerCase()};
     } else if (key === "fan_mode") {
         assertString(value, key);
-        getFromLookup(value, w100HaFanLookup); // validates
-        target.fan_mode = value.toLowerCase();
+        values = {fan: getFromLookup(value, w100HaFanLookup)};
+        state = {fan_mode: value.toLowerCase()};
     } else {
-        const temp = Number.parseFloat(value as string);
-        w100CheckSetpointRange(temp, meta.options, w100HaSetpointRange);
-        target.occupied_heating_setpoint = w100.roundToStep(temp, w100.getSetpointStep(meta.options));
+        const requested = Number.parseFloat(value as string);
+        w100CheckSetpointRange(requested, meta.options, w100HaSetpointRange);
+        const setpoint = w100.roundToStep(requested, w100.getSetpointStep(meta.options));
+        values = {setpoint};
+        state = {occupied_heating_setpoint: setpoint};
     }
-    await w100.writeHaState(entity, target, meta.options);
-    return {state: target};
+    await w100.writeHaValues(entity, w100.encodeHaState(values));
+    return {state};
 }
 
 export const fromZigbee = {

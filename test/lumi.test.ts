@@ -1446,6 +1446,11 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             });
             expect(w100.haStateToPayload({mode: 4, fan: 1})).toStrictEqual({system_mode: "heat", fan_mode: "low"});
             expect(w100.haStateToPayload({mode: 0, fan: 3})).toStrictEqual({system_mode: "off", fan_mode: "high"});
+            // Auto mode is reported without setpoint
+            expect(w100.haStateToPayload(w100.decodeHaState(Buffer.from("013001033001", "hex")))).toStrictEqual({
+                system_mode: "auto",
+                fan_mode: "low",
+            });
             expect(w100.haStateToPayload({mode: 99, fan: 99})).toStrictEqual({});
         });
 
@@ -1562,7 +1567,7 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             expect(exposes.find((e) => e.name === "PMTSD_from_W100_Data")).toBeUndefined();
             // biome-ignore lint/suspicious/noExplicitAny: test
             const features = (exposes.find((e) => e.type === "climate") as any).features;
-            expect(features.find((f: Expose) => f.name === "system_mode").values).toStrictEqual(["off", "heat", "cool"]);
+            expect(features.find((f: Expose) => f.name === "system_mode").values).toStrictEqual(["off", "heat", "cool", "auto"]);
             expect(features.find((f: Expose) => f.name === "occupied_heating_setpoint")).toMatchObject({value_min: 4.5, value_max: 37});
         });
     });
@@ -1578,10 +1583,25 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
 
             const result = await toZigbee.w100_pmtsd.convertSet(endpoint, "occupied_heating_setpoint", 26.4, tzMeta(device, state));
 
-            expect(result).toStrictEqual({state: {system_mode: "cool", occupied_heating_setpoint: 26.5, fan_mode: "auto"}});
+            expect(result).toStrictEqual({state: {occupied_heating_setpoint: 26.5}});
             expect(endpoint.write).toHaveBeenCalledWith(
                 "manuSpecificLumi",
-                {372: {value: exampleFrame, type: Zcl.DataType.OCTET_STR}},
+                {372: {value: Buffer.from("02295a0a", "hex"), type: Zcl.DataType.OCTET_STR}},
+                {manufacturerCode: 0x115f},
+            );
+        });
+
+        it("only writes the mode when changing the mode, so that the W100 restores the setpoint of that mode", async () => {
+            const device = setup({w100Protocol: "ha"});
+            const endpoint = device.getEndpoint(1);
+            const state = {thermostat_mode: "ON", system_mode: "cool", occupied_heating_setpoint: 26, fan_mode: "auto"};
+
+            const result = await toZigbee.w100_pmtsd.convertSet(endpoint, "system_mode", "heat", tzMeta(device, state));
+
+            expect(result).toStrictEqual({state: {system_mode: "heat"}});
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificLumi",
+                {372: {value: Buffer.from("013004", "hex"), type: Zcl.DataType.OCTET_STR}},
                 {manufacturerCode: 0x115f},
             );
         });
@@ -1640,7 +1660,7 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             const device = setup({w100Protocol: "ha"});
             const state = {thermostat_mode: "ON", system_mode: "cool", occupied_heating_setpoint: 22, fan_mode: "auto"};
 
-            await expect(toZigbee.w100_pmtsd.convertSet(device.getEndpoint(1), "system_mode", "auto", tzMeta(device, state))).rejects.toThrow();
+            await expect(toZigbee.w100_pmtsd.convertSet(device.getEndpoint(1), "system_mode", "dry", tzMeta(device, state))).rejects.toThrow();
         });
 
         const frames = (endpoint: Zh.Endpoint) => vi.mocked(endpoint.write).mock.calls.map((call) => call[1][65522].value as Buffer);
