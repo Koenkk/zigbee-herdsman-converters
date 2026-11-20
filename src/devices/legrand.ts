@@ -946,7 +946,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [true, 0],
                 description: "Indicates whether the contact is opened or closed",
                 access: "STATE_GET",
-                reporting: { min: "MIN", max: "MAX", change: 1 },
+                reporting: {min: "MIN", max: "MAX", change: 1},
             }),
             m.battery({
                 percentage: true,
