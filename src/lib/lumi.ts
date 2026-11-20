@@ -2760,7 +2760,11 @@ export const lumiModernExtend = {
                         "legacy: PMTSD frames (older firmware). ha: dedicated thermostat attributes (newer firmware).",
                 ),
             e
-                .enum("setpoint_step", ea.SET, w100SetpointSteps)
+                .numeric("setpoint_step", ea.SET)
+                .withValueMin(0.1)
+                .withValueMax(1)
+                .withValueStep(0.1)
+                .withUnit("°C")
                 .withDescription(
                     `Target temperature step (default: ${w100DefaultSetpointStep}°C). Only supported by firmware using the ha protocol.`,
                 ),
@@ -7828,7 +7832,6 @@ const w100HaModeLookup: Record<string, number> = {off: 0, cool: 3, heat: 4};
 const w100HaFanLookup: Record<string, number> = {low: 1, medium: 2, high: 3, auto: 5};
 const w100HaSetpointRange: Range = [4.5, 37];
 const w100HaUnsubscribe = Buffer.from([0x00, Zcl.DataType.BOOLEAN, 0x00]);
-const w100SetpointSteps = ["0.1", "0.5", "1"];
 const w100DefaultSetpointStep = 0.5;
 
 export const w100 = {
@@ -7905,8 +7908,8 @@ export const w100 = {
         return payload;
     },
     getSetpointStep: (options: KeyValue | undefined): number => {
-        const step = String(options?.setpoint_step);
-        return w100SetpointSteps.includes(step) ? Number(step) : w100DefaultSetpointStep;
+        const step = precisionRound(Number(options?.setpoint_step), 1);
+        return step >= 0.1 && step <= 1 ? step : w100DefaultSetpointStep;
     },
     roundToStep: (value: number, step: number): number => precisionRound(Math.round(value / step) * step, 2),
     getProtocol: (device: Zh.Device | DummyDevice, options: KeyValue | undefined): W100Protocol => {

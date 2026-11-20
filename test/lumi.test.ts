@@ -1454,7 +1454,10 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             expect(w100.roundToStep(21.26, 0.1)).toStrictEqual(21.3);
             expect(w100.roundToStep(21.5, 1)).toStrictEqual(22);
             expect(w100.getSetpointStep({setpoint_step: "0.1"})).toStrictEqual(0.1);
-            expect(w100.getSetpointStep({setpoint_step: "0.3"})).toStrictEqual(0.5);
+            expect(w100.getSetpointStep({setpoint_step: 0.3})).toStrictEqual(0.3);
+            expect(w100.roundToStep(21.26, 0.3)).toStrictEqual(21.3);
+            expect(w100.getSetpointStep({setpoint_step: 2})).toStrictEqual(0.5);
+            expect(w100.getSetpointStep({setpoint_step: "abc"})).toStrictEqual(0.5);
             expect(w100.getSetpointStep(undefined)).toStrictEqual(0.5);
         });
     });
