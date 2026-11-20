@@ -15,58 +15,41 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             // Original ZBN-JT-63 functions
             tuya.exposes.switch(),
-            e.numeric("power", ea.STATE)
-                .withUnit("W")
-                .withDescription("Instantaneous measured power"),
-            e.numeric("current", ea.STATE)
-                .withUnit("A")
-                .withDescription("Instantaneous measured electrical current"),
-            e.numeric("voltage", ea.STATE)
-                .withUnit("V")
-                .withDescription("Measured electrical potential value"),
-            e.numeric("energy", ea.STATE)
-                .withUnit("kWh")
-                .withDescription("Consumed energy"),
-            e.enum("power_outage_memory", ea.STATE_SET, ["on", "off", "restore"])
-                .withDescription("Recover state after power outage"),
-            e.enum("fault", ea.STATE, [
-                "clear",
-                "short_circuit_alarm",
-                "surge_alarm",
-                "overload_alarm",
-                "leakagecurr_alarm",
-                "temp_dif_fault",
-                "fire_alarm",
-                "high_power_alarm",
-                "self_test_alarm",
-                "ov_cr",
-                "unbalance_alarm",
-                "ov_vol",
-                "undervoltage_alarm",
-                "miss_phase_alarm",
-                "outage_alarm",
-                "magnetism_alarm",
-                "credit_alarm",
-                "no_balance_alarm",
-            ]).withDescription("Fault status of the device"),
-            e.text("meter_id", ea.STATE)
-                .withDescription("Meter ID"),
+            e.numeric("power", ea.STATE).withUnit("W").withDescription("Instantaneous measured power"),
+            e.numeric("current", ea.STATE).withUnit("A").withDescription("Instantaneous measured electrical current"),
+            e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Measured electrical potential value"),
+            e.numeric("energy", ea.STATE).withUnit("kWh").withDescription("Consumed energy"),
+            e.enum("power_outage_memory", ea.STATE_SET, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
+            e
+                .enum("fault", ea.STATE, [
+                    "clear",
+                    "short_circuit_alarm",
+                    "surge_alarm",
+                    "overload_alarm",
+                    "leakagecurr_alarm",
+                    "temp_dif_fault",
+                    "fire_alarm",
+                    "high_power_alarm",
+                    "self_test_alarm",
+                    "ov_cr",
+                    "unbalance_alarm",
+                    "ov_vol",
+                    "undervoltage_alarm",
+                    "miss_phase_alarm",
+                    "outage_alarm",
+                    "magnetism_alarm",
+                    "credit_alarm",
+                    "no_balance_alarm",
+                ])
+                .withDescription("Fault status of the device"),
+            e.text("meter_id", ea.STATE).withDescription("Meter ID"),
 
             // Additional MS-JT-63 functions
-            e.numeric("recover_cnt", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(99)
-                .withDescription("Reclosing attempt limit"),
-            e.binary("recover_enable", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Reclosing enable"),
-            e.numeric("leak_delay", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(99)
-                .withDescription("Reclosing recovery time"),
-            e.enum("status", ea.STATE, ["0", "1", "2"])
-                .withDescription("Device status"),
-            e.enum("relay_power_on_state", ea.STATE_SET, ["Off", "On", "Restore"])
-                .withDescription("Relay power-on state setting"),
+            e.numeric("recover_cnt", ea.STATE_SET).withValueMin(1).withValueMax(99).withDescription("Reclosing attempt limit"),
+            e.binary("recover_enable", ea.STATE_SET, "ON", "OFF").withDescription("Reclosing enable"),
+            e.numeric("leak_delay", ea.STATE_SET).withValueMin(1).withValueMax(99).withDescription("Reclosing recovery time"),
+            e.enum("status", ea.STATE, ["0", "1", "2"]).withDescription("Device status"),
+            e.enum("relay_power_on_state", ea.STATE_SET, ["Off", "On", "Restore"]).withDescription("Relay power-on state setting"),
         ],
         meta: {
             tuyaDatapoints: [
