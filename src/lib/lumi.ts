@@ -2727,20 +2727,20 @@ export const lumiModernExtend = {
      */
     w100Thermostat: (): ModernExtend => {
         const exposes: DefinitionExposesFunction = (device, options) => {
-            const protocol = w100.getProtocol(device, options);
-            const step = protocol === "ha" ? w100.getSetpointStep(options) : 0.5;
+            const ha = w100.getProtocol(device, options) === "ha";
+            const [min, max] = ha ? w100HaSetpointRange : [w100Defaults.min_target_temp, w100Defaults.max_target_temp];
             const result: Expose[] = [
                 e
                     .climate()
-                    .withSystemMode(["off", "heat", "cool", "auto"])
+                    .withSystemMode(ha ? ["off", "heat", "cool"] : ["off", "heat", "cool", "auto"])
                     .withFanMode(["auto", "low", "medium", "high"])
-                    .withSetpoint("occupied_heating_setpoint", 5, 30, step)
+                    .withSetpoint("occupied_heating_setpoint", min, max, ha ? w100.getSetpointStep(options) : 0.5)
                     .withLocalTemperature()
                     .withDescription(
                         "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
                     ),
             ];
-            if (protocol === "legacy") {
+            if (!ha) {
                 result.push(
                     e
                         .text("PMTSD_from_W100_Data", ea.STATE)
@@ -7745,9 +7745,13 @@ async function w100SendPMTSD(entity: Zh.Endpoint | Zh.Group, pmtsd: W100Pmtsd, m
     }
 }
 
-function w100CheckSetpointRange(temp: number, options: KeyValue | undefined) {
-    const minTarget = options?.min_target_temp !== undefined ? Number(options.min_target_temp) : w100Defaults.min_target_temp;
-    const maxTarget = options?.max_target_temp !== undefined ? Number(options.max_target_temp) : w100Defaults.max_target_temp;
+function w100CheckSetpointRange(
+    temp: number,
+    options: KeyValue | undefined,
+    defaultRange: Range = [w100Defaults.min_target_temp, w100Defaults.max_target_temp],
+) {
+    const minTarget = options?.min_target_temp !== undefined ? Number(options.min_target_temp) : defaultRange[0];
+    const maxTarget = options?.max_target_temp !== undefined ? Number(options.max_target_temp) : defaultRange[1];
     if (Number.isNaN(temp) || temp < minTarget || temp > maxTarget) {
         throw new Error(`occupied_heating_setpoint must be between ${minTarget} and ${maxTarget}`);
     }
@@ -7757,9 +7761,11 @@ function w100CheckSetpointRange(temp: number, options: KeyValue | undefined) {
  * Aqara W100 "HA" protocol, available on firmware exposing 0xFCC0/0x0174 and 0xFCC0/0x0175.
  *
  * - 0x0174 (octet string): thermostat state as TLV `[tag][ZCL data type][value LE]`, tags: 0x01 mode (enum8),
- *   0x02 setpoint (°C x 100, 16 bit), 0x03 fan (enum8). Writing it subscribes the W100 to the thermostat;
- *   the W100 reports it after every user action. Example (cool, 26.5°C, fan auto): 01 30 03 02 21 5a 0a 03 30 05
- * - 0x0175 (int16): setpoint step. Not persisted by the device, it has to be written again after every reboot.
+ *   0x02 setpoint (int16, °C x 100, 4.5-37°C), 0x03 fan (enum8). Writing it subscribes the W100 to the thermostat;
+ *   the W100 reports it after every user action. Example (cool, 26.5°C, fan auto): 01 30 03 02 29 5a 0a 03 30 05
+ *   Writing data without any valid tag (e.g. only tag 0x00 bool 0) unsubscribes the W100.
+ * - 0x0175 (int16): setpoint step in °C x 100 (e.g. 10 = 0.1°C). Not persisted by the device, it has to be
+ *   written again after every reboot.
  *
  * Older firmware only supports the PMTSD protocol (0xFFF2 frames). The protocol is detected by reading 0x0175:
  * unsupported attribute means legacy firmware.
@@ -7774,9 +7780,10 @@ export interface W100HaState {
 
 const w100HaAttribute = {thermostatState: 0x0174, setpointStep: 0x0175};
 const w100HaTag = {mode: 0x01, setpoint: 0x02, fan: 0x03};
-// TODO: only `cool: 3` and fan `auto: 5` are confirmed by Aqara (example frame), the other values are placeholders.
-const w100HaModeLookup: Record<string, number> = {off: 0, heat: 1, auto: 2, cool: 3};
+const w100HaModeLookup: Record<string, number> = {off: 0, cool: 3, heat: 4};
 const w100HaFanLookup: Record<string, number> = {low: 1, medium: 2, high: 3, auto: 5};
+const w100HaSetpointRange: Range = [4.5, 37];
+const w100HaUnsubscribe = Buffer.from([0x00, Zcl.DataType.BOOLEAN, 0x00]);
 const w100SetpointSteps = ["0.1", "0.5", "1"];
 const w100DefaultSetpointStep = 0.5;
 
@@ -7789,6 +7796,7 @@ export const w100 = {
             const type = buffer[i + 1];
             let size: number;
             switch (type) {
+                case Zcl.DataType.BOOLEAN:
                 case Zcl.DataType.UINT8:
                 case Zcl.DataType.INT8:
                 case Zcl.DataType.ENUM8:
@@ -7824,9 +7832,8 @@ export const w100 = {
         buffer.writeUInt8(Zcl.DataType.ENUM8, 1);
         buffer.writeUInt8(state.mode, 2);
         buffer.writeUInt8(w100HaTag.setpoint, 3);
-        // TODO: Aqara announced int16 but the example frame uses uint16 (0x21), confirm.
-        buffer.writeUInt8(Zcl.DataType.UINT16, 4);
-        buffer.writeUInt16LE(Math.round(state.setpoint * 100), 5);
+        buffer.writeUInt8(Zcl.DataType.INT16, 4);
+        buffer.writeInt16LE(Math.round(state.setpoint * 100), 5);
         buffer.writeUInt8(w100HaTag.fan, 7);
         buffer.writeUInt8(Zcl.DataType.ENUM8, 8);
         buffer.writeUInt8(state.fan, 9);
@@ -7890,7 +7897,6 @@ export const w100 = {
         return protocol;
     },
     writeSetpointStep: async (entity: Zh.Endpoint | Zh.Group, options: KeyValue | undefined) => {
-        // TODO: encoding to confirm with Aqara, assumed to be °C x 100 like the setpoint.
         const value = Math.round(w100.getSetpointStep(options) * 100);
         await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
             "manuSpecificLumi",
@@ -7916,6 +7922,14 @@ export const w100 = {
         );
         logger.info(`Aqara W100: thermostat state written: ${value.toString("hex")}`, NS);
     },
+    /** Writes a 0x0174 value without any valid tag, the W100 leaves the thermostat mode. */
+    unsubscribe: async (entity: Zh.Endpoint | Zh.Group) => {
+        await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+            "manuSpecificLumi",
+            {[w100HaAttribute.thermostatState]: {value: w100HaUnsubscribe, type: Zcl.DataType.OCTET_STR}},
+            {manufacturerCode},
+        );
+    },
 };
 
 async function w100HaConvertSet(entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) {
@@ -7938,7 +7952,7 @@ async function w100HaConvertSet(entity: Zh.Endpoint | Zh.Group, key: string, val
         target.fan_mode = value.toLowerCase();
     } else {
         const temp = Number.parseFloat(value as string);
-        w100CheckSetpointRange(temp, meta.options);
+        w100CheckSetpointRange(temp, meta.options, w100HaSetpointRange);
         target.occupied_heating_setpoint = w100.roundToStep(temp, w100.getSetpointStep(meta.options));
     }
     await w100.writeHaState(entity, target, meta.options);
@@ -11480,15 +11494,18 @@ export const toZigbee = {
     w100_mode: {
         key: ["thermostat_mode"],
         convertSet: async (entity, key, value, meta) => {
-            if (value === "ON" && w100.getProtocol(meta.device, meta.options) === "ha") {
-                // Writing the thermostat state subscribes the W100 to the thermostat.
+            if (w100.getProtocol(meta.device, meta.options) === "ha") {
                 const base = w100EnsureDefaults(meta);
-                await w100.writeSetpointStep(entity, meta.options);
-                await w100.writeHaState(entity, base, meta.options);
-                logger.info("Aqara W100: thermostat_mode set to ON", NS);
+                if (value === "ON") {
+                    // Writing the thermostat state subscribes the W100 to the thermostat.
+                    await w100.writeSetpointStep(entity, meta.options);
+                    await w100.writeHaState(entity, base, meta.options);
+                } else {
+                    await w100.unsubscribe(entity);
+                }
+                logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
                 return {state: {...base, thermostat_mode: value}};
             }
-            // TODO: HA protocol firmware, the way to disable the thermostat mode is not known yet, the legacy frame is used.
             const deviceMac = meta.device.ieeeAddr.replace(/^0x/, "").toLowerCase();
             const hubMac = "54ef4480711a";
             function cleanMac(mac: string, expectedLen: number) {

@@ -5823,7 +5823,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withUnit("°C")
                 .withCategory("config")
-                .withDescription("Minimum target temperature for the thermostat (default: 5°C)"),
+                .withDescription("Minimum target temperature for the thermostat (default: 5°C, 4.5°C with the ha protocol)"),
             e
                 .numeric("max_target_temp", ea.STATE_SET)
                 .withValueMin(-20)
@@ -5831,7 +5831,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withUnit("°C")
                 .withCategory("config")
-                .withDescription("Maximum target temperature for the thermostat (default: 30°C)"),
+                .withDescription("Maximum target temperature for the thermostat (default: 30°C, 37°C with the ha protocol)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5840,20 +5840,18 @@ export const definitions: DefinitionWithExtend[] = [
             // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             if (!device.meta.state) (device.meta as any).state = {};
 
-            // Detect whether the firmware supports the HA thermostat protocol (0x0174/0x0175) or only PMTSD.
-            const protocol = await lumi.w100.probeProtocol(device);
+            // Detect whether the firmware supports the HA thermostat protocol (0x0174/0x0175) or only PMTSD,
+            // w100_mode uses the detected protocol.
+            await lumi.w100.probeProtocol(device);
 
-            // TODO: the way to disable the thermostat mode with the HA protocol is not known yet.
-            if (protocol !== "ha") {
-                // Send thermostat_mode = OFF. We construct a fake meta object as convertSet needs it.
+            // Send thermostat_mode = OFF. We construct a fake meta object as convertSet needs it.
+            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+            const meta = {device, state: (device.meta as any).state, logger} as any;
+            try {
                 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                const meta = {device, state: (device.meta as any).state, logger} as any;
-                try {
-                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                    await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
-                } catch (_error) {
-                    // ignore
-                }
+                await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
+            } catch (_error) {
+                // ignore
             }
 
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
