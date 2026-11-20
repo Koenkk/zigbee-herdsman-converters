@@ -7870,7 +7870,9 @@ export const w100 = {
             if (tag === w100HaTag.mode) result.mode = value;
             else if (tag === w100HaTag.setpoint) result.setpoint = value / 100;
             else if (tag === w100HaTag.fan) result.fan = value;
-            else logger.debug(`Aqara W100: unknown TLV tag 0x${tag.toString(16)} = ${value}`, NS);
+            else if (tag >= w100HaTag.minHeat && tag <= w100HaTag.maxCool) {
+                // Setpoint limits, echoed back by the W100 after we wrote them.
+            } else logger.debug(`Aqara W100: unknown TLV tag 0x${tag.toString(16)} = ${value}`, NS);
         }
         return result;
     },
