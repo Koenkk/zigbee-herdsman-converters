@@ -5854,15 +5854,9 @@ export const definitions: DefinitionWithExtend[] = [
                 // ignore
             }
 
+            // No ZCL reporting configuration: the W100 reports temperature and humidity according to its own settings
+            // (temp_report_mode, humi_report_mode...). Configuring it made some firmware send extra truncated values.
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
-            await endpoint.configureReporting("msTemperatureMeasurement", [
-                {
-                    attribute: "measuredValue",
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 3600,
-                    reportableChange: 100,
-                },
-            ]);
 
             logger.info("Aqara W100: configure completed", NS);
         },
@@ -5870,8 +5864,8 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumi.modernExtend.w100Thermostat(),
             lumiZigbeeOTA(),
-            m.temperature(),
-            m.humidity(),
+            m.temperature({reporting: false}),
+            m.humidity({reporting: false}),
             lumiExternalSensor(),
             m.deviceEndpoints({endpoints: {plus: 1, center: 2, minus: 3}}),
             lumiAction({
@@ -5989,7 +5983,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "temp_threshold",
-                valueMin: 0.2,
+                valueMin: 0.5,
                 valueMax: 3,
                 valueStep: 0.1,
                 scale: 100,

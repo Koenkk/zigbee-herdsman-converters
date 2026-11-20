@@ -2734,7 +2734,7 @@ export const lumiModernExtend = {
                     .climate()
                     .withSystemMode(ha ? ["off", "heat", "cool"] : ["off", "heat", "cool", "auto"])
                     .withFanMode(["auto", "low", "medium", "high"])
-                    .withSetpoint("occupied_heating_setpoint", min, max, ha ? w100.getSetpointStep(options) : 0.5)
+                    .withSetpoint("occupied_heating_setpoint", min, max, ha ? w100.getSetpointStep(options) : 1)
                     .withLocalTemperature()
                     .withDescription(
                         "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
@@ -7697,52 +7697,83 @@ export function w100EnsureDefaults(meta: Fz.Meta | Tz.Meta): W100State {
     return normalized;
 }
 
+const w100HubMac = [0x54, 0xef, 0x44, 0x80, 0x71, 0x1a];
+const w100PmtsdMarker = [0x08, 0x00, 0x08, 0x44];
+const w100PmtsdModes = ["cool", "heat", "auto"];
+const w100PmtsdFanModes = ["auto", "low", "medium", "high"];
+
+/**
+ * Builds a Lumi 0xFFF2 frame: `aa 71 <length + 3> <type> <counter> <checksum> <action> 41 <length> <payload>`.
+ * The checksum makes the first 6 bytes sum to 0 (mod 256), the W100 rejects frames with wrong lengths.
+ */
+function w100Frame(type: number, counter: number, action: number, payload: number[]): Buffer {
+    const header = [0xaa, 0x71, payload.length + 3, type, counter & 0xff];
+    const checksum = (256 - (header.reduce((sum, b) => sum + b, 0) & 0xff)) & 0xff;
+    return Buffer.from([...header, checksum, action, 0x41, payload.length, ...payload]);
+}
+
+/** The W100 expects an incrementing frame counter. */
+function w100NextCounter(device: Zh.Device): number {
+    const counter = ((globalStore.getValue(device, "w100_counter", Math.floor(Math.random() * 256)) as number) + 1) & 0xff;
+    globalStore.putValue(device, "w100_counter", counter);
+    return counter;
+}
+
+async function w100WriteFrame(entity: Zh.Endpoint | Zh.Group, frame: Buffer) {
+    await entity.write(64704, {65522: {value: frame, type: 0x41}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+}
+
+/** Acknowledges a frame sent by the W100 (type 0x84), without it the W100 blocks and shows E01/E02. */
+async function w100SendAck(entity: Zh.Endpoint | Zh.Group, counter: number) {
+    await w100WriteFrame(entity, w100Frame(0x24, counter, 0x05, [0x00, 0x00, 0x00, ...w100HubMac, 0x00]));
+}
+
+/**
+ * Returns the last PMTSD values sent to or received from the W100. They are kept in the device meta because
+ * a frame always contains every field: building it from the state would resend stale values when two
+ * commands arrive before the state is updated.
+ */
+function w100GetPmtsd(meta: Fz.Meta | Tz.Meta): W100Pmtsd {
+    const stored = meta.device?.meta?.w100Pmtsd as W100Pmtsd | undefined;
+    if (stored) return {...stored};
+    const base = w100EnsureDefaults(meta);
+    const off = base.system_mode === "off";
+    return {
+        p: off ? 1 : 0,
+        m: off ? ((meta.device?.meta?.lastActiveMode as number) ?? 0) : Math.max(0, w100PmtsdModes.indexOf(base.system_mode)),
+        t: Number(base.occupied_heating_setpoint),
+        s: Math.max(0, w100PmtsdFanModes.indexOf(base.fan_mode)),
+        d: Number(base.unused) || 0,
+    };
+}
+
+function w100SetPmtsd(device: Zh.Device, pmtsd: W100Pmtsd) {
+    if (!device.meta) device.meta = {};
+    device.meta.w100Pmtsd = {...pmtsd};
+    if (pmtsd.p === 0) device.meta.lastActiveMode = pmtsd.m;
+}
+
+function w100PmtsdToState(pmtsd: W100Pmtsd) {
+    return {
+        system_mode: pmtsd.p === 1 ? "off" : (w100PmtsdModes[pmtsd.m] ?? "cool"),
+        occupied_heating_setpoint: pmtsd.t,
+        fan_mode: w100PmtsdFanModes[pmtsd.s] ?? "auto",
+        unused: String(pmtsd.d),
+    };
+}
+
 async function w100SendPMTSD(entity: Zh.Endpoint | Zh.Group, pmtsd: W100Pmtsd, meta: Fz.Meta | Tz.Meta) {
-    const {p, m, t, s, d} = pmtsd;
-    const pmtsdStr = `P${p}_M${m}_T${t}_S${s}_D${d}`;
-    const pmtsdBytes = Array.from(pmtsdStr).map((c) => c.charCodeAt(0));
-    const pmtsdLen = pmtsdBytes.length;
+    // The W100 only handles whole degrees with the PMTSD protocol.
+    const values = {...pmtsd, t: Math.round(pmtsd.t)};
+    const pmtsdStr = `P${values.p}_M${values.m}_T${values.t}_S${values.s}_D${values.d}`;
+    const ascii = Array.from(pmtsdStr, (c) => c.charCodeAt(0));
+    w100SetPmtsd(meta.device, values);
 
-    const fixedHeader = [
-        0xaa,
-        0x71,
-        0x1f,
-        0x44,
-        0x00,
-        0x00,
-        0x05,
-        0x41,
-        0x1c,
-        0x00,
-        0x00,
-        0x54,
-        0xef,
-        0x44,
-        0x80,
-        0x71,
-        0x1a,
-        0x08,
-        0x00,
-        0x08,
-        0x44,
-        pmtsdLen,
-    ];
-
-    const counter = Math.floor(Math.random() * 256);
-    fixedHeader[4] = counter;
-
-    // Byte 5 (Lumi header integrity) is intentionally left at 0: this is what the W100 has always received from
-    // this converter, and frames with a computed integrity byte are suspected to block the W100 (legacy firmware).
-    const fullPayload = [...fixedHeader, ...pmtsdBytes];
-
-    await entity.write(64704, {65522: {value: Buffer.from(fullPayload), type: 65}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+    const payload = [0x00, 0x00, ...w100HubMac, ...w100PmtsdMarker, ascii.length, ...ascii];
+    await w100WriteFrame(entity, w100Frame(0x44, w100NextCounter(meta.device), 0x05, payload));
 
     logger.info(`Aqara W100: PMTSD frame sent: ${pmtsdStr}`, NS);
-
-    if (meta.device) {
-        if (!meta.device.meta) meta.device.meta = {};
-        meta.device.meta.lastPMTSDSend = Date.now();
-    }
+    meta.device.meta.lastPMTSDSend = Date.now();
 }
 
 function w100CheckSetpointRange(
@@ -9309,54 +9340,33 @@ export const fromZigbee = {
                     // defaults assigned
                 } else {
                     const endsWith = Buffer.from([0x08, 0x00, 0x08, 0x44]);
-                    const endsWithData = Buffer.from([0x08, 0x44]);
+
+                    const endpoint = meta.device.getEndpoint(1);
+                    if (attr.length > 4 && attr[3] === 0x84) {
+                        // Frame sent by the W100, acknowledge it.
+                        try {
+                            await w100SendAck(endpoint, attr[4]);
+                        } catch (error) {
+                            logger.warning(`Aqara W100: Failed to send acknowledgement: ${(error as Error).message}`, NS);
+                        }
+                    }
 
                     if (attr.length >= 4 && attr.slice(-4).equals(endsWith)) {
                         logger.info(`Aqara W100: PMTSD request detected from device ${meta.device.ieeeAddr}`, NS);
-                        let modeValue = 0;
-                        if (base.system_mode === "off") {
-                            modeValue = (meta.device.meta.lastActiveMode as number) ?? 0;
-                        } else {
-                            const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
-                            modeValue = (modeMap[base.system_mode] as number) ?? 0;
-                        }
-
-                        const convertToNumber = (key: string, value: unknown) => {
-                            if (typeof value !== "string") return value;
-                            if (key === "fan_mode") {
-                                const speedMap: KeyValue = {auto: 0, low: 1, medium: 2, high: 3};
-                                return (speedMap[value.toLowerCase()] as number) ?? 0;
-                            }
-                            if (key === "unused") return Number.parseInt(value, 10);
-                            return value;
-                        };
-
-                        const pmtsdValues: W100Pmtsd = {
-                            p: base.system_mode === "off" ? 1 : 0,
-                            m: modeValue,
-                            t:
-                                typeof base.occupied_heating_setpoint === "string"
-                                    ? Number.parseFloat(base.occupied_heating_setpoint)
-                                    : base.occupied_heating_setpoint,
-                            s: (convertToNumber("fan_mode", base.fan_mode) as number) ?? 0,
-                            d: (convertToNumber("unused", base.unused) as number) ?? 0,
-                        };
-
                         try {
-                            const endpoint = meta.device.getEndpoint(1);
-                            await w100SendPMTSD(endpoint, pmtsdValues, meta);
+                            await w100SendPMTSD(endpoint, w100GetPmtsd(meta), meta);
                         } catch (error) {
                             logger.error(`Aqara W100: Failed to send PMTSD frame: ${(error as Error).message}`, NS);
                         }
                         result.action = "W100_PMTSD_request";
                     } else {
-                        const idx = attr.indexOf(endsWithData);
-                        if (idx !== -1 && idx + 2 < attr.length) {
-                            const payloadLen = attr[idx + 2];
-                            const payloadStart = idx + 3;
+                        const idx = attr.indexOf(endsWith);
+                        if (idx !== -1 && idx + 4 < attr.length) {
+                            const payloadLen = attr[idx + 4];
+                            const payloadStart = idx + 5;
                             const payloadEnd = payloadStart + payloadLen;
 
-                            if (payloadEnd <= attr.length) {
+                            if (payloadLen > 0 && payloadEnd <= attr.length) {
                                 const payloadBytes = attr.slice(payloadStart, payloadEnd);
                                 let payloadAscii: string;
                                 try {
@@ -9365,84 +9375,29 @@ export const fromZigbee = {
                                     return;
                                 }
 
-                                const stateUpdate: KeyValue = {};
                                 const partsForCombined: string[] = [];
-                                const pairs = payloadAscii.split("_");
-                                const pmtsd: KeyValueAny = {
-                                    p: base.system_mode === "off" ? 1 : 0,
-                                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                                    m: (meta.device.meta as any)?.lastActiveMode ?? 0,
-                                    t: 15,
-                                    s: 0,
-                                    d: 0,
-                                };
-                                if (base.system_mode !== "off") {
-                                    const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
-                                    pmtsd.m = (modeMap[base.system_mode] as number) ?? 0;
+                                const pairs = payloadAscii.replace(/\0+$/, "").split("_");
+                                // The W100 only sends the fields that changed.
+                                const pmtsd = w100GetPmtsd(meta);
+
+                                for (const pair of pairs) {
+                                    if (pair.length < 2) continue;
+                                    const key = pair[0].toLowerCase();
+                                    const value = pair.slice(1);
+                                    if (key === "t") pmtsd.t = Number.parseFloat(value);
+                                    else if (key === "p" || key === "m" || key === "s" || key === "d") pmtsd[key] = Number.parseInt(value, 10);
+                                    const name = `${key.toUpperCase()}W`;
+                                    result[name] = value;
+                                    partsForCombined.push(`${name}${value}`);
                                 }
+                                Object.assign(result, w100PmtsdToState(pmtsd));
 
-                                pairs.forEach((pair) => {
-                                    if (pair.length >= 2) {
-                                        const key = pair[0].toLowerCase();
-                                        const value = pair.slice(1);
-                                        let newKey: string;
-                                        let stateKey: string | undefined;
-                                        let displayValue: string | number = value;
-                                        let processedValue: string | number = value;
-
-                                        switch (key) {
-                                            case "p":
-                                                newKey = "PW";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.p = processedValue;
-                                                break;
-                                            case "m":
-                                                newKey = "MW";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.m = processedValue;
-                                                break;
-                                            case "t":
-                                                newKey = "TW";
-                                                stateKey = "occupied_heating_setpoint";
-                                                processedValue = Number.parseFloat(value);
-                                                pmtsd.t = processedValue;
-                                                displayValue = processedValue;
-                                                break;
-                                            case "s":
-                                                newKey = "SW";
-                                                stateKey = "fan_mode";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.s = processedValue;
-                                                displayValue = ["auto", "low", "medium", "high"][processedValue];
-                                                break;
-                                            case "d":
-                                                newKey = "DW";
-                                                stateKey = "unused";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.d = processedValue;
-                                                displayValue = String(processedValue);
-                                                break;
-                                            default:
-                                                newKey = `${key.toUpperCase()}W`;
-                                        }
-                                        result[newKey] = value;
-                                        if (stateKey) {
-                                            stateUpdate[stateKey] = displayValue;
-                                            result[stateKey] = displayValue;
-                                        }
-                                        partsForCombined.push(`${newKey}${value}`);
-                                    }
-                                });
-
-                                const modeDisplay = ["cool", "heat", "auto"][pmtsd.m] || "cool";
-                                const systemMode = pmtsd.p === 1 ? "off" : modeDisplay;
-                                if (pmtsd.p === 0 && pmtsd.m !== undefined) {
-                                    if (!meta.device.meta) meta.device.meta = {};
-                                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                                    (meta.device.meta as any).lastActiveMode = pmtsd.m;
+                                // Send the resulting state back, otherwise the W100 blocks the next local change (E02).
+                                try {
+                                    await w100SendPMTSD(endpoint, pmtsd, meta);
+                                } catch (error) {
+                                    logger.error(`Aqara W100: Failed to send PMTSD frame: ${(error as Error).message}`, NS);
                                 }
-                                stateUpdate.system_mode = systemMode;
-                                result.system_mode = systemMode;
 
                                 const date = new Date();
                                 const pad = (n: number) => n.toString().padStart(2, "0");
@@ -11350,35 +11305,7 @@ export const toZigbee = {
                 return await w100HaConvertSet(entity, key, value, meta);
             }
             const MIN_SEND_INTERVAL_MS = 5000;
-            const base = w100EnsureDefaults(meta);
-
-            let initialP = 0;
-            let initialM = 0;
-            if (base.system_mode === "off") {
-                initialP = 1;
-                initialM = (meta.device?.meta?.lastActiveMode as number) ?? 0;
-            } else {
-                initialP = 0;
-                const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
-                initialM = (modeMap[base.system_mode] as number) ?? 0;
-            }
-
-            let initialS = 0;
-            const speedMap: KeyValue = {auto: 0, low: 1, medium: 2, high: 3};
-            initialS = (speedMap[base.fan_mode] as number) ?? 0;
-
-            const pmtsd: W100Pmtsd = {
-                p: initialP,
-                m: initialM,
-                t:
-                    typeof base.occupied_heating_setpoint === "string"
-                        ? Number.parseFloat(base.occupied_heating_setpoint)
-                        : base.occupied_heating_setpoint,
-                s: initialS,
-                d: typeof base.unused === "string" ? Number.parseInt(base.unused, 10) : (base.unused as number),
-            };
-            if (typeof pmtsd.t === "string") pmtsd.t = Number.parseFloat(pmtsd.t);
-            if (typeof pmtsd.d === "string") pmtsd.d = Number.parseInt(pmtsd.d, 10);
+            const pmtsd = w100GetPmtsd(meta);
 
             let hasChanged = false;
             if (key === "pmtsd_to_w100") {
@@ -11426,8 +11353,10 @@ export const toZigbee = {
                         break;
                     }
                     case "occupied_heating_setpoint": {
-                        const temp = Number.parseFloat(value as string);
-                        w100CheckSetpointRange(temp, meta.options);
+                        const requested = Number.parseFloat(value as string);
+                        w100CheckSetpointRange(requested, meta.options);
+                        // The W100 only handles whole degrees with the PMTSD protocol.
+                        const temp = Math.round(requested);
                         if (pmtsd.t !== temp) {
                             pmtsd.t = temp;
                             hasChanged = true;
@@ -11459,16 +11388,9 @@ export const toZigbee = {
                 }
             }
 
-            const modeDisplay = ["cool", "heat", "auto"][pmtsd.m as number] || "cool";
-            const speedDisplay = ["auto", "low", "medium", "high"][pmtsd.s as number] || "auto";
-            const stateUpdate = {
-                state: {
-                    occupied_heating_setpoint: pmtsd.t,
-                    fan_mode: speedDisplay,
-                    system_mode: pmtsd.p === 1 ? "off" : modeDisplay,
-                    unused: String(pmtsd.d),
-                },
-            };
+            const stateUpdate = {state: w100PmtsdToState(pmtsd)};
+            // Store the values right away so that a command arriving before this one is sent builds on them.
+            w100SetPmtsd(meta.device, pmtsd);
 
             const {p, m, t, s, d} = pmtsd;
             if (p === undefined || m === undefined || t === undefined || s === undefined || d === undefined) return stateUpdate;
@@ -11506,38 +11428,17 @@ export const toZigbee = {
                 logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
                 return {state: {...base, thermostat_mode: value}};
             }
-            const deviceMac = meta.device.ieeeAddr.replace(/^0x/, "").toLowerCase();
-            const hubMac = "54ef4480711a";
-            function cleanMac(mac: string, expectedLen: number) {
-                const cleaned = mac.replace(/[:-]/g, "");
-                if (cleaned.length !== expectedLen) throw new Error(`MAC must be ${expectedLen} hex digits`);
-                return cleaned;
-            }
-            const dev = Buffer.from(cleanMac(deviceMac, 16), "hex");
-            const hub = Buffer.from(cleanMac(hubMac, 12), "hex");
-            let frame: Buffer;
+            const device = [...Buffer.from(meta.device.ieeeAddr.replace(/^0x/, ""), "hex")];
+            const messageId = [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
+            const prefix = [0x68, 0x91, ...messageId, 0x18, ...device];
+            // Subscribes the W100 to the hub thermostat (label "空调功能": air conditioner function) or unsubscribes it.
+            const tail = Buffer.from("08000844150a0109e7a9bae8b083e58a9f000000000001012a40", "hex");
+            const frame =
+                value === "ON"
+                    ? w100Frame(0x44, w100NextCounter(meta.device), 0x02, [...prefix, 0x00, 0x00, ...w100HubMac, ...tail])
+                    : w100Frame(0x44, w100NextCounter(meta.device), 0x04, [...prefix, ...new Array(12).fill(0)]);
 
-            if (value === "ON") {
-                const prefix = Buffer.concat([
-                    Buffer.from("aa713244", "hex"),
-                    Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]),
-                ]);
-                const zigbeeHeader = Buffer.from("02412f6891", "hex");
-                const messageId = Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]);
-                const control = Buffer.from([0x18]);
-                const payloadMacs = Buffer.concat([dev, Buffer.from("0000", "hex"), hub]);
-                const payloadTail = Buffer.from("08000844150a0109e7a9bae8b083e58a9f000000000001012a40", "hex");
-                frame = Buffer.concat([prefix, zigbeeHeader, messageId, control, payloadMacs, payloadTail]);
-            } else {
-                const prefix = Buffer.from([0xaa, 0x71, 0x1c, 0x44, 0x69, 0x1c, 0x04, 0x41, 0x19, 0x68, 0x91]);
-                const frameId = Buffer.from([Math.floor(Math.random() * 256)]);
-                const seq = Buffer.from([Math.floor(Math.random() * 256)]);
-                const control = Buffer.from([0x18]);
-                frame = Buffer.concat([prefix, frameId, seq, control, dev]);
-                if (frame.length < 34) frame = Buffer.concat([frame, Buffer.alloc(34 - frame.length, 0x00)]);
-            }
-
-            await entity.write(64704, {65522: {value: frame, type: 0x41}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+            await w100WriteFrame(entity, frame);
             logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
             const defaults = w100EnsureDefaults(meta);
             return {state: {...defaults, thermostat_mode: value}};

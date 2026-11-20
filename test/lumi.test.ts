@@ -1399,7 +1399,7 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
     const exampleFrame = Buffer.from("01300302295a0a033005", "hex");
 
     const setup = (meta: KeyValueAny = {}, read?: ReturnType<typeof vi.fn<() => Promise<Record<string, unknown>>>>) => {
-        const device = mockDevice({modelID: "lumi.sensor_ht.agl001", endpoints: [{ID: 1, read}]}, "EndDevice");
+        const device = mockDevice({modelID: "lumi.sensor_ht.agl001", ieeeAddr: "0x54ef4410013afed0", endpoints: [{ID: 1, read}]}, "EndDevice");
         device.meta = {...meta};
         vi.spyOn(device, "save").mockImplementation(() => {});
         return device;
@@ -1531,12 +1531,12 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
     });
 
     describe("exposes", () => {
-        it("exposes the PMTSD data and a 0.5 step with the legacy protocol", async () => {
+        it("exposes the PMTSD data and a 1 °C step with the legacy protocol", async () => {
             const device = setup();
             const definition = await findByDevice(device);
             const exposes = (definition.exposes as DefinitionExposesFunction)(device, {setpoint_step: "0.1"});
 
-            expect(climateStep(exposes)).toStrictEqual(0.5);
+            expect(climateStep(exposes)).toStrictEqual(1);
             expect(exposes.find((e) => e.name === "PMTSD_from_W100_Data")).toBeDefined();
         });
 
@@ -1623,16 +1623,108 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             await expect(toZigbee.w100_pmtsd.convertSet(device.getEndpoint(1), "system_mode", "auto", tzMeta(device, state))).rejects.toThrow();
         });
 
-        it("sends a PMTSD frame with the legacy protocol", async () => {
+        const frames = (endpoint: Zh.Endpoint) => vi.mocked(endpoint.write).mock.calls.map((call) => call[1][65522].value as Buffer);
+        const expectValidFrame = (frame: Buffer) => {
+            expect(frame[2]).toStrictEqual(frame.length - 6);
+            expect(frame[8]).toStrictEqual(frame.length - 9);
+            expect((frame[0] + frame[1] + frame[2] + frame[3] + frame[4] + frame[5]) & 0xff).toStrictEqual(0);
+        };
+
+        it.each([
+            [23, "P0_M0_T23_S0_D0"],
+            [7, "P0_M0_T7_S0_D0"],
+            [20.6, "P0_M0_T21_S0_D0"],
+        ])("sends a valid PMTSD frame for setpoint %s with the legacy protocol", async (setpoint, expected) => {
+            const device = setup();
+            const endpoint = device.getEndpoint(1);
+            const state = {thermostat_mode: "ON", system_mode: "cool", occupied_heating_setpoint: 22, fan_mode: "auto"};
+
+            const result = await toZigbee.w100_pmtsd.convertSet(endpoint, "occupied_heating_setpoint", setpoint, tzMeta(device, state));
+
+            const [frame] = frames(endpoint);
+            expect(frame.subarray(frame.length - expected.length).toString("ascii")).toStrictEqual(expected);
+            expect(frame.subarray(0, 4).toString("hex")).toStrictEqual(`aa71${(frame.length - 6).toString(16)}44`);
+            expectValidFrame(frame);
+            expect(result).toMatchObject({state: {occupied_heating_setpoint: Math.round(setpoint)}});
+        });
+
+        it("increments the frame counter", async () => {
             const device = setup();
             const endpoint = device.getEndpoint(1);
             const state = {thermostat_mode: "ON", system_mode: "cool", occupied_heating_setpoint: 22, fan_mode: "auto"};
 
             await toZigbee.w100_pmtsd.convertSet(endpoint, "occupied_heating_setpoint", 23, tzMeta(device, state));
+            await toZigbee.w100_pmtsd.convertSet(endpoint, "occupied_heating_setpoint", 24, tzMeta(device, state));
 
-            const frame = vi.mocked(endpoint.write).mock.calls[0][1][65522].value as Buffer;
-            expect(frame.subarray(frame.length - 15).toString("ascii")).toStrictEqual("P0_M0_T23_S0_D0");
-            expect(frame[5]).toStrictEqual(0);
+            const [first, second] = frames(endpoint);
+            expect(second[4]).toStrictEqual((first[4] + 1) & 0xff);
+        });
+
+        it("builds on the last sent values when two commands arrive before the state is updated", async () => {
+            const device = setup();
+            const endpoint = device.getEndpoint(1);
+            const staleState = {thermostat_mode: "ON", system_mode: "off", occupied_heating_setpoint: 16, fan_mode: "auto"};
+
+            await toZigbee.w100_pmtsd.convertSet(endpoint, "system_mode", "heat", tzMeta(device, staleState));
+            await toZigbee.w100_pmtsd.convertSet(endpoint, "occupied_heating_setpoint", 25, tzMeta(device, staleState));
+
+            const [, second] = frames(endpoint);
+            expect(second.subarray(second.length - 15).toString("ascii")).toStrictEqual("P0_M1_T25_S0_D0");
+        });
+
+        it("sends valid thermostat mode frames", async () => {
+            const device = setup();
+            const endpoint = device.getEndpoint(1);
+
+            await toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "ON", tzMeta(device, {}));
+            await toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", tzMeta(device, {}));
+
+            const [on, off] = frames(endpoint);
+            expect(on.length).toStrictEqual(56);
+            expect(on[6]).toStrictEqual(0x02);
+            expect(off.length).toStrictEqual(34);
+            expect(off[6]).toStrictEqual(0x04);
+            expectValidFrame(on);
+            expectValidFrame(off);
+        });
+    });
+
+    describe("fromZigbee legacy protocol", () => {
+        const convert = async (device: Zh.Device, frame: Buffer, state: KeyValueAny) => {
+            const definition = await findByDevice(device);
+            return await fromZigbee.w100_specific.convert(
+                definition,
+                // @ts-expect-error mock message
+                {data: {65522: frame}, device, endpoint: device.getEndpoint(1)},
+                vi.fn(),
+                {},
+                {device, state, deviceExposesChanged: vi.fn()},
+            );
+        };
+        const frames = (device: Zh.Device) => vi.mocked(device.getEndpoint(1).write).mock.calls.map((call) => call[1][65522].value as Buffer);
+        const state = {thermostat_mode: "ON", system_mode: "heat", occupied_heating_setpoint: 20, fan_mode: "high"};
+
+        it("acknowledges a PMTSD request and answers with the current values", async () => {
+            const device = setup();
+
+            const result = await convert(device, Buffer.from("aa710f8454fe06410f000054ef4480711a08000844", "hex"), state);
+
+            const [ack, pmtsd] = frames(device);
+            expect(ack.toString("hex")).toStrictEqual("aa710d24546005410a00000054ef4480711a00");
+            expect(pmtsd.subarray(pmtsd.length - 15).toString("ascii")).toStrictEqual("P0_M1_T20_S3_D0");
+            expect(result).toMatchObject({action: "W100_PMTSD_request"});
+        });
+
+        it("acknowledges a change made on the W100 and sends the resulting state back", async () => {
+            const device = setup();
+            const frame = Buffer.concat([Buffer.from("aa72178455f4014117000054ef4480711a0800084406", "hex"), Buffer.from("M1_T15\0", "ascii")]);
+
+            const result = await convert(device, frame, state);
+
+            const [ack, pmtsd] = frames(device);
+            expect(ack.subarray(0, 6).toString("hex")).toStrictEqual("aa710d24555f");
+            expect(pmtsd.subarray(pmtsd.length - 15).toString("ascii")).toStrictEqual("P0_M1_T15_S3_D0");
+            expect(result).toMatchObject({system_mode: "heat", occupied_heating_setpoint: 15, fan_mode: "high", MW: "1", TW: "15"});
         });
     });
 });
