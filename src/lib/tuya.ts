@@ -4781,7 +4781,7 @@ const tuyaModernExtend = {
             ...(result.configure ?? []),
         ];
 
-        if (dp || queryIntervalSeconds > 0) {
+        if (args.queryIntervalSeconds !== undefined) {
             const queryPoll = modernExtend.poll({
                 key: "data_query",
                 optionKey: "data_query_interval",

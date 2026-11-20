@@ -567,7 +567,6 @@ describe("ZHC", () => {
         const ts0601Soil = await findByDevice(ts0601SoilDevice);
         expect(ts0601Soil.options.map((t) => t.name)).toStrictEqual([
             "time_start",
-            "data_query_interval",
             "temperature_calibration",
             "temperature_precision",
             "soil_moisture_calibration",

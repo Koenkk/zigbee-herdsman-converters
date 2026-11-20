@@ -17,7 +17,7 @@ describe("lib/tuya", () => {
             vi.useRealTimers();
             globalStore.clear();
         });
-        const setup = (args: Parameters<typeof tuya.modernExtend.tuyaBase>[0] = {dp: true}) => {
+        const setup = (args: Parameters<typeof tuya.modernExtend.tuyaBase>[0] = {dp: true, queryIntervalSeconds: 0}) => {
             const extension = tuya.modernExtend.tuyaBase(args);
             const device = mockDevice({modelID: "TS0601", endpoints: [{ID: 2}]});
             const command = vi.mocked(device.endpoints[0].command);
@@ -48,9 +48,11 @@ describe("lib/tuya", () => {
             expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
         });
 
-        it("does not expose or start data queries for non-DP devices and preserves their timers", async () => {
-            const {extension, device, command, start, changeOptions} = setup({});
+        it.each([{}, {dp: true}] as const)("keeps undeclared query polling disabled (%j)", async (args) => {
+            const {extension, device, command, start, changeOptions} = setup(args);
             expect(extension.options.map((option) => option.name)).toEqual(["time_start"]);
+            expect(extension.fromZigbee.includes(tuya.fz.datapoints)).toBe("dp" in args);
+            expect(extension.toZigbee.includes(tuya.tz.datapoints)).toBe("dp" in args);
             const otherTimer = {};
             globalStore.putValue(device.ieeeAddr, "query_interval", otherTimer);
             await start({data_query_interval: 1});
