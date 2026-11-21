@@ -788,15 +788,20 @@ export function poll(args: {
     optionKey?: string;
 }): ModernExtend {
     const optionKey = args.optionKey ?? `${args.key}_poll_interval`;
+    const maxIntervalSeconds = 20 * 24 * 60 * 60;
     const onEvent: OnEvent.Handler[] = [
         (event) => {
             if (event.type === "start" || (event.type === "deviceOptionsChanged" && event.data.from[optionKey] !== event.data.to[optionKey])) {
+                clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
+                globalStore.clearValue(event.data.device.ieeeAddr, args.key);
+
                 let seconds = args.defaultIntervalSeconds;
                 if (args.option) {
                     seconds = toNumber(event.data.options[optionKey] ?? args.defaultIntervalSeconds, optionKey);
                 }
-
-                clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
+                if (!Number.isFinite(seconds) || seconds > maxIntervalSeconds) {
+                    throw new Error(`${optionKey} must be finite and no greater than ${maxIntervalSeconds} seconds`);
+                }
 
                 if (seconds <= 0 || event.data.options.disabled) {
                     logger.debug(
