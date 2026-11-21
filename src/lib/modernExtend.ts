@@ -1969,9 +1969,11 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 export interface IasWarningArgs {
     reversePayload?: boolean;
     maxDuration?: boolean | {min?: number; max?: number};
+    stopWithZeroInfo?: boolean;
+    warningActive?: boolean;
 }
 export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
-    const {reversePayload = false, maxDuration = false} = args;
+    const {reversePayload = false, maxDuration = false, stopWithZeroInfo = false, warningActive = false} = args;
     const warningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
     // levels for siren, strobe and squawk are identical
     const level = {low: 0, medium: 1, high: 2, very_high: 3};
@@ -1999,7 +2001,15 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
         );
     }
 
-    const fromZigbee = maxDuration
+    if (warningActive) {
+        exposes.push(
+            e
+                .binary("warning_active", ea.STATE, true, false)
+                .withDescription("Indicates whether a warning is sounding, derived from the warnings sent (the device does not report it)"),
+        );
+    }
+
+    const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = maxDuration
         ? [
               {
                   cluster: "ssIasWd",
@@ -2012,6 +2022,18 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
               } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
           ]
         : [];
+
+    if (warningActive) {
+        fromZigbee.push({
+            cluster: "ssIasZone",
+            type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const until = meta.device.meta.warningActiveUntil;
+                const active = typeof until === "number" && Date.now() < until;
+                if (meta.state.warning_active !== active) return {warning_active: active};
+            },
+        } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>);
+    }
 
     const maxDurationConverter: Tz.Converter = {
         key: ["max_duration"],
@@ -2050,7 +2072,9 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let info;
-                if (reversePayload) {
+                if (isStop && stopWithZeroInfo) {
+                    info = 0;
+                } else if (reversePayload) {
                     info = getFromLookup(values.mode, warningMode) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
                 } else {
                     info = (getFromLookup(values.mode, warningMode) << 4) + ((values.strobe ? 1 : 0) << 2) + getFromLookup(values.level, level);
@@ -2064,6 +2088,28 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                 };
 
                 await entity.command("ssIasWd", "startWarning", payload, getOptions(meta.mapped, entity));
+
+                if (warningActive && meta.device) {
+                    clearTimeout(globalStore.getValue(entity, "warningActiveTimer"));
+                    globalStore.clearValue(entity, "warningActiveTimer");
+
+                    let seconds = isStop ? 0 : Number(values.duration);
+                    if (typeof meta.state.max_duration === "number") seconds = Math.min(seconds, meta.state.max_duration);
+                    if (!(seconds > 0)) {
+                        delete meta.device.meta.warningActiveUntil;
+                        meta.device.save();
+                        return {state: {warning_active: false}};
+                    }
+
+                    meta.device.meta.warningActiveUntil = Date.now() + seconds * 1000;
+                    meta.device.save();
+                    const timer = setTimeout(() => {
+                        globalStore.clearValue(entity, "warningActiveTimer");
+                        meta.publish({warning_active: false});
+                    }, seconds * 1000).unref();
+                    globalStore.putValue(entity, "warningActiveTimer", timer);
+                    return {state: {warning_active: true}};
+                }
             },
         },
         ...(maxDuration ? [maxDurationConverter] : []),
