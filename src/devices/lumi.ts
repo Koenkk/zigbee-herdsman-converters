@@ -5812,19 +5812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "ON: Enables thermostat mode, buttons send encrypted payloads, and the middle line is displayed. OFF: Disables thermostat mode, buttons send actions, and the middle line is hidden.",
                 ),
-            e
-                .climate()
-                .withSystemMode(["off", "heat", "cool", "auto"])
-                .withFanMode(["auto", "low", "medium", "high"])
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
-                .withLocalTemperature()
-                .withDescription(
-                    "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
-                ),
             e.action(["W100_PMTSD_request"]).withDescription("PMTSD request sent by the W100 via the 08000844 sequence"),
-            e
-                .text("PMTSD_from_W100_Data", ea.STATE)
-                .withDescription('Latest PMTSD values sent by the W100 when manually changed, formatted as "YYYY-MM-DD HH:mm:ss_Px_Mx_Tx_Sx_Dx"'),
             e.battery(),
         ],
         options: [
@@ -5835,7 +5823,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withUnit("°C")
                 .withCategory("config")
-                .withDescription("Minimum target temperature for the thermostat (default: 5°C)"),
+                .withDescription("Minimum target temperature for the thermostat (default: 5°C, 4.5°C with the ha protocol)"),
             e
                 .numeric("max_target_temp", ea.STATE_SET)
                 .withValueMin(-20)
@@ -5843,7 +5831,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withUnit("°C")
                 .withCategory("config")
-                .withDescription("Maximum target temperature for the thermostat (default: 30°C)"),
+                .withDescription("Maximum target temperature for the thermostat (default: 30°C, 37°C with the ha protocol)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5851,6 +5839,10 @@ export const definitions: DefinitionWithExtend[] = [
             if (!device.meta) device.meta = {};
             // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             if (!device.meta.state) (device.meta as any).state = {};
+
+            // Detect whether the firmware supports the HA thermostat protocol (0x0174/0x0175) or only PMTSD,
+            // w100_mode uses the detected protocol.
+            await lumi.w100.probeProtocol(device);
 
             // Send thermostat_mode = OFF. We construct a fake meta object as convertSet needs it.
             // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
@@ -5862,23 +5854,18 @@ export const definitions: DefinitionWithExtend[] = [
                 // ignore
             }
 
+            // No ZCL reporting configuration: the W100 reports temperature and humidity according to its own settings
+            // (temp_report_mode, humi_report_mode...). Configuring it made some firmware send extra truncated values.
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
-            await endpoint.configureReporting("msTemperatureMeasurement", [
-                {
-                    attribute: "measuredValue",
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 3600,
-                    reportableChange: 100,
-                },
-            ]);
 
             logger.info("Aqara W100: configure completed", NS);
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumi.modernExtend.w100Thermostat(),
             lumiZigbeeOTA(),
-            m.temperature(),
-            m.humidity(),
+            m.temperature({reporting: false}),
+            m.humidity({reporting: false}),
             lumiExternalSensor(),
             m.deviceEndpoints({endpoints: {plus: 1, center: 2, minus: 3}}),
             lumiAction({
@@ -5996,7 +5983,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "temp_threshold",
-                valueMin: 0.2,
+                valueMin: 0.5,
                 valueMax: 3,
                 valueStep: 0.1,
                 scale: 100,
