@@ -265,13 +265,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: atlanticPlusRadiatorExtend({horizontal: true}),
     },
     {
-        zigbeeModel: [
-            "100052994200",
-            "100052994300",
-            "100051841900",
-            "100051842100",
-            "100051842200",
-        ],
+        zigbeeModel: ["100052994200", "100052994300", "100051841900", "100051842100", "100051842200"],
         model: "100052994200",
         vendor: "Atlantic Group",
         description: "Nirvana+ connected radiator vertical 1500W",
