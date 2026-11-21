@@ -3,6 +3,8 @@ import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {Tz} from "../src/lib/types";
 import {
     batteryVoltageToPercentage,
+    discoverAttributes,
+    getClusterAttributeValue,
     getFromLookup,
     getFromLookupByValue,
     getTransition,
@@ -13,6 +15,90 @@ import {
 import {mockDevice} from "./utils";
 
 describe("utils", () => {
+    describe("discoverAttributes", () => {
+        it("skips discovery when attributes are already discovered", async () => {
+            const device = mockDevice({modelID: "test", endpoints: [{}]});
+            const endpoint = device.endpoints[0];
+            endpoint.saveClusterAttributeDiscovery("genPowerCfg", [], true);
+            const discoverSpy = vi.spyOn(endpoint, "discoverAttributes");
+
+            await discoverAttributes(endpoint, "genPowerCfg");
+
+            expect(discoverSpy).not.toHaveBeenCalled();
+        });
+
+        it("discovers attributes with the requested options", async () => {
+            const device = mockDevice({modelID: "test", endpoints: [{}]});
+            const endpoint = device.endpoints[0];
+            const discoverSpy = vi.spyOn(endpoint, "discoverAttributes").mockImplementation(() => {
+                endpoint.saveClusterAttributeDiscovery("genPowerCfg", [], true);
+                return Promise.resolve();
+            });
+
+            await discoverAttributes(endpoint, "genPowerCfg", true);
+
+            expect(discoverSpy).toHaveBeenCalledWith("genPowerCfg", true, {
+                sendPolicy: "immediate",
+                disableRecovery: true,
+                disableDefaultResponse: true,
+            });
+        });
+
+        it("swallows discovery errors", async () => {
+            const device = mockDevice({modelID: "test", endpoints: [{}]});
+            const endpoint = device.endpoints[0];
+            vi.spyOn(endpoint, "discoverAttributes").mockRejectedValue(new Error("discovery failed"));
+
+            await expect(discoverAttributes(endpoint, "genPowerCfg")).resolves.toBeUndefined();
+        });
+    });
+
+    describe("getClusterAttributeValue", () => {
+        it("returns a cached attribute value without reading", async () => {
+            const device = mockDevice({
+                modelID: "test",
+                endpoints: [{attributes: {genPowerCfg: {attributes: {batteryVoltage: 30}}}}],
+            });
+            const endpoint = device.endpoints[0];
+
+            await expect(getClusterAttributeValue(endpoint, "genPowerCfg", "batteryVoltage", 0)).resolves.toBe(30);
+            expect(endpoint.read).not.toHaveBeenCalled();
+        });
+
+        it("reads an attribute that is not cached", async () => {
+            const device = mockDevice({
+                modelID: "test",
+                endpoints: [{read: vi.fn(async () => ({batteryVoltage: 27}))}],
+            });
+            const endpoint = device.endpoints[0];
+
+            await expect(getClusterAttributeValue(endpoint, "genPowerCfg", "batteryVoltage", 0)).resolves.toBe(27);
+            expect(endpoint.read).toHaveBeenCalledWith("genPowerCfg", ["batteryVoltage"], {
+                sendPolicy: "immediate",
+                disableRecovery: true,
+            });
+        });
+
+        it("returns the fallback when discovery confirms the attribute is unsupported", async () => {
+            const device = mockDevice({modelID: "test", endpoints: [{}]});
+            const endpoint = device.endpoints[0];
+            endpoint.saveClusterAttributeDiscovery("genPowerCfg", [], true);
+
+            await expect(getClusterAttributeValue(endpoint, "genPowerCfg", "batteryVoltage", 0)).resolves.toBe(0);
+            expect(endpoint.read).not.toHaveBeenCalled();
+        });
+
+        it("returns the fallback when reading the attribute fails", async () => {
+            const device = mockDevice({
+                modelID: "test",
+                endpoints: [{read: vi.fn(async () => Promise.reject(new Error("read failed")))}],
+            });
+            const endpoint = device.endpoints[0];
+
+            await expect(getClusterAttributeValue(endpoint, "genPowerCfg", "batteryVoltage", 0)).resolves.toBe(0);
+        });
+    });
+
     describe("mapNumberRange", () => {
         it("should map value (0..100)->(0..200)", () => {
             expect(mapNumberRange(50, 0, 100, 0, 200)).toEqual(100);
