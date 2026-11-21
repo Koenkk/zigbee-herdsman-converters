@@ -14746,4 +14746,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        zigbeeModel: ["CAM-Router"],
+        model: "CAM-Router",
+        vendor: "SONOFF",
+        description: "CAM Outdoor DUO Dual-Lens Smart Security Camera with Switchable Zigbee Hub and Router Modes",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
+    },
 ];
