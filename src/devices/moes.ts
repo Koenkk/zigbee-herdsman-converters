@@ -585,7 +585,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [67, null, tuya.valueConverter.ZWT198_schedule],
                 [67, "schedule_weekday", tuya.valueConverter.ZWT198_schedule],
-                [68, "schedule_holiday", tuya.valueConverter.ZWT198_schedule],
+                [67, "schedule_holiday", tuya.valueConverter.ZWT198_schedule],
             ],
         },
     },
