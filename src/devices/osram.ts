@@ -1,6 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
-import {ledvanceFz, ledvanceLight, ledvanceOnOff} from "../lib/ledvance";
+import {ledvanceFz, ledvanceLight, ledvanceOnOff, ledvancePowerOnBehavior} from "../lib/ledvance";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -133,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AB32840",
         vendor: "OSRAM",
         description: "LIGHTIFY LED Classic B40 tunable white",
-        extend: [ledvanceLight({colorTemp: {range: [150, 370]}})],
+        extend: [ledvanceLight({colorTemp: {range: [150, 370]}}), ledvancePowerOnBehavior()],
     },
     {
         zigbeeModel: ["Ceiling TW OSRAM"],
@@ -147,7 +147,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC03641",
         vendor: "OSRAM",
         description: "LIGHTIFY LED Classic A60 clear",
-        extend: [ledvanceLight({})],
+        extend: [ledvanceLight({}), ledvancePowerOnBehavior()],
     },
     {
         zigbeeModel: ["Surface Light W �C LIGHTIFY"],
@@ -458,22 +458,35 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OSRAM",
         description: "Lightify pro push button controller (PBC)",
         meta: {multiEndpoint: true},
+
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+
         fromZigbee: [ledvanceFz.pbc_level_to_action],
+
         exposes: [
             e.action(["hold", "release", "toggle"]).withEndpoint("l1"),
             e.action(["hold", "release", "toggle"]).withEndpoint("l2"),
             e.action(["hold", "release", "toggle"]).withEndpoint("l3"),
             e.action(["hold", "release", "toggle"]).withEndpoint("l4"),
         ],
+
         toZigbee: [],
+
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genLevelCtrl"]);
         },
+    },
+
+    {
+        zigbeeModel: ["PAR16 DIM 50 GU10 TW"],
+        model: "4099854461767/4099854461774",
+        vendor: "OSRAM",
+        description: "SMART+ LED PAR16 50 GU10 - Tunable White",
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
 ];

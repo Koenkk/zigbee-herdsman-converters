@@ -1,6 +1,8 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, DummyDevice, Fz, KeyValue, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -24,7 +26,45 @@ const actionLookup = {
     3: "hold",
 };
 
-const zifgredFromZigbeeButtonEvent: Fz.Converter<"manuSpecificSiglisZigfred", undefined, ["commandSiglisZigfredButtonEvent"]> = {
+interface SiglisZigfred {
+    attributes: {
+        buttonEvent: number;
+    };
+    commands: {
+        siglisZigfredButtonEvent: {
+            button: number;
+            type: number;
+            duration: number;
+        };
+    };
+    commandResponses: never;
+}
+
+const siglisExtend = {
+    addManuSpecificSiglisZigfredCluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSiglisZigfred", {
+            name: "manuSpecificSiglisZigfred",
+            ID: 0xfc42,
+            manufacturerCode: Zcl.ManufacturerCode.SIGLIS_AG,
+            attributes: {
+                buttonEvent: {name: "buttonEvent", ID: 0x0008, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            },
+            commands: {
+                siglisZigfredButtonEvent: {
+                    name: "siglisZigfredButtonEvent",
+                    ID: 0x02,
+                    parameters: [
+                        {name: "button", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "type", type: Zcl.DataType.UINT8, max: 0xff},
+                        {name: "duration", type: Zcl.DataType.UINT16, max: 0xffff},
+                    ],
+                },
+            },
+            commandsResponse: {},
+        }),
+};
+
+const zifgredFromZigbeeButtonEvent: Fz.Converter<"manuSpecificSiglisZigfred", SiglisZigfred, ["commandSiglisZigfredButtonEvent"]> = {
     cluster: "manuSpecificSiglisZigfred",
     type: ["commandSiglisZigfredButtonEvent"],
     convert: (model, msg, publish, options, meta) => {
@@ -128,6 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZFU-1D-CH",
         vendor: "Siglis",
         description: "zigfred uno smart in-wall switch",
+        extend: [siglisExtend.addManuSpecificSiglisZigfredCluster()],
         options: [
             e.enum("front_surface_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Front Surface LED enabled"),
             e.enum("relay_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Relay enabled"),
@@ -219,6 +260,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZFP-1A-CH",
         vendor: "Siglis",
         description: "zigfred plus smart in-wall switch",
+        extend: [siglisExtend.addManuSpecificSiglisZigfredCluster()],
         options: [
             e.enum("front_surface_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Front Surface LED enabled"),
             e.enum("dimmer_1_enabled", ea.SET, ["auto", "true", "false"]).withDescription("Dimmer 1 enabled"),

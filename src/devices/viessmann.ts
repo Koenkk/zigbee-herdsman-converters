@@ -3,11 +3,136 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const NS = "zhc:viessmann";
+
+interface ViessmannHvacThermostat {
+    attributes: {
+        viessmannWindowOpenInternal?: number;
+        viessmannWindowOpenForce?: number;
+        viessmannAssemblyMode?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const viessmannExtend = {
+    viessmannHvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                viessmannWindowOpenInternal: {
+                    name: "viessmannWindowOpenInternal",
+                    ID: 0x4000,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH,
+                    write: true,
+                    max: 0xff,
+                },
+                viessmannWindowOpenForce: {
+                    name: "viessmannWindowOpenForce",
+                    ID: 0x4003,
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH,
+                    write: true,
+                },
+                viessmannAssemblyMode: {
+                    name: "viessmannAssemblyMode",
+                    ID: 0x4012,
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH,
+                    write: true,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
+
+const tzLocal = {
+    viessmann_window_open: {
+        key: ["window_open"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", ViessmannHvacThermostat>("hvacThermostat", ["viessmannWindowOpenInternal"], {
+                manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH,
+            });
+        },
+    } satisfies Tz.Converter,
+    viessmann_window_open_force: {
+        key: ["window_open_force"],
+        convertSet: async (entity, key, value, meta) => {
+            if (typeof value === "boolean") {
+                await entity.write<"hvacThermostat", ViessmannHvacThermostat>(
+                    "hvacThermostat",
+                    {viessmannWindowOpenForce: value ? 1 : 0},
+                    {manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH},
+                );
+                return {state: {window_open_force: value}};
+            }
+            logger.error("window_open_force must be a boolean!", NS);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", ViessmannHvacThermostat>("hvacThermostat", ["viessmannWindowOpenForce"], {
+                manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH,
+            });
+        },
+    } satisfies Tz.Converter,
+    viessmann_assembly_mode: {
+        key: ["assembly_mode"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", ViessmannHvacThermostat>("hvacThermostat", ["viessmannAssemblyMode"], {
+                manufacturerCode: Zcl.ManufacturerCode.VIESSMANN_ELEKTRONIK_GMBH,
+            });
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    viessmann_thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
+
+            if (result) {
+                // ViessMann TRVs report piHeatingDemand from 0-5
+                // NOTE: remove the result for now, but leave it configure for reporting
+                //       it will show up in the debug log still to help try and figure out
+                //       what this value potentially means.
+                delete result.pi_heating_demand;
+
+                // viessmannWindowOpenInternal
+                // 0-2, 5: unknown
+                // 3: window open (OO on display, no heating)
+                // 4: window open (OO on display, heating)
+                if (msg.data.viessmannWindowOpenInternal !== undefined) {
+                    result.window_open = msg.data.viessmannWindowOpenInternal === 3 || msg.data.viessmannWindowOpenInternal === 4;
+                }
+
+                // viessmannWindowOpenForce (rw, bool)
+                if (msg.data.viessmannWindowOpenForce !== undefined) {
+                    result.window_open_force = msg.data.viessmannWindowOpenForce === 1;
+                }
+
+                // viessmannAssemblyMode (ro, bool)
+                // 0: TRV installed
+                // 1: TRV ready to install (-- on display)
+                if (msg.data.viessmannAssemblyMode !== undefined) {
+                    result.assembly_mode = msg.data.viessmannAssemblyMode === 1;
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", ViessmannHvacThermostat, ["attributeReport", "readResponse"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -42,16 +167,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZK03840",
         vendor: "Viessmann",
         description: "ViCare radiator thermostat valve",
-        fromZigbee: [fz.viessmann_thermostat, fz.battery, fz.hvac_user_interface],
+        extend: [viessmannExtend.viessmannHvacThermostatCluster()],
+        fromZigbee: [fzLocal.viessmann_thermostat, fz.battery, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
             tz.thermostat_keypad_lockout,
-            tz.viessmann_window_open,
-            tz.viessmann_window_open_force,
-            tz.viessmann_assembly_mode,
+            tzLocal.viessmann_window_open,
+            tzLocal.viessmann_window_open_force,
+            tzLocal.viessmann_assembly_mode,
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
         ],
@@ -79,14 +205,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatPIHeatingDemand(endpoint);
 
             // manufacturer attributes
-            await endpoint.configureReporting(
+            await endpoint.configureReporting<"hvacThermostat", ViessmannHvacThermostat>(
                 "hvacThermostat",
                 [{attribute: "viessmannWindowOpenInternal", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 1}],
                 options,
             );
 
             // read window_open_force, we don't need reporting as it cannot be set physically on the device
-            await endpoint.read("hvacThermostat", ["viessmannWindowOpenForce"], options);
+            await endpoint.read<"hvacThermostat", ViessmannHvacThermostat>("hvacThermostat", ["viessmannWindowOpenForce"], options);
 
             // read keypadLockout, we don't need reporting as it cannot be set physically on the device
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);

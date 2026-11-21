@@ -66,7 +66,7 @@ const tzLocal = {
                     } catch {
                         /* Do nothing */
                     }
-                    setTimeout(() => retryRead(attempts - 1), 10000);
+                    setTimeout(() => retryRead(attempts - 1), 10000).unref();
                 }
             };
 
@@ -110,6 +110,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Leleka"],
         model: "Leleka",
+        version: "0.0.1",
         vendor: "MindY",
         description: "Advanced Environmental Monitoring Device",
         ota: true,

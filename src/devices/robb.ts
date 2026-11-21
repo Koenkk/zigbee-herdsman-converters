@@ -9,6 +9,18 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ROB_200-082-0"],
+        model: "ROB_200-082-0",
+        vendor: "ROBB",
+        description: "4-button wireless Zigbee switch",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
         zigbeeModel: ["ROB_200-011-1"],
         model: "ROB_200-011-1",
         vendor: "ROBB",
@@ -20,6 +32,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ROB_200-081-0",
         vendor: "ROBB",
         description: "4-button wireless Zigbee switch",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
+        zigbeeModel: ["ROB_200-084-0"],
+        model: "ROB_200-084-0",
+        vendor: "ROBB",
+        description: "4-button wireless Zigbee switch (Black, dual button front)",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.battery(),
@@ -49,6 +73,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
     {
+        zigbeeModel: ["ROB_200-065-0"],
+        model: "ROB_200-065-0",
+        vendor: "ROBB",
+        description: "LED Power Supply & RGBW Controller 24V 100W",
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        whiteLabel: [{vendor: "Sunricher", model: "srp-zv9105-24-100cvf"}],
+    },
+    {
         zigbeeModel: ["ROB_200-029-0"],
         model: "ROB_200-029-0",
         vendor: "ROBB",
@@ -69,14 +101,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ROBB",
         description: "Battery powered PIR presence, temperature, humidity and light sensors",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5}}),
             m.battery(),
             m.identify(),
             m.occupancy(),
             m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
-            m.temperature({endpointNames: ["3"]}),
-            m.humidity({endpointNames: ["4"]}),
-            m.illuminance({endpointNames: ["5"]}),
+            m.temperature(),
+            m.humidity(),
+            m.illuminance(),
         ],
     },
     {
@@ -107,6 +138,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ROBB",
         description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter({current: {divisor: 1000}, voltage: {divisor: 10}, power: {divisor: 10}})],
+    },
+    {
+        zigbeeModel: ["ROB_200-012-0"],
+        model: "ROB_200-012-0",
+        vendor: "ROBB",
+        description: "Dual Zigbee AC phase-cut dimmer",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ["l1", "l2"], configureReporting: true})],
     },
     {
         zigbeeModel: ["ROB_200-003-0"],
@@ -294,7 +332,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.action(["on_1", "off_1", "brightness_move_to_level_1", "color_temperature_move_1", "color_move_1"])],
         toZigbee: [],
         // DEPRECATED BREAKING CHANGE: remove multiEndpoint: true here and drop `_1` postfix from actions
-        meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
+        meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "Sunricher", model: "SR-ZG2835"}],
     },
     {
@@ -358,6 +396,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move,
             fz.command_color_loop_set,
             fz.command_enhanced_move_to_hue_and_saturation,
+            fz.command_move_to_hue_and_saturation,
         ],
         toZigbee: [],
         exposes: [
@@ -377,6 +416,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "brightness_move_down",
                 "color_loop_set",
                 "enhanced_move_to_hue_and_saturation",
+                "move_to_hue_and_saturation",
                 "hue_stop",
             ]),
         ],

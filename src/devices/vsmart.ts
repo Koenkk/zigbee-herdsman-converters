@@ -2,6 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const ea = exposes.access;
 
@@ -60,49 +61,60 @@ const createLedIntensityConverter = (fieldName: string, endpointIndex: number, p
 const mLocal = {
     customCluster: (): ModernExtend =>
         m.deviceAddCustomCluster("vsmartSwitchControl", {
+            name: "vsmartSwitchControl",
             ID: 0x0000,
             manufacturerCode: VSMART_MANUFACTURER_CODE,
             attributes: {},
             commands: {
                 setLedColor: {
+                    name: "setLedColor",
                     ID: 0xf3,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setVibrationIntensity: {
+                    name: "setVibrationIntensity",
                     ID: 0xf0,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setLedBrightnessLevel: {
+                    name: "setLedBrightnessLevel",
                     ID: 0xf4,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setLedIntensity: {
+                    name: "setLedIntensity",
                     ID: 0xf2,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setTimePeriod: {
+                    name: "setTimePeriod",
                     ID: 0xf5,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
             },
             commandsResponse: {
                 setLedColor: {
+                    name: "setLedColor",
                     ID: 0xf3,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setVibrationIntensity: {
+                    name: "setVibrationIntensity",
                     ID: 0xf0,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setLedBrightnessLevel: {
+                    name: "setLedBrightnessLevel",
                     ID: 0xf4,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setLedIntensity: {
+                    name: "setLedIntensity",
                     ID: 0xf2,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
                 setTimePeriod: {
+                    name: "setTimePeriod",
                     ID: 0xf5,
                     parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                 },
@@ -412,7 +424,7 @@ const mLocal = {
                         );
 
                         if (i < commands.length - 1) {
-                            await new Promise((resolve) => setTimeout(resolve, COMMAND_DELAY_MS));
+                            await utils.sleep(COMMAND_DELAY_MS);
                         }
                     }
 

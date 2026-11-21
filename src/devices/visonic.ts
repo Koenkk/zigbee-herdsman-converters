@@ -48,6 +48,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature()],
+        // Factory value is 1200 qs (5 min), but a battery swap resets it to 8 qs (2 s).
+        extend: [m.pollControl({longPollInterval: 1200})],
     },
     {
         zigbeeModel: ["MCT-340 E"],

@@ -85,7 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "L&S Lighting",
         description: "Mec Driver module 1-channel Zigbee (12V)",
         whiteLabel: [{model: "756200028", vendor: "L&S Lighting", description: "Mec Driver module 1-channel Zigbee (24V)"}],
-        extend: [m.light({colorTemp: {range: [153, 500]}})],
+        extend: [m.light({colorTemp: {range: [153, 500]}}), m.identify()],
     },
     {
         fingerprint: [
@@ -107,7 +107,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "L&S Lighting",
         description: "Zigbee remote",
         extend: [
-            m.battery(),
             lsModernExtend.groupIdExpose(),
             lsModernExtend.commandsOnOffDouble(),
             m.commandsOnOff({commands: ["on", "off"]}),

@@ -1,4 +1,5 @@
 import * as fz from "../converters/fromZigbee";
+import * as third from "../devices/third_reality";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -26,7 +27,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IT Commander",
         description: "Button",
         exposes: [e.action(["single", "double", "triple", "hold", "release", "many"]), e.battery(), e.voltage()],
-        fromZigbee: [fz.itcmdr_clicks, fz.battery],
+        fromZigbee: [third.fzLocal.itcmdr_clicks, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

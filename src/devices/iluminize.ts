@@ -179,7 +179,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
-        zigbeeModel: ["HK-ZD-RGB-A", "5110.40", "5110.80", "5112.80"],
+        zigbeeModel: ["HK-ZD-RGB-A", "5110.40", "5110.80"],
         model: "5110.40",
         vendor: "Iluminize",
         description: "Zigbee 3.0 LED controller, 5 Ch (12V - 24V) - 4A, RGB W/CCT LED",
@@ -190,14 +190,15 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Zigbee 3.0 LED controller, 5 Ch (12V - 48V) - 8A, RGB W/CCT LED",
                 fingerprint: [{modelID: "5110.80"}],
             },
-            {
-                model: "5112.80",
-                vendor: "Iluminize",
-                description: "Zigbee 3.0 LED controller, 1 Ch (12V - 36V) - 8A, RGB W/CCT LED",
-                fingerprint: [{modelID: "5112.80"}],
-            },
         ],
         extend: [m.light({colorTemp: {range: [160, 450]}, color: true, configureReporting: true})],
+    },
+    {
+        zigbeeModel: ["5112.80"],
+        model: "5112.80",
+        vendor: "Iluminize",
+        description: "LED controller",
+        extend: [m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ["HK-ZD-RGBCCT-A", "511.000"],

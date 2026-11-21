@@ -21,7 +21,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -603,6 +603,40 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSD-2",
         vendor: "Bosch",
         description: "Smoke alarm II",
+        meta: {
+            overrideHaDiscoveryPayload: (payload: KeyValueAny) => {
+                // The alarm_control enum uses .withHomeAssistant({type: "siren"}) to make
+                // Z2M publish the discovery on the homeassistant/siren/... topic. Here we
+                // add the siren-specific payload fields (available_tones, templates, etc.)
+                // that the enum-to-siren type override does not cover.
+                //
+                // The BSD-2 does not implement IAS WD, so we manually map the alarm_control
+                // enum (off/smoke/burglar) to HA's siren entity model.
+                //
+                // HA siren integration reference:
+                // https://www.home-assistant.io/integrations/siren.mqtt/
+                if (payload.command_topic?.endsWith("/alarm_control")) {
+                    delete payload.options;
+                    delete payload.value_template;
+                    payload.available_tones = ["smoke", "burglar"];
+                    payload.support_duration = false;
+                    payload.support_volume_set = false;
+                    // Map HA siren turn on/off + tone to our alarm_control enum value.
+                    payload.command_template =
+                        '{% if value == "OFF" %}off' + '{% elif tone == "smoke" or tone == "burglar" %}{{ tone }}' + "{% else %}smoke{% endif %}";
+                    payload.command_off_template = "off";
+                    // Map the alarm_control enum state back to HA siren on/off + tone.
+                    payload.state_value_template =
+                        '{% if value_json.alarm_control == "smoke" %}' +
+                        '{{ {"state": "ON", "tone": "smoke"} | to_json }}' +
+                        '{% elif value_json.alarm_control == "burglar" %}' +
+                        '{{ {"state": "ON", "tone": "burglar"} | to_json }}' +
+                        "{% else %}" +
+                        '{{ {"state": "OFF", "tone": "smoke"} | to_json }}' +
+                        "{% endif %}";
+                }
+            },
+        },
         extend: [
             boschSmokeAlarmExtend.enforceDefaultSensitivityLevel(),
             boschSmokeAlarmExtend.customIasZoneCluster(),
@@ -698,6 +732,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.valveAdaptation(),
             boschThermostatExtend.errorState({enableReporting: true}),
             boschGeneralExtend.batteryWithPercentageAndLowStatus(),
+            boschThermostatExtend.raWeeklySchedule(),
         ],
         ota: true,
     },
@@ -757,28 +792,36 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RM230Z",
         vendor: "Bosch",
         description: "Room thermostat II 230V",
+        options: [exposes.options.homeassistant_climate_modes()],
         meta: {
-            overrideHaDiscoveryPayload: (payload) => {
+            overrideHaDiscoveryPayload: (payload, options) => {
                 if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    const climateModes = options?.homeassistant_climate_modes;
+                    const activeModes = climateModes === "cool" ? ["cool"] : climateModes === "heat_cool" ? ["heat", "cool"] : ["heat"];
+                    const fallbackMode = activeModes[0];
+                    const activeModesTemplate = `[${activeModes.map((mode) => `'${mode}'`).join(",")}]`;
+
                     payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
                     payload.mode_command_template =
-                        "{% set values = " +
-                        `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
-                        `{% if value == "heat" or value == "cool" %}` +
+                        `{% set active_modes = ${activeModesTemplate} %}` +
+                        `{% set values = {'auto':'schedule','off':'pause'} %}` +
+                        "{% if value in active_modes %}" +
                         `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
                         "{% else %}" +
                         `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
                         "{% endif %}";
                     payload.mode_state_template =
-                        "{% set values = " +
-                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        `{% set active_modes = ${activeModesTemplate} %}` +
+                        `{% set fallback_mode = '${fallbackMode}' %}` +
+                        "{% set values = {'schedule':'auto','pause':'off'} %}" +
                         "{% set value = value_json.operating_mode %}" +
-                        `{% if value == "manual" %}` +
-                        "{{ value_json.system_mode }}" +
+                        "{% set mode = value_json.system_mode %}" +
+                        "{% if value == 'manual' %}" +
+                        "{{ mode if mode in active_modes else fallback_mode }}" +
                         "{% else %}" +
                         `{{ values[value] if value in values.keys() else 'off' }}` +
                         "{% endif %}";
-                    payload.modes = ["off", "heat", "cool", "auto"];
+                    payload.modes = ["off", ...activeModes, "auto"];
                 }
             },
         },
@@ -788,7 +831,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.relayState(),
             boschThermostatExtend.operatingMode({enableReporting: true}),
-            boschThermostatExtend.rmThermostat(),
+            boschThermostatExtend.rmThermostat({weeklySchedule: true}),
             boschThermostatExtend.setpointChangeSource({enableReporting: true}),
             boschThermostatExtend.humidity(),
             boschThermostatExtend.heaterType(),
@@ -802,6 +845,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.displaySwitchOnDuration(),
             boschThermostatExtend.activityLedState(),
             boschThermostatExtend.errorState({enableReporting: true}),
+            boschThermostatExtend.humidityAlarmLed(),
         ],
         ota: true,
     },
@@ -812,13 +856,15 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Twinguard",
         extend: [
             m.deviceAddCustomCluster("twinguardSmokeDetector", {
+                name: "twinguardSmokeDetector",
                 ID: 0xe000,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    sensitivity: {ID: 0x4003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    sensitivity: {name: "sensitivity", ID: 0x4003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {
                     initiateTestMode: {
+                        name: "initiateTestMode",
                         ID: 0x00,
                         parameters: [],
                     },
@@ -826,46 +872,50 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("twinguardMeasurements", {
+                name: "twinguardMeasurements",
                 ID: 0xe002,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    humidity: {ID: 0x4000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    unknown1: {ID: 0x4001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    unknown2: {ID: 0x4002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    airpurity: {ID: 0x4003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    temperature: {ID: 0x4004, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    illuminance: {ID: 0x4005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    battery: {ID: 0x4006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    unknown3: {ID: 0x4007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    unknown4: {ID: 0x4008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    pressure: {ID: 0x4009, type: Zcl.DataType.UINT16, write: true, max: 0xffff}, // Not yet confirmed
-                    unknown6: {ID: 0x400a, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    unknown7: {ID: 0x400b, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    unknown8: {ID: 0x400c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    humidity: {name: "humidity", ID: 0x4000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown1: {name: "unknown1", ID: 0x4001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown2: {name: "unknown2", ID: 0x4002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    airpurity: {name: "airpurity", ID: 0x4003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperature: {name: "temperature", ID: 0x4004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    illuminance: {name: "illuminance", ID: 0x4005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    battery: {name: "battery", ID: 0x4006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown3: {name: "unknown3", ID: 0x4007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown4: {name: "unknown4", ID: 0x4008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    pressure: {name: "pressure", ID: 0x4009, type: Zcl.DataType.UINT16, write: true, max: 0xffff}, // Not yet confirmed
+                    unknown6: {name: "unknown6", ID: 0x400a, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown7: {name: "unknown7", ID: 0x400b, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    unknown8: {name: "unknown8", ID: 0x400c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("twinguardOptions", {
+                name: "twinguardOptions",
                 ID: 0xe004,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    unknown1: {ID: 0x4000, type: Zcl.DataType.BITMAP8, write: true}, // 0,1 ??? read during pairing
-                    pre_alarm: {ID: 0x4001, type: Zcl.DataType.BITMAP8, write: true}, // 0,1 on/off
+                    unknown1: {name: "unknown1", ID: 0x4000, type: Zcl.DataType.BITMAP8, write: true}, // 0,1 ??? read during pairing
+                    pre_alarm: {name: "pre_alarm", ID: 0x4001, type: Zcl.DataType.BITMAP8, write: true}, // 0,1 on/off
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("twinguardSetup", {
+                name: "twinguardSetup",
                 ID: 0xe006,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    unknown1: {ID: 0x5003, type: Zcl.DataType.INT8, write: true, min: -128}, // perhaps signal strength? -7?
-                    unknown2: {ID: 0x5004, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // ????
-                    heartbeat: {ID: 0x5005, type: Zcl.DataType.BITMAP8, write: true}, // 0
+                    unknown1: {name: "unknown1", ID: 0x5003, type: Zcl.DataType.INT8, write: true, min: -128}, // perhaps signal strength? -7?
+                    unknown2: {name: "unknown2", ID: 0x5004, type: Zcl.DataType.UINT8, write: true, max: 0xff}, // ????
+                    heartbeat: {name: "heartbeat", ID: 0x5005, type: Zcl.DataType.BITMAP8, write: true}, // 0
                 },
                 commands: {
                     pairingCompleted: {
+                        name: "pairingCompleted",
                         ID: 0x01,
                         parameters: [],
                     },
@@ -873,13 +923,15 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("twinguardAlarm", {
+                name: "twinguardAlarm",
                 ID: 0xe007,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    alarm_status: {ID: 0x5000, type: Zcl.DataType.BITMAP32, write: true},
+                    alarm_status: {name: "alarm_status", ID: 0x5000, type: Zcl.DataType.BITMAP32, write: true},
                 },
                 commands: {
                     burglarAlarm: {
+                        name: "burglarAlarm",
                         ID: 0x01,
                         parameters: [
                             {name: "data", type: Zcl.DataType.UINT8, max: 0xff}, // data:1 trips the siren data:0 should stop the siren
@@ -940,6 +992,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschSmartPlugExtend.electricityMeter(),
             boschGeneralEnergyDeviceExtend.resetEnergyMeters(),
         ],
+        version: "0.0.1",
         ota: true,
         whiteLabel: [
             {vendor: "Bosch", model: "BSP-EZ2", description: "Smart plug compact (type E plug)", fingerprint: [{modelID: "RBSH-SP-ZB-FR"}]},
@@ -1015,15 +1068,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
             m.deviceAddCustomCluster("boschEnergyDevice", {
+                name: "boschEnergyDevice",
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
-                    dimmerType: {ID: 0x0022, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                    minimumBrightness: {ID: 0x0025, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    maximumBrightness: {ID: 0x0026, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN, write: true},
+                    switchType: {name: "switchType", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    childLock: {name: "childLock", ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
+                    dimmerType: {name: "dimmerType", ID: 0x0022, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    minimumBrightness: {name: "minimumBrightness", ID: 0x0025, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    maximumBrightness: {name: "maximumBrightness", ID: 0x0026, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    switchMode: {name: "switchMode", ID: 0x0031, type: Zcl.DataType.BOOLEAN, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1060,14 +1114,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             boschGeneralExtend.handleZclVersionReadRequest(),
             m.deviceAddCustomCluster("boschEnergyDevice", {
+                name: "boschEnergyDevice",
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
-                    pulseLength: {ID: 0x0024, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    switchMode: {ID: 0x0031, type: Zcl.DataType.BOOLEAN, write: true},
-                    actuatorType: {ID: 0x0034, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    switchType: {name: "switchType", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    autoOffEnabled: {name: "autoOffEnabled", ID: 0x0006, type: Zcl.DataType.BOOLEAN, write: true},
+                    autoOffTime: {name: "autoOffTime", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    childLock: {name: "childLock", ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
+                    pulseLength: {name: "pulseLength", ID: 0x0024, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    switchMode: {name: "switchMode", ID: 0x0031, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    actuatorType: {name: "actuatorType", ID: 0x0034, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1112,54 +1169,61 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {change: 1},
             }),
             m.deviceAddCustomCluster("boschEnergyDevice", {
+                name: "boschEnergyDevice",
                 ID: 0xfca0,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
-                    deviceMode: {ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                    switchType: {ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                    switchMode: {ID: 0x0031, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    calibrationOpeningTime: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                    calibrationClosingTime: {ID: 0x0003, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    deviceMode: {name: "deviceMode", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    switchType: {name: "switchType", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    switchMode: {name: "switchMode", ID: 0x0031, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    calibrationOpeningTime: {name: "calibrationOpeningTime", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    calibrationClosingTime: {name: "calibrationClosingTime", ID: 0x0003, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                     // 0x0005 isn't used at all when using the Bosch SHC as of 30-06-2025.
                     // As I don't have any shutters, I can't run all calibration steps
                     // successfully. So, keep any comments regarding these
                     // attributes with caution.
-                    calibrationButtonHoldTime: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    autoOffEnabled: {ID: 0x0006, type: Zcl.DataType.BOOLEAN, write: true},
-                    autoOffTime: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    childLock: {ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
+                    calibrationButtonHoldTime: {name: "calibrationButtonHoldTime", ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    autoOffEnabled: {name: "autoOffEnabled", ID: 0x0006, type: Zcl.DataType.BOOLEAN, write: true},
+                    autoOffTime: {name: "autoOffTime", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    childLock: {name: "childLock", ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
                     // 0x000f is only being set when using the automatic calibration.
                     // It's being set to 0 then before sending the calibration
                     // command. Additionally, when changing
                     // the calibrationOpeningTime or calibrationClosingTime in the
                     // Bosch app, it's also being set to 0.
                     // I couldn't find any way to set 0x000f manually in the Bosch app.
-                    calibrationMotorStartDelay: {ID: 0x000f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    calibrationMotorReverseDirection: {ID: 0x0032, type: Zcl.DataType.BOOLEAN, write: true},
-                    motorState: {ID: 0x0013, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    calibrationMotorStartDelay: {name: "calibrationMotorStartDelay", ID: 0x000f, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    calibrationMotorReverseDirection: {name: "calibrationMotorReverseDirection", ID: 0x0032, type: Zcl.DataType.BOOLEAN, write: true},
+                    motorState: {name: "motorState", ID: 0x0013, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                     // unknownAttributeOne is always being configured as reporting
                     // attribute on endpoint 1 when using the Bosch SHC.
                     // Can't tell what this attribute does (always received
                     // 0x00 as answer on manual lookup).
-                    unknownAttributeOne: {ID: 0x0004, type: Zcl.DataType.BITMAP8, write: true},
+                    unknownAttributeOne: {name: "unknownAttributeOne", ID: 0x0004, type: Zcl.DataType.BITMAP8, write: true},
                     // Attribute is being set to 255 when deactivating the automatic
                     // detection of the motor end position by the Bosch SHC. After
                     // activating the automatic end position detection it's being set
                     // to 0 by the Bosch SHC. Apart from that, there's no way to manually
                     // change the value.
-                    calibrationMotorEndPosition: {ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    calibrationMotorEndPosition: {name: "calibrationMotorEndPosition", ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     // 0x0033 is used when setting the motor start delay manually
                     // using the Bosch SHC as of 30-06-2025.
                     // If the user wants to automatically detect the delay during
                     // calibration, it's being set to 0 over the Bosch app.
-                    calibrationNewMotorStartDelay: {ID: 0x0033, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    calibrationNewMotorStartDelay: {
+                        name: "calibrationNewMotorStartDelay",
+                        ID: 0x0033,
+                        type: Zcl.DataType.UINT16,
+                        write: true,
+                        max: 0xffff,
+                    },
                     // 0x0010 and 0x0011 is being set simultaneously with the same value
                     // when changing the delay for the rotation of the slats on venetian
                     // blinds. Maybe one attribute for each direction?
                     // It's also being configured as reporting attribute when using
                     // venetian blinds.
-                    slatRotationDurationOne: {ID: 0x0010, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                    slatRotationDurationTwo: {ID: 0x0011, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    slatRotationDurationOne: {name: "slatRotationDurationOne", ID: 0x0010, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    slatRotationDurationTwo: {name: "slatRotationDurationTwo", ID: 0x0011, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                     // 0x002a is only being used when doing an automatic calibration
                     // with the Bosch specific startAutomaticMotorCalibration command.
                     // It's being set to true before starting the calibration process.
@@ -1167,12 +1231,12 @@ export const definitions: DefinitionWithExtend[] = [
                     // any packages where this attribute is being actively set to false.
                     // Maybe this activates some "full calibration" flag which is being
                     // set to false by the device itself afterward?
-                    unknownAttributeTwo: {ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
+                    unknownAttributeTwo: {name: "unknownAttributeTwo", ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
                 },
                 commands: {
                     // Command being sent by the Bosch SHC when starting an
                     // automatic shutter calibration.
-                    startAutomaticMotorCalibration: {ID: 0x00, parameters: []},
+                    startAutomaticMotorCalibration: {name: "startAutomaticMotorCalibration", ID: 0x00, parameters: []},
                 },
                 commandsResponse: {},
             }),
@@ -1496,15 +1560,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             m.deviceAddCustomCluster("boschSpecific", {
+                name: "boschSpecific",
                 ID: 0xfca1,
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {},
                 commands: {
                     confirmButtonPressed: {
+                        name: "confirmButtonPressed",
                         ID: 0x0010,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
                     },
                     pairingCompleted: {
+                        name: "pairingCompleted",
                         ID: 0x0012,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}],
                     },

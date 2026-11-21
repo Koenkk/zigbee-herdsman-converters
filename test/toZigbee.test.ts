@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, test, vi} from "vitest";
 import * as zhc from "../src";
-import type {Tz} from "../src/lib/types";
+import type {KeyValue, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("toZigbee converters", () => {
@@ -365,6 +365,188 @@ describe("toZigbee converters", () => {
         });
     });
 
+    describe("cover_state", () => {
+        let device: ReturnType<typeof mockDevice>;
+
+        beforeEach(() => {
+            device = mockDevice({modelID: "test_cover", endpoints: [{ID: 1}]});
+        });
+
+        const makeMeta = (options: KeyValue = {}, mappedMeta: KeyValue = {}): Tz.Meta => ({
+            state: {},
+            device,
+            message: null,
+            // @ts-expect-error mock
+            mapped: {meta: mappedMeta},
+            options,
+            publish: null,
+            endpoint_name: null,
+        });
+
+        test("sends upOpen for open and downClose for close by default", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "open", makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+        });
+
+        test("invert_cover does not swap open and close commands", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({invert_cover: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta({invert_cover: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+        });
+
+        test("stop is unaffected by invert_cover", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "stop", makeMeta({invert_cover: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "stop", {}, {});
+        });
+
+        test("device-level coverInverted meta does not affect which raw command is sent", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta({}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+        });
+
+        test("coverInverted meta combined with invert_cover still sends unswapped commands", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({invert_cover: true}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta({invert_cover: true}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+        });
+
+        test("stop is unaffected by coverInverted meta, with or without invert_cover", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "stop", makeMeta({}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "stop", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "stop", makeMeta({invert_cover: true}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "stop", {}, {});
+        });
+
+        test("real coverInverted device (Smartwings WM25L-Z) sends unswapped commands, with and without invert_cover", async () => {
+            const smartwingsDevice = mockDevice({
+                modelID: "WM25/L-Z",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering", "genPowerCfg"]}],
+            });
+            const definition = await zhc.findByDevice(smartwingsDevice);
+            expect(definition?.meta?.coverInverted).toBe(true);
+
+            const makeSmartwingsMeta = (options: KeyValue): Tz.Meta => ({
+                state: {},
+                device: smartwingsDevice,
+                message: null,
+                mapped: definition,
+                options,
+                publish: null,
+                endpoint_name: null,
+            });
+
+            await zhc.toZigbee.cover_state.convertSet(smartwingsDevice.endpoints[0], "state", "open", makeSmartwingsMeta({}));
+            expect(smartwingsDevice.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+
+            await zhc.toZigbee.cover_state.convertSet(smartwingsDevice.endpoints[0], "state", "open", makeSmartwingsMeta({invert_cover: true}));
+            expect(smartwingsDevice.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+        });
+    });
+
+    describe("cover_position_tilt", () => {
+        let device: ReturnType<typeof mockDevice>;
+
+        beforeEach(() => {
+            device = mockDevice({modelID: "test_cover", endpoints: [{ID: 1}]});
+        });
+
+        const makeMeta = (options: KeyValue = {}, mappedMeta: KeyValue = {}): Tz.Meta => ({
+            state: {},
+            device,
+            message: null,
+            // @ts-expect-error mock
+            mapped: {meta: mappedMeta},
+            options,
+            publish: null,
+            endpoint_name: null,
+        });
+
+        test("sends the inverted percentage by default (position 100 -> device value 0)", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            const result = await converter.convertSet(device.endpoints[0], "position", 100, makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToLiftPercentage", {percentageliftvalue: 0}, {});
+            expect(result).toStrictEqual({state: {position: 100}});
+        });
+
+        test("invert_cover sends the value through unchanged", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            await converter.convertSet(device.endpoints[0], "position", 100, makeMeta({invert_cover: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToLiftPercentage", {percentageliftvalue: 100}, {});
+        });
+
+        test("device-level coverInverted meta combines with invert_cover", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            await converter.convertSet(device.endpoints[0], "position", 100, makeMeta({}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToLiftPercentage", {percentageliftvalue: 100}, {});
+        });
+
+        test("tilt uses goToTiltPercentage", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            await converter.convertSet(device.endpoints[0], "tilt", 30, makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToTiltPercentage", {percentagetiltvalue: 70}, {});
+        });
+
+        test("cover_position_tilt_disable_report suppresses the optimistic state", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            const result = await converter.convertSet(device.endpoints[0], "position", 100, makeMeta({cover_position_tilt_disable_report: true}));
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe("on_off", () => {
+        let device: ReturnType<typeof mockDevice>;
+        let meta: Tz.Meta;
+
+        beforeEach(async () => {
+            vi.clearAllMocks();
+            device = mockDevice({modelID: "lumi.plug", endpoints: [{ID: 1, inputClusters: ["genOnOff"]}]});
+            const mapped = await zhc.findByDevice(device);
+            meta = {state: {}, device, message: {}, mapped, options: {}, endpoint_name: null, publish: null, deviceExposesChanged: () => {}};
+        });
+
+        test("sends on_time and off_wait_time in tenths of a second", async () => {
+            meta.message = {state: "ON", on_time: 6553.4, off_wait_time: 1.5};
+            await zhc.toZigbee.on_off.convertSet(device.endpoints[0], "state", "ON", meta);
+            expect(device.endpoints[0].command).toHaveBeenCalledWith(
+                "genOnOff",
+                "onWithTimedOff",
+                {ctrlbits: 0, ontime: 65534, offwaittime: 15},
+                expect.any(Object),
+            );
+        });
+
+        test.each([
+            ["on_time", 10800],
+            ["on_time", 6553.5],
+            ["on_time", -1],
+            ["off_wait_time", 10800],
+            ["off_wait_time", -1],
+        ])("rejects %s %d outside the ZCL range", async (key, value) => {
+            meta.message = {state: "ON", [key]: value};
+            await expect(zhc.toZigbee.on_off.convertSet(device.endpoints[0], "state", "ON", meta)).rejects.toThrow(
+                `The ${key} value must be between 0 and 6553.4, got '${value}'`,
+            );
+            expect(device.endpoints[0].command).not.toHaveBeenCalled();
+        });
+    });
+
     describe("light_onoff_brightness", () => {
         test("Flow with device having moveToLevelWithOnOffDisable=true and noOffTransitionWhenOff=true", async () => {
             const device = mockDevice({modelID: "CK-BL702-AL-01(7009_Z102LG03-1)", endpoints: [{ID: 1, meta: {onLevelSupported: false}}]});
@@ -392,6 +574,141 @@ describe("toZigbee converters", () => {
             await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "off", meta);
             expect(device.endpoints[0].command).toHaveBeenCalledTimes(4);
             expect(device.endpoints[0].command).toHaveBeenNthCalledWith(4, "genOnOff", "off", {}, {});
+        });
+    });
+
+    describe("light_color", () => {
+        test("xy color only device (given by color mode explicitly) should be able to receive hsv color by converting color before", async () => {
+            const device = mockDevice({
+                modelID: "xy_only_light",
+                manufacturerName: "ACME-inc",
+                endpoints: [
+                    {
+                        ID: 1,
+                        inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"],
+                        meta: {
+                            color: {mode: ["xy"]},
+                        },
+                    },
+                ],
+            });
+
+            const definition = await zhc.findByDevice(device);
+
+            const meta: Tz.Meta = {
+                state: {},
+                device,
+                message: {
+                    color: {h: 200, s: 50, v: 100}, // Input HSV color (blue with some saturation)
+                    transition: 1.0,
+                },
+                mapped: definition,
+                options: {hue_correction: []},
+                publish: null,
+                endpoint_name: null,
+            };
+
+            const converter = zhc.toZigbee.light_color;
+            await converter.convertSet(device.endpoints[0], "color", meta.message.color, meta);
+
+            const expectedX = 16895;
+            const expectedY = 20257;
+
+            // assert that the command was called with the correct cluster, command, and payload
+            expect(device.endpoints[0].command).toHaveBeenCalledWith(
+                "lightingColorCtrl",
+                "moveToColor",
+                expect.objectContaining({
+                    colorx: expectedX,
+                    colory: expectedY,
+                    transtime: 10,
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                }),
+                {},
+            );
+
+            // ensure that other color commands like moveToHueAndSaturation or moveToColorTemp were NOT called
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToHueAndSaturation", {}, {});
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToColorTemp", {}, {});
+        });
+
+        test("xy color only device (generic color device) should be able to receive hsv color by converting color before", async () => {
+            const device = mockDevice({
+                modelID: "xy_only_light",
+                manufacturerName: "ACME-inc",
+                endpoints: [
+                    {
+                        ID: 1,
+                        inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"],
+                        meta: {
+                            color: true,
+                        },
+                    },
+                ],
+            });
+
+            const definition = await zhc.findByDevice(device);
+
+            const meta: Tz.Meta = {
+                state: {},
+                device,
+                message: {
+                    color: {h: 200, s: 50, v: 100}, // Input HSV color (blue with some saturation)
+                    transition: 1.0,
+                },
+                mapped: definition,
+                options: {hue_correction: []},
+                publish: null,
+                endpoint_name: null,
+            };
+
+            const converter = zhc.toZigbee.light_color;
+            await converter.convertSet(device.endpoints[0], "color", meta.message.color, meta);
+
+            const expectedX = 16895;
+            const expectedY = 20257;
+
+            // assert that the command was called with the correct cluster, command, and payload
+            expect(device.endpoints[0].command).toHaveBeenCalledWith(
+                "lightingColorCtrl",
+                "moveToColor",
+                expect.objectContaining({
+                    colorx: expectedX,
+                    colory: expectedY,
+                    transtime: 10,
+                    optionsMask: 0,
+                    optionsOverride: 0,
+                }),
+                {},
+            );
+
+            // ensure that other color commands like moveToHueAndSaturation or moveToColorTemp were NOT called
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToHueAndSaturation", {}, {});
+            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToColorTemp", {}, {});
+        });
+    });
+
+    describe("thermostat_ac_louver_position", () => {
+        let device: ReturnType<typeof mockDevice>;
+
+        beforeEach(() => {
+            vi.clearAllMocks();
+            device = mockDevice({modelID: "test_device", manufacturerName: "test_manufacturer", endpoints: [{ID: 1}]});
+        });
+
+        test.each([
+            ["fully_closed", 1],
+            ["fully_open", 2],
+            ["quarter_open", 3],
+            ["half_open", 4],
+            ["three_quarters_open", 5],
+        ])("writes %s as %d", async (value, expected) => {
+            const converter = zhc.toZigbee.thermostat_ac_louver_position;
+            const result = await converter.convertSet(device.endpoints[0], "ac_louver_position", value, {} as Tz.Meta);
+
+            expect(device.endpoints[0].write).toHaveBeenCalledWith("hvacThermostat", {acLouverPosition: expected});
+            expect(result).toStrictEqual({state: {ac_louver_position: value}});
         });
     });
 });

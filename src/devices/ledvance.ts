@@ -1,6 +1,41 @@
 import {ledvanceLight, ledvanceOnOff} from "../lib/ledvance";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
+
+// The plugs report the six divisor/multiplier constants of the electrical measurement cluster
+// every 5 minutes - values that never change, and which `electricityMeter()` reads actively during
+// configure anyway. Silencing them removes about three quarters of these devices' radio traffic.
+//
+// Runs after electricityMeter (last entry in `extend`) and is guarded: silencing is an
+// optimization, the measurement reporting is the fix, so this must never fail the configure run.
+// Same reasoning as setupAttributes' own read loop, and it also covers variants that lack one of
+// the attributes.
+const silenceDivisorReporting: ModernExtend = {
+    configure: [
+        async (device, coordinatorEndpoint) => {
+            try {
+                await m.setupAttributes(
+                    device,
+                    coordinatorEndpoint,
+                    "haElectricalMeasurement",
+                    [
+                        {attribute: "acPowerDivisor", min: 1, max: 0xffff, change: 1},
+                        {attribute: "acPowerMultiplier", min: 1, max: 0xffff, change: 1},
+                        {attribute: "acCurrentDivisor", min: 1, max: 0xffff, change: 1},
+                        {attribute: "acCurrentMultiplier", min: 1, max: 0xffff, change: 1},
+                        {attribute: "acVoltageDivisor", min: 1, max: 0xffff, change: 1},
+                        {attribute: "acVoltageMultiplier", min: 1, max: 0xffff, change: 1},
+                    ],
+                    true,
+                    false,
+                );
+            } catch {
+                // never fail the configure run over an optimization
+            }
+        },
+    ],
+    isModernExtend: true,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -43,6 +78,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4099854295232",
         vendor: "LEDVANCE",
         description: "SMART+ Plug indoor EU with energy meter ",
+        version: "0.0.1",
         whiteLabel: [
             {
                 model: "4099854295256",
@@ -50,14 +86,15 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "PLUG EU EM T, black"}],
             },
         ],
-        extend: [ledvanceOnOff(), m.electricityMeter()],
+        extend: [ledvanceOnOff(), m.electricityMeter(), silenceDivisorReporting, m.identify()],
     },
     {
         zigbeeModel: ["PLUG COMPACT OUTDOOR EU EM T", "PLUG COMPACT EU EM T"],
         model: "4099854293276",
         vendor: "LEDVANCE",
         description: "SMART+ Compact outdoor plug EU with energy meter",
-        extend: [ledvanceOnOff(), m.electricityMeter()],
+        version: "0.0.1",
+        extend: [ledvanceOnOff(), m.electricityMeter(), silenceDivisorReporting, m.identify()],
         ota: true,
     },
     {
@@ -240,7 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075729025",
         vendor: "LEDVANCE",
         description: "SMART+ lamp E27 RGBTW",
-        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true, powerOnBehavior: true})],
     },
     {
         zigbeeModel: ["GARDENPOLE RGBW T"],
@@ -360,13 +397,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075823976",
         vendor: "LEDVANCE",
         description: "LED Tube T8 EM Connected 1200 mm 16W 840",
-        extend: [ledvanceOnOff({powerOnBehavior: false})],
+        extend: [ledvanceLight(), m.identify()],
     },
     {
         zigbeeModel: ["TUBE_T8_CON_1500_24W_840ZBV"],
         model: "4058075824010",
         vendor: "LEDVANCE",
         description: "LED Tube T8 EM Connected P 1500mm 24W 840",
-        extend: [m.light(), m.electricityMeter()],
+        extend: [ledvanceLight(), m.electricityMeter()],
     },
 ];

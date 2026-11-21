@@ -69,7 +69,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         fromZigbee: [fz.on_off, fz.brightness, fz.color_colortemp],
-        toZigbee: [tz.on_off, tz.light_onoff_brightness, tz.light_color, tz.light_colortemp],
+        toZigbee: [tz.light_onoff_brightness, tz.ignore_transition, tz.light_color, tz.light_colortemp],
     },
     {
         zigbeeModel: ["FLS-CT"],
@@ -118,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Dresden Elektronik",
         description: "3 part zigbee powered scene switch",
         ota: true,
-        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes(), m.battery()],
+        extend: [m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl(), m.commandsScenes()],
     },
     {
         zigbeeModel: ["Lighting Switch"],

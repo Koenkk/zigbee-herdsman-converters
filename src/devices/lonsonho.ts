@@ -2,13 +2,91 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
+const NS = "zhc:lonsonho";
 const e = exposes.presets;
 const ea = exposes.access;
+
+// The QS-Zigbee-C03 (_TZ3210_ol1uhvza) ignores an intermediate target when its current position attribute is stale
+// and restores the old position after reporting STOP. Prime the start position before moving and write back the target once stopped.
+// https://github.com/Koenkk/zigbee-herdsman-converters/pull/13286
+const qsZigbeeC03PositionKey = "qs_zigbee_c03_position";
+
+const qsZigbeeC03ClearPosition = (entity: Zh.Endpoint | Zh.Group) => {
+    for (const endpoint of utils.isGroup(entity) ? entity.members : [entity]) {
+        clearTimeout(globalStore.getValue(endpoint, qsZigbeeC03PositionKey)?.timer);
+        globalStore.clearValue(endpoint, qsZigbeeC03PositionKey);
+    }
+};
+
+const qsZigbeeC03Tz = {
+    cover_state: {
+        ...tz.cover_state,
+        convertSet: async (entity, key, value, meta) => {
+            qsZigbeeC03ClearPosition(entity);
+            return await tz.cover_state.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+    cover_position_tilt: {
+        ...tz.cover_position_tilt,
+        convertSet: async (entity, key, value, meta) => {
+            qsZigbeeC03ClearPosition(entity);
+            const start = meta.state.position;
+            if (
+                meta.device?.manufacturerName === "_TZ3210_ol1uhvza" &&
+                key === "position" &&
+                utils.isEndpoint(entity) &&
+                utils.isNumber(value) &&
+                utils.isNumber(start) &&
+                value > 0 &&
+                value < 100
+            ) {
+                // Repeating the current target can result in a nearly full travel move.
+                if (value === start) return {state: {position: value}};
+                const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
+                    ? !meta.options.invert_cover
+                    : meta.options.invert_cover);
+                const raw = (position: number) => (invert ? 100 - position : position);
+                await entity.write("closuresWindowCovering", {currentPositionLiftPercentage: raw(start)}, utils.getOptions(meta.mapped, entity));
+                globalStore.putValue(entity, qsZigbeeC03PositionKey, {target: raw(value), moved: false});
+            }
+            try {
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            } catch (error) {
+                qsZigbeeC03ClearPosition(entity);
+                throw error;
+            }
+        },
+    } satisfies Tz.Converter,
+};
+
+const qsZigbeeC03Fz = {
+    cover_position_tilt: {
+        ...fz.cover_position_tilt,
+        convert: (model, msg, publish, options, meta) => {
+            const pending = globalStore.getValue(msg.endpoint, qsZigbeeC03PositionKey);
+            const moving = msg.data.tuyaMovingState;
+            if (pending && (moving === 0 || moving === 2)) {
+                pending.moved = true;
+            } else if (pending?.moved && moving === 1 && !pending.timer) {
+                pending.timer = setTimeout(() => {
+                    qsZigbeeC03ClearPosition(msg.endpoint);
+                    msg.endpoint
+                        .write("closuresWindowCovering", {currentPositionLiftPercentage: pending.target}, utils.getOptions(model, msg.endpoint))
+                        .catch((error) => logger.warning(`Failed to correct position: ${error}`, NS));
+                }, 1000);
+            }
+            return fz.cover_position_tilt.convert(model, msg, publish, options, meta);
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -16,8 +94,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-C01",
         vendor: "Lonsonho",
         description: "Curtain/blind motor controller",
-        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.moes_cover_calibration, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster(), tuya.modernExtend.tuyaCoverSwitchType()],
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.moes_cover_calibration, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),
@@ -32,8 +111,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "11830304",
         vendor: "Lonsonho",
         description: "Curtain switch",
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode_low_medium_high, fz.tuya_cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal, tuya.tz.backlight_indicator_mode_1],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.backlight_mode_low_medium_high, tuya.fz.cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.cover_calibration, tuya.tz.cover_reversal, tuya.tz.backlight_indicator_mode_1],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),
@@ -52,12 +132,14 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_l6iqph4f",
             "_TZ3000_xdo0hj1k",
             "_TZ3000_bmhwnl7s",
+            "_TZ3000_wvedmwyp",
         ]),
         model: "TS130F_dual",
         vendor: "Lonsonho",
         description: "Dual curtain/blind module",
-        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster(), tuya.modernExtend.tuyaCoverSwitchType()],
+        fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         whiteLabel: [tuya.whitelabel("Girier", "TS130F_GIRIER_DUAL", "Dual smart curtain switch", ["_TZ3000_j1xl73iw"])],
         meta: {multiEndpoint: true, coverInverted: true},
         endpoint: (device) => {
@@ -89,11 +171,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_t3s9qmmg"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_t3s9qmmg", "_TZ3000_ehgouyvu"]),
         model: "X701A",
         vendor: "Lonsonho",
         description: "1 gang switch with backlight",
-        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -107,6 +189,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch().setAccess("state", ea.STATE_SET)],
         fromZigbee: [legacy.fz.tuya_switch],
         toZigbee: [legacy.tz.tuya_switch_state],
+        whiteLabel: [
+            {vendor: "Moes", model: "WS-EUB1-ZG"},
+            {vendor: "Moes", model: "ZTS-EUB1"},
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dhdstcqc"]),
@@ -188,8 +274,16 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "ZB-RGBCW",
         vendor: "Lonsonho",
+        version: "0.0.2",
         description: "Zigbee 3.0 LED-bulb, RGBW LED",
+        // Configure reporting for color fails
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32345
         extend: [m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TYZB01_zsl6z0pw", "_TYZB01_uqkphoed"]),
@@ -221,8 +315,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-C03",
         vendor: "Lonsonho",
         description: "Curtain/blind motor controller",
-        fromZigbee: [fz.cover_position_tilt, fz.tuya_cover_options],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tz.tuya_cover_calibration, tz.tuya_cover_reversal],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster(), tuya.modernExtend.tuyaCoverSwitchType()],
+        fromZigbee: [qsZigbeeC03Fz.cover_position_tilt, tuya.fz.cover_options],
+        toZigbee: [qsZigbeeC03Tz.cover_state, qsZigbeeC03Tz.cover_position_tilt, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),

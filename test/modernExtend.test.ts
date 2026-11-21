@@ -1,12 +1,75 @@
-import {describe, expect, test} from "vitest";
+import {describe, expect, test, vi} from "vitest";
 import * as fz from "../src/converters/fromZigbee";
+import * as tz from "../src/converters/toZigbee";
+import {findByDevice} from "../src/index";
 import {repInterval} from "../src/lib/constants";
+import type {Numeric} from "../src/lib/exposes";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
-import {setupAttributes} from "../src/lib/modernExtend";
+import {binary, electricityMeter, light, numeric, setupAttributes} from "../src/lib/modernExtend";
 import * as philips from "../src/lib/philips";
 import {assertDefinition, mockDevice, reportingItem} from "./utils";
 
 describe("ModernExtend", () => {
+    test("numeric preserves explicit per-endpoint optional values", () => {
+        const extend = numeric({
+            name: "measurement",
+            cluster: "genBasic",
+            attribute: "zclVersion",
+            description: "Measurement",
+            endpointNames: ["first", "second"],
+            valueMin: [10, undefined],
+        });
+
+        expect(extend.exposes?.map((expose) => (expose as Numeric).value_min)).toStrictEqual([10, undefined]);
+    });
+
+    test("numeric broadcasts single optional values to each endpoint", () => {
+        const extend = numeric({
+            name: "measurement",
+            cluster: "genBasic",
+            attribute: "zclVersion",
+            description: "Measurement",
+            endpointNames: ["first", "second"],
+            valueMin: [10],
+        });
+
+        expect(extend.exposes?.map((expose) => (expose as Numeric).value_min)).toStrictEqual([10, 10]);
+    });
+
+    test("numeric rounds scaled values before writing them", async () => {
+        const extend = numeric({
+            name: "occupied_heating_setpoint",
+            cluster: "hvacThermostat",
+            attribute: "occupiedHeatingSetpoint",
+            description: "Heating setpoint",
+            scale: 100,
+        });
+        const device = mockDevice({modelID: "test", endpoints: [{ID: 1, inputClusters: ["hvacThermostat"]}]});
+        const endpoint = device.getEndpoint(1);
+
+        await extend.toZigbee[0].convertSet(endpoint, "occupied_heating_setpoint", 19.9, {device} as never);
+
+        expect(endpoint.write).toHaveBeenCalledWith("hvacThermostat", {occupiedHeatingSetpoint: 1990}, undefined);
+    });
+
+    test("binary preserves explicit per-endpoint optional values", () => {
+        const extend = binary({
+            name: "state",
+            cluster: "genBasic",
+            attribute: "zclVersion",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: ["First endpoint", "Second endpoint"],
+            endpointName: ["first", "second"],
+            label: ["First", undefined],
+            homeassistant: [{name: "First"}, undefined],
+        });
+
+        expect(extend.exposes?.map((expose) => expose.description)).toStrictEqual(["First endpoint", "Second endpoint"]);
+        expect(extend.exposes?.map((expose) => expose.label)).toStrictEqual(["First", "State"]);
+        expect(extend.exposes?.map((expose) => expose.homeassistant)).toStrictEqual([{name: "First"}, undefined]);
+    });
+
     test("light({turnsOffAtBrightness1: true})", async () => {
         await assertDefinition({
             device: mockDevice({modelID: "FWG125Bulb50AU", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl"]}]}),
@@ -31,10 +94,16 @@ describe("ModernExtend", () => {
                 "power_on_behavior",
             ],
             exposes: ["effect", "light(state,brightness)", "power_on_behavior"],
-            bind: [],
-            read: [],
-            configureReporting: [],
+            bind: {},
+            read: {},
+            write: {},
+            configureReporting: {},
         });
+    });
+
+    test("light levelConfig includes its toZigbee converter once", () => {
+        const extend = light({levelConfig: {features: ["on_level"]}});
+        expect(extend.toZigbee?.filter((converter) => converter === tz.level_config)).toHaveLength(1);
     });
 
     test("light({colorTemp: {range: undefined}})", async () => {
@@ -69,22 +138,23 @@ describe("ModernExtend", () => {
                 "power_on_behavior",
             ],
             exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup)", "power_on_behavior"],
-            bind: [],
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
     });
 
-    test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true}', async () => {
+    test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true, powerOnBehavior: false}', async () => {
         await assertDefinition({
             device: mockDevice({modelID: "OPL 130 C", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {applyRedFix: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp],
             toZigbee: [
                 "state",
                 "brightness",
@@ -113,23 +183,23 @@ describe("ModernExtend", () => {
                 "effect",
                 "alert",
                 "flash",
-                "power_on_behavior",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)", "power_on_behavior"],
-            bind: [],
+            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)"],
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
     });
 
     test("light({color: true})", async () => {
         await assertDefinition({
-            device: mockDevice({modelID: "AD-E14RGBW3001", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
+            device: mockDevice({modelID: "ZHA-ColorLight", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
@@ -164,14 +234,15 @@ describe("ModernExtend", () => {
                 "power_on_behavior",
             ],
             exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy)", "power_on_behavior"],
-            bind: [],
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -201,6 +272,7 @@ describe("ModernExtend", () => {
                     ["seMetering", ["currentSummDelivered"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
@@ -218,30 +290,50 @@ describe("ModernExtend", () => {
         });
     });
 
-    test(`philipsLight({gradient: {extraEffects: ['sparkle', 'opal', 'glisten']}, colorTemp: {range: [153, 500]}})`, async () => {
+    test("electricityMeter marks secondary electrical telemetry diagnostic for Home Assistant", () => {
+        const exposes = electricityMeter({acFrequency: true, threePhase: true}).exposes ?? [];
+        const byProperty = (property: string) => exposes.find((expose) => "property" in expose && expose.property === property);
+
+        expect(byProperty("power")?.homeassistant).toBeUndefined();
+        expect(byProperty("voltage")).toMatchObject({homeassistant: {entityCategory: "diagnostic"}});
+        expect(byProperty("ac_frequency")).toMatchObject({homeassistant: {entityCategory: "diagnostic"}});
+        expect(byProperty("voltage_phase_b")).toMatchObject({homeassistant: {entityCategory: "diagnostic"}});
+        expect(byProperty("voltage_phase_c")).toMatchObject({homeassistant: {entityCategory: "diagnostic"}});
+    });
+
+    test(`philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})`, async () => {
         await assertDefinition({
             device: mockDevice({
                 modelID: "LCX012",
-                endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl", "manuSpecificPhilips2"]}, {ID: 242}],
+                endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"], inputClusterIDs: [0xfc03]}, {ID: 242}],
             }),
-            meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philips.fz.gradient],
+            meta: {supportsEnhancedHue: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philips.manuSpecificPhilips2Fz],
             toZigbee: [
                 "state",
                 "brightness",
                 "brightness_percent",
+                "color",
+                "color_temp",
+                "color_temp_percent",
+                "transition",
+                "effect_speed",
+                "gradient_scale",
+                "gradient_offset",
+                "gradient_style",
+                "effect_color",
+                "hue_power_on_behavior",
+                "hue_power_on_brightness",
+                "hue_power_on_color_temperature",
+                "hue_power_on_color",
                 "on_time",
                 "off_wait_time",
-                "transition",
                 "level_config",
                 "rate",
                 "brightness_move",
                 "brightness_move_onoff",
                 "brightness_step",
                 "brightness_step_onoff",
-                "color",
-                "color_temp",
-                "color_temp_percent",
                 "color_mode",
                 "color_options",
                 "colortemp_move",
@@ -253,31 +345,50 @@ describe("ModernExtend", () => {
                 "hue_step",
                 "saturation_step",
                 "power_on_behavior",
-                "hue_power_on_behavior",
-                "hue_power_on_brightness",
-                "hue_power_on_color_temperature",
-                "hue_power_on_color",
                 "effect",
                 "gradient_scene",
                 "gradient",
+                "gradient_style",
+                "identify",
             ],
             exposes: [
                 "effect",
+                "effect_color",
+                "effect_speed",
                 "gradient",
+                "gradient_offset",
+                "gradient_scale",
                 "gradient_scene",
+                "gradient_style",
+                "identify",
                 "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
 
                 "power_on_behavior",
             ],
-            bind: {1: ["manuSpecificPhilips2"]},
+            bind: {},
             read: {
                 1: [
                     ["lightingColorCtrl", ["colorCapabilities"]],
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
-            configureReporting: [],
+            write: {},
+            configureReporting: {},
         });
+    });
+
+    test("philips.m.light() for a white-only bulb leaves color keys to a group's color bulbs", () => {
+        const white = philips.m.light().toZigbee ?? [];
+        const color = philips.m.light({colorTemp: {range: [153, 500]}, color: true}).toZigbee ?? [];
+        const whiteKeys = white.flatMap((c) => c.key);
+        expect(whiteKeys).toEqual(expect.arrayContaining(["state", "brightness", "brightness_percent", "transition"]));
+        for (const key of ["color", "color_temp", "color_temp_percent"]) {
+            expect(whiteKeys).not.toContain(key);
+            // Zigbee2MQTT picks a group's converter for a key from its members' converters in
+            // member order, so with the white bulb first the color bulb's must be the one found.
+            const found = [...white, ...color].find((c) => c.key.includes(key));
+            expect(color).toContain(found);
+        }
     });
 
     test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: true})`, async () => {
@@ -342,6 +453,7 @@ describe("ModernExtend", () => {
                     ["genLevelCtrl", ["currentLevel"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 10: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
@@ -381,6 +493,7 @@ describe("ModernExtend", () => {
                 1: [["genOnOff", ["onOff"]]],
                 2: [["genOnOff", ["onOff"]]],
             },
+            write: {},
             configureReporting: {
                 1: [["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]]],
                 2: [["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]]],
@@ -418,6 +531,7 @@ describe("ModernExtend", () => {
                     ["manuSpecificLumi", ["displayUnit"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["genPowerCfg", [reportingItem("batteryVoltage", repInterval.HOUR, repInterval.MAX, 0)]],
@@ -438,12 +552,12 @@ describe("ModernExtend", () => {
         const expectedConfig = {maximumReportInterval: 10, minimumReportInterval: 0, reportableChange: 1};
 
         await setupAttributes(deviceEp, coordinator.endpoints[0], "haElectricalMeasurement", [
-            {attribute: "1", ...config},
-            {attribute: "2", ...config},
-            {attribute: "3", ...config},
-            {attribute: "4", ...config},
-            {attribute: "5", ...config},
-            {attribute: "6", ...config},
+            {attribute: "acActivePowerOverload", ...config},
+            {attribute: "acAlarmsMask", ...config},
+            {attribute: "acCurrentDivisor", ...config},
+            {attribute: "acCurrentMultiplier", ...config},
+            {attribute: "acCurrentOverload", ...config},
+            {attribute: "acFrequency", ...config},
         ]);
 
         expect(deviceEp.bind).toHaveBeenCalledTimes(1);
@@ -451,18 +565,81 @@ describe("ModernExtend", () => {
 
         expect(deviceEp.configureReporting).toHaveBeenCalledTimes(2);
         expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(1, "haElectricalMeasurement", [
-            {attribute: "1", ...expectedConfig},
-            {attribute: "2", ...expectedConfig},
-            {attribute: "3", ...expectedConfig},
-            {attribute: "4", ...expectedConfig},
+            {attribute: "acActivePowerOverload", ...expectedConfig},
+            {attribute: "acAlarmsMask", ...expectedConfig},
+            {attribute: "acCurrentDivisor", ...expectedConfig},
+            {attribute: "acCurrentMultiplier", ...expectedConfig},
         ]);
         expect(deviceEp.configureReporting).toHaveBeenNthCalledWith(2, "haElectricalMeasurement", [
-            {attribute: "5", ...expectedConfig},
-            {attribute: "6", ...expectedConfig},
+            {attribute: "acCurrentOverload", ...expectedConfig},
+            {attribute: "acFrequency", ...expectedConfig},
         ]);
 
         expect(deviceEp.read).toHaveBeenCalledTimes(2);
-        expect(deviceEp.read).toHaveBeenNthCalledWith(1, "haElectricalMeasurement", ["1", "2", "3", "4"]);
-        expect(deviceEp.read).toHaveBeenNthCalledWith(2, "haElectricalMeasurement", ["5", "6"]);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(1, "haElectricalMeasurement", [
+            "acActivePowerOverload",
+            "acAlarmsMask",
+            "acCurrentDivisor",
+            "acCurrentMultiplier",
+        ]);
+        expect(deviceEp.read).toHaveBeenNthCalledWith(2, "haElectricalMeasurement", ["acCurrentOverload", "acFrequency"]);
+    });
+
+    test("raw attribute modern extends consume named custom-cluster read responses", async () => {
+        const device = mockDevice({
+            modelID: "TRETAKT Smart plug",
+            manufacturerName: "IKEA of Sweden",
+            endpoints: [{ID: 1, inputClusters: ["genOnOff"], inputClusterIDs: [0xfc85]}],
+        });
+        vi.spyOn(device, "save").mockImplementation(() => {});
+        const coordinator = mockDevice({modelID: "", endpoints: [{}]});
+        const definition = await findByDevice(device);
+
+        await definition.configure?.(device, coordinator.endpoints[0], definition);
+
+        expect(device.endpoints[0].read).toHaveBeenCalledWith("manuSpecificIkeaSmartPlug", [0]);
+        expect(device.endpoints[0].read).toHaveBeenCalledWith("manuSpecificIkeaSmartPlug", [1]);
+
+        const converters = definition.fromZigbee.filter((converter) => converter.cluster === "manuSpecificIkeaSmartPlug");
+        expect(converters).toHaveLength(2);
+
+        const childLock = converters.flatMap((converter) => {
+            const result = converter.convert(definition, {data: {childLock: 0}, endpoint: device.endpoints[0]} as never, () => {}, {}, {
+                device,
+                state: {},
+            } as never);
+            return result === undefined ? [] : [result];
+        });
+        const ledEnable = converters.flatMap((converter) => {
+            const result = converter.convert(definition, {data: {ledEnable: 1}, endpoint: device.endpoints[0]} as never, () => {}, {}, {
+                device,
+                state: {},
+            } as never);
+            return result === undefined ? [] : [result];
+        });
+
+        expect(childLock).toStrictEqual([{child_lock: "UNLOCK"}]);
+        expect(ledEnable).toStrictEqual([{led_enable: "TRUE"}]);
+    });
+
+    test("pollControl sets intervals on configure and on device announce", async () => {
+        const device = mockDevice(
+            {modelID: "XHS2-SE", endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "genPollCtrl", "msTemperatureMeasurement", "ssIasZone"]}]},
+            "EndDevice",
+        );
+        const endpoint = device.getEndpoint(1);
+        const definition = await findByDevice(device);
+        const expectIntervalsSet = () => {
+            expect(endpoint.command).toHaveBeenCalledWith("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 24});
+            expect(endpoint.write).toHaveBeenCalledWith("genPollCtrl", {checkinInterval: 13200});
+        };
+
+        await definition.configure?.(device, endpoint, definition);
+        expectIntervalsSet();
+
+        vi.mocked(endpoint.command).mockClear();
+        vi.mocked(endpoint.write).mockClear();
+        await definition.onEvent?.({type: "deviceAnnounce", data: {device, deviceExposesChanged: () => {}, state: {}, options: {}}});
+        expectIntervalsSet();
     });
 });

@@ -1,5 +1,7 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
@@ -10,7 +12,7 @@ import * as utils from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
-interface CandeoRotaryRemoveControl {
+interface CandeoRotaryRemoteControl {
     attributes: never;
     commands: {
         rotaryRemoteControl: {
@@ -24,9 +26,14 @@ interface CandeoRotaryRemoveControl {
 }
 
 const manufacturerSpecificSwitchTypeClusterCode = 0x1224;
+const manufacturerSpecificMinimumBrightnessClusterCode = 0x1224;
 const manufacturerSpecificRotaryRemoteControlClusterCode = 0xff03;
 const switchTypeAttribute = 0x8803;
 const switchTypeDataType = 0x20;
+const minimumBrightnessLevelAttribute = 0x7809;
+const minimumBrightnessLevelDataType = 0x20;
+const minimumBrightnessLevelRawOffset = 4;
+const minimumBrightnessLevelRawScale = 4.6615756;
 const switchTypeValueMap: {[key: number]: string} = {
     0: "momentary",
     1: "toggle",
@@ -44,6 +51,46 @@ const rd1pKnobActionsMap: {[key: string]: string} = {
     commandStepWithOnOff: "rotating_",
     commandStop: "stopped_rotating",
 };
+const rd1pREMLiteEP2Attribute = 0x8000;
+const kineticRFButtonMultiPressActions: {[key: number]: string} = {
+    1: "single",
+    2: "double",
+    3: "triple",
+    4: "quadruple",
+    5: "quintuple",
+};
+const kineticRFButtonMultiPressTimeout = 1000;
+const kineticRFButtonMultiPressOptions = {
+    actions: () =>
+        e
+            .enum("actions", ea.SET, [
+                "single",
+                "single & double",
+                "single, double & triple",
+                "single, double, triple & quadruple",
+                "single, double, triple, quadruple & quintuple",
+            ])
+            .withDescription("Which press actions do you wish to detect (default: single)?"),
+    timeout: () =>
+        e
+            .numeric("timeout", ea.SET)
+            .withValueMin(500)
+            .withValueMax(1500)
+            .withUnit("ms")
+            .withDescription(
+                "Time in ms to delay sending of action since last event to allow for multi-press event detection (ignored if only single event is being detected).",
+            ),
+};
+const childLockOptions = {
+    enforce_child_lock: () =>
+        e
+            .binary("enforce_child_lock", ea.SET, "ON", "OFF")
+            .withDescription("When set to ON, the child lock will be automatically enabled after every on or off command")
+            .withCategory("config"),
+};
+
+const childLockAttribute = 0x8000;
+const powerOnBehaviorAttribute = 0x8002;
 
 interface CandeoOnOff {
     attributes: never;
@@ -64,12 +111,44 @@ const luxScale: m.ScaleFunction = (value: number, type: "from" | "to") => {
         } else if (result > 2500) {
             result = 78029.21628 - 61.73575 * result + 0.01223567 * result ** 2;
         }
-        result = result < 1 ? 1 : result;
+        result = Math.max(result, 1);
     }
     return result;
 };
 
 const fzLocal = {
+    kinetic_rf_button_multi_press: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        options: [kineticRFButtonMultiPressOptions.actions(), kineticRFButtonMultiPressOptions.timeout()],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (msg.data?.onOff === undefined) return;
+            const endpoint = msg.endpoint;
+            const actionsRaw = typeof options?.actions === "string" ? options.actions : undefined;
+            if (!actionsRaw || actionsRaw === "single") {
+                return {action: `button_${endpoint.ID}_single_pressed`};
+            }
+            let buttonClickCount = globalStore.getValue(endpoint, "button_click_count") as number | undefined;
+            buttonClickCount = buttonClickCount ? buttonClickCount + 1 : 1;
+            globalStore.putValue(endpoint, "button_click_count", buttonClickCount);
+            const existingTimer = globalStore.getValue(endpoint, "timer");
+            if (existingTimer) clearTimeout(existingTimer);
+            const timeout = typeof options?.timeout === "number" ? options.timeout : kineticRFButtonMultiPressTimeout;
+            const enabledActions = actionsRaw ? actionsRaw.split(/[, &]+/) : [];
+            const timer = setTimeout(() => {
+                const count = globalStore.getValue(endpoint, "button_click_count") as number | undefined;
+                if (kineticRFButtonMultiPressActions[count]) {
+                    const button_action = kineticRFButtonMultiPressActions[count];
+                    if (enabledActions.includes(button_action)) {
+                        publish({action: `button_${endpoint.ID}_${button_action}_pressed`});
+                    }
+                }
+                globalStore.putValue(endpoint, "button_click_count", 0);
+            }, timeout).unref();
+            globalStore.putValue(endpoint, "timer", timer);
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
     switch_type: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -79,6 +158,20 @@ const fzLocal = {
                 return {
                     external_switch_type: switchTypeValueMap[value] || "unknown",
                     external_switch_type_numeric: value,
+                };
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+    minimum_brightness_level: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (Object.hasOwn(msg.data, minimumBrightnessLevelAttribute)) {
+                const value = msg.data[minimumBrightnessLevelAttribute] as number;
+                const levelValue = Math.round((value - minimumBrightnessLevelRawOffset) / minimumBrightnessLevelRawScale);
+                return {
+                    minimum_brightness_level: levelValue,
                 };
             }
             return undefined;
@@ -171,7 +264,7 @@ const fzLocal = {
             }
             return;
         },
-    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoveControl, ["commandRotaryRemoteControl"]>,
+    } satisfies Fz.Converter<"candeoRotaryRemoteControl", CandeoRotaryRemoteControl, ["commandRotaryRemoteControl"]>,
     rd1p_knob_rotation: {
         cluster: "genLevelCtrl",
         type: ["commandMoveWithOnOff", "commandStepWithOnOff", "commandStop"],
@@ -211,6 +304,42 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"genOnOff", CandeoOnOff, ["commandOn", "commandOff", "commandToggle", "commandRelease"]>,
+    rd1p_rem_lite_ep2: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {0: "OFF", 1: "ON"};
+            if (Object.hasOwn(msg.data, rd1pREMLiteEP2Attribute)) {
+                const value = msg.data[rd1pREMLiteEP2Attribute] as number;
+                return {rem_lite_ep2: lookup[value]};
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    power_on_behavior: {
+        ...fz.power_on_behavior,
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {0: "off", 1: "on", 2: "previous"};
+            if (Object.hasOwn(msg.data, powerOnBehaviorAttribute)) {
+                const value = msg.data[powerOnBehaviorAttribute] as number;
+                const property = utils.postfixWithEndpointName("power_on_behavior", msg, model, meta);
+                return {[property]: lookup[value]};
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    child_lock: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {0: "UNLOCK", 1: "LOCK"};
+            if (Object.hasOwn(msg.data, childLockAttribute)) {
+                const value = msg.data[childLockAttribute] as number;
+                return {child_lock: lookup[value]};
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -228,6 +357,100 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+        },
+    } satisfies Tz.Converter,
+    minimum_brightness_level: {
+        key: ["minimum_brightness_level"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            let numericValue = Number(value);
+            if (Number.isNaN(numericValue)) return;
+            if (numericValue < 0) {
+                numericValue = 0;
+            }
+            if (numericValue > 50) {
+                numericValue = 50;
+            }
+            const minValue = minimumBrightnessLevelRawOffset + Math.round(numericValue * minimumBrightnessLevelRawScale);
+            await entity.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: minValue, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            return {state: {minimum_brightness_level: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
+        },
+    } satisfies Tz.Converter,
+    rd1p_rem_lite_ep2: {
+        key: ["rem_lite_ep2"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup: {[key: string]: boolean} = {off: false, on: true};
+            const v = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {[rd1pREMLiteEP2Attribute]: {value: v, type: 0x10}});
+            return {state: {rem_lite_ep2: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", [rd1pREMLiteEP2Attribute]);
+        },
+    } satisfies Tz.Converter,
+    on_with_timed_off: {
+        ...tz.on_off,
+        options: [childLockOptions.enforce_child_lock()],
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message?.on_time != null) {
+                utils.assertNumber(meta.message.on_time, "on_time");
+                const on_time = meta.message.on_time;
+                meta.message = {state: "ON"};
+                await tz.on_off.convertSet(entity, key, value, meta); //plain turn on first
+                meta.message = {state: "ON", on_time: on_time / 10}; //adjust the on_time to the expected unit (seconds) and add it to the message for the next call
+            }
+            const result = await tz.on_off.convertSet(entity, key, value, meta);
+            const enforce_child_lock = meta.options?.enforce_child_lock === "ON";
+            if (enforce_child_lock) {
+                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});
+            }
+            await entity.read("genOnOff", [childLockAttribute]);
+            return result;
+        },
+    } satisfies Tz.Converter,
+    on_off: {
+        ...tz.on_off,
+        convertSet: async (entity, key, value, meta) => {
+            const result = await tz.on_off.convertSet(entity, key, value, meta);
+            const enforce_child_lock = meta.options?.enforce_child_lock === "ON";
+            if (enforce_child_lock) {
+                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});
+            }
+            await entity.read("genOnOff", [childLockAttribute]);
+            return result;
+        },
+    } satisfies Tz.Converter,
+    power_on_behavior: {
+        ...tz.power_on_behavior,
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            value = value.toLowerCase();
+            const lookup: {[key: string]: number} = {off: 0, on: 1, previous: 2};
+            const v = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {[powerOnBehaviorAttribute]: {value: v, type: Zcl.DataType.ENUM8}});
+            return {state: {power_on_behavior: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", [powerOnBehaviorAttribute]);
+        },
+    } satisfies Tz.Converter,
+    child_lock: {
+        key: ["child_lock"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup: {[key: string]: boolean} = {lock: true, unlock: false};
+            const v = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {[childLockAttribute]: {value: v, type: Zcl.DataType.BOOLEAN}});
+            return {state: {child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", [childLockAttribute]);
         },
     } satisfies Tz.Converter,
 };
@@ -286,6 +509,7 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
             }),
             m.electricityMeter({
                 power: {min: 10, max: 600, change: 50},
@@ -294,9 +518,26 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type],
-        toZigbee: [tzLocal.switch_type],
-        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
@@ -313,6 +554,12 @@ export const definitions: DefinitionWithExtend[] = [
                 {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
         },
     },
     {
@@ -325,6 +572,7 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
             }),
             m.electricityMeter({
                 power: {min: 10, max: 600, change: 50},
@@ -333,9 +581,26 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type],
-        toZigbee: [tzLocal.switch_type],
-        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
@@ -352,6 +617,78 @@ export const definitions: DefinitionWithExtend[] = [
                 {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: "C-ZB-DM204V2", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-DM204v2", manufacturerName: "Candeo"},
+        ],
+        model: "C-ZB-DM204v2",
+        vendor: "Candeo",
+        description: "Zigbee micro smart dimmer",
+        extend: [
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
+        ],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.write("genLevelCtrl", {17: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["onLevel"]);
+            await endpoint1.write("genLevelCtrl", {16: {value: 0x0a, type: 0x21}});
+            await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
+            await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
         },
     },
     {
@@ -540,6 +877,38 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: "C-ZB-SM30-2G", manufacturerName: "Candeo"}],
+        model: "C-ZB-SM30-2G",
+        vendor: "Candeo",
+        description: "Smart 2 gang switch module",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2, e3: 3},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
+            m.onOff({
+                powerOnBehavior: false,
+                endpointNames: ["l1", "l2"],
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        exposes: [
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l1"),
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l2"),
+        ],
+        fromZigbee: [fz.power_on_behavior],
+        toZigbee: [tz.power_on_behavior],
+        configure: async (device, coordinatorEndpoint) => {
+            await m.setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "startUpOnOff", min: "MIN", max: "MAX", change: 1}], false);
+        },
+        meta: {},
+    },
+    {
         fingerprint: [{modelID: "C-RFZB-SM1"}],
         model: "C-RFZB-SM1",
         vendor: "Candeo",
@@ -559,11 +928,29 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
             }),
         ],
-        fromZigbee: [fzLocal.switch_type],
-        toZigbee: [tzLocal.switch_type],
-        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
@@ -580,6 +967,12 @@ export const definitions: DefinitionWithExtend[] = [
                 {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
         },
     },
     {
@@ -681,10 +1074,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.deviceAddCustomCluster("candeoRotaryRemoteControl", {
+                name: "candeoRotaryRemoteControl",
                 ID: manufacturerSpecificRotaryRemoteControlClusterCode,
                 attributes: {},
                 commands: {
                     rotaryRemoteControl: {
+                        name: "rotaryRemoteControl",
                         ID: 0x01,
                         parameters: [
                             {name: "field1", type: Zcl.DataType.UINT8, max: 0xff},
@@ -774,29 +1169,14 @@ export const definitions: DefinitionWithExtend[] = [
                 current: {min: 5, max: 900, change: 10},
                 energy: {min: 5, max: 1800, change: 50},
             }),
-            m.deviceAddCustomCluster("genOnOff", {
-                ID: 6,
-                attributes: {},
-                commands: {
-                    release: {
-                        ID: 0x03,
-                        parameters: [],
-                    },
-                },
-                commandsResponse: {},
-            }),
         ],
     },
     {
-        fingerprint: [{modelID: "C-ZB-RD1P-DPM", manufacturerName: "Candeo"}],
-        model: "C-ZB-RD1P-DPM",
+        fingerprint: [{modelID: "C-ZB-RD1Pv2-DIM", manufacturerName: "Candeo"}],
+        model: "C-ZB-RD1Pv2-DIM",
         vendor: "Candeo",
-        description: "Zigbee rotary dimmer pro (dual purpose mode)",
+        description: "Zigbee rotary dimmer pro (dimmer mode)",
         extend: [
-            m.deviceEndpoints({
-                endpoints: {l1: 1, l2: 2},
-                multiEndpointSkip: ["power", "current", "voltage", "energy"],
-            }),
             m.light({
                 levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
                 configureReporting: true,
@@ -811,10 +1191,77 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 5, max: 1800, change: 50},
             }),
             m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
                 ID: 6,
                 attributes: {},
                 commands: {
                     release: {
+                        name: "release",
+                        ID: 0x03,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [fzLocal.rd1p_rem_lite_ep2, fzLocal.rd1p_knob_press],
+        toZigbee: [tzLocal.rd1p_rem_lite_ep2],
+        exposes: [
+            e.action(["double_pressed", "held", "released"]).withEndpoint("l2"),
+            e
+                .binary("rem_lite_ep2", ea.ALL, "ON", "OFF")
+                .withLabel("Extra button commands")
+                .withDescription(
+                    "When set to ON, extra button commands (double press, hold, release) functionality will be enabled. Please note: a 0.5s delay is added to a single knob press action when this setting is active.",
+                )
+                .withCategory("config"),
+        ],
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint3 = device.getEndpoint(3);
+            if (endpoint3) {
+                const index = device.endpoints.indexOf(endpoint3);
+                if (index !== -1) {
+                    device.endpoints.splice(index, 1);
+                    device.save();
+                }
+            }
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.read("genOnOff", [rd1pREMLiteEP2Attribute]);
+            const endpoint2 = device.getEndpoint(2);
+            await endpoint2.bind("genOnOff", coordinatorEndpoint);
+            await endpoint2.bind("genLevelCtrl", coordinatorEndpoint);
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: "C-ZB-RD1P-DPM", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-RD1Pv2-DPM", manufacturerName: "Candeo"},
+        ],
+        model: "C-ZB-RD1P-DPM",
+        vendor: "Candeo",
+        description: "Zigbee rotary dimmer pro (dual purpose mode)",
+        extend: [
+            m.light({
+                levelConfig: {features: ["on_level", "current_level_startup", "on_transition_time", "off_transition_time"]},
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                powerOnBehavior: true,
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+            m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
+                ID: 6,
+                attributes: {},
+                commands: {
+                    release: {
+                        name: "release",
                         ID: 0x03,
                         parameters: [],
                     },
@@ -847,20 +1294,32 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "C-ZB-RD1P-REM", manufacturerName: "Candeo"}],
+        fingerprint: [
+            {modelID: "C-ZB-RD1P-REM", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-RD1Pv2-REM", manufacturerName: "Candeo"},
+        ],
         model: "C-ZB-RD1P-REM",
         vendor: "Candeo",
         description: "Zigbee rotary dimmer pro (remote mode)",
         extend: [
-            m.deviceEndpoints({
-                endpoints: {l1: 1, l2: 2},
-                multiEndpointSkip: ["power", "current", "voltage", "energy"],
-            }),
             m.electricityMeter({
                 power: {min: 5, max: 300, change: 10},
                 voltage: {min: 5, max: 600, change: 500},
                 current: {min: 5, max: 900, change: 10},
                 energy: {min: 5, max: 1800, change: 50},
+            }),
+            m.deviceAddCustomCluster("genOnOff", {
+                name: "genOnOff",
+                ID: 6,
+                attributes: {},
+                commands: {
+                    release: {
+                        name: "release",
+                        ID: 0x03,
+                        parameters: [],
+                    },
+                },
+                commandsResponse: {},
             }),
         ],
         fromZigbee: [fzLocal.rd1p_knob_rotation, fzLocal.rd1p_knob_press],
@@ -885,6 +1344,52 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint2 = device.getEndpoint(2);
             await endpoint2.bind("genOnOff", coordinatorEndpoint);
             await endpoint2.bind("genLevelCtrl", coordinatorEndpoint);
+        },
+    },
+    {
+        fingerprint: [{modelID: "C-RFZB-HUB", manufacturerName: "Candeo"}],
+        model: "C-RFZB-HUB",
+        vendor: "Candeo",
+        description: "Kinetic RF to Zigbee gateway",
+        fromZigbee: [fzLocal.kinetic_rf_button_multi_press],
+        toZigbee: [],
+        exposes: [
+            e.action(
+                Array.from({length: 10}, (_, i) => i + 1).flatMap((btn) =>
+                    Object.values(kineticRFButtonMultiPressActions).map((state) => `button_${btn}_${state}_pressed`),
+                ),
+            ),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SSFS", manufacturerName: "Candeo"}],
+        model: "C-ZB-SSFS",
+        vendor: "Candeo",
+        description: "Smart switched fused spur",
+        extend: [
+            m.onOff({
+                powerOnBehavior: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10, multiplier: 1, divisor: 1},
+                voltage: {min: 5, max: 600, change: 5, multiplier: 1, divisor: 1},
+                current: {min: 5, max: 900, change: 10, multiplier: 1, divisor: 1000},
+                energy: {min: 5, max: 1800, change: 50, multiplier: 1, divisor: 100},
+            }),
+        ],
+        toZigbee: [tzLocal.on_off, tzLocal.on_with_timed_off, tzLocal.power_on_behavior, tzLocal.child_lock],
+        fromZigbee: [fzLocal.power_on_behavior, fzLocal.child_lock],
+        exposes: [
+            e.power_on_behavior(["off", "on", "previous"]),
+            e
+                .binary("child_lock", ea.ALL, "LOCK", "UNLOCK")
+                .withDescription("Temporarily enables / disables physical input on the device until the next on command"),
+        ],
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.read("genOnOff", [childLockAttribute]);
+            await endpoint1.read("genOnOff", [powerOnBehaviorAttribute]);
         },
     },
 ];

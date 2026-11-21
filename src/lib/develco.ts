@@ -1,7 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
 import {presets as e, access as ea} from "./exposes";
-import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, temperature} from "./modernExtend";
-import type {Configure, Fz, ModernExtend, Tz} from "./types";
+import {deviceAddCustomCluster, deviceTemperature, type NumericArgs, numeric, setupAttributes, temperature} from "./modernExtend";
+import type {Configure, Expose, Fz, KeyValue, ModernExtend, Tz} from "./types";
+import {exposeEndpoints, getFromLookup} from "./utils";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.DEVELCO};
 
@@ -30,30 +31,82 @@ export interface DevelcoAirQuality {
 export interface DevelcoIasZone {
     attributes: {
         develcoZoneStatusInterval: number;
+        develcoAlarmOffDelay: number;
     };
     commands: never;
     commandResponses: never;
 }
 
+export interface DevelcoSeMetering {
+    attributes: {
+        develcoPulseConfiguration: number;
+        develcoCurrentSummation: number;
+        develcoInterfaceMode?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface DevelcoVocArgs extends Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>> {
+    /** Upper end of the sensor's measurement range in ppb, as read from maxMeasuredValue. */
+    maxPpb?: number;
+}
+
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
         deviceAddCustomCluster("genBasic", {
-            ID: 0x0000,
+            name: "genBasic",
+            ID: Zcl.Clusters.genBasic.ID,
             attributes: {
-                develcoPrimarySwVersion: {ID: 0x8000, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true},
-                develcoPrimaryHwVersion: {ID: 0x8020, type: Zcl.DataType.OCTET_STR, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true},
-                develcoLedControl: {ID: 0x8100, type: Zcl.DataType.BITMAP8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true},
-                develcoTxPower: {ID: 0x8101, type: Zcl.DataType.ENUM8, manufacturerCode: Zcl.ManufacturerCode.DEVELCO, write: true, max: 0xff},
+                develcoPrimarySwVersion: {
+                    name: "develcoPrimarySwVersion",
+                    ID: 0x8000,
+                    type: Zcl.DataType.OCTET_STR,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                },
+                develcoPrimaryHwVersion: {
+                    name: "develcoPrimaryHwVersion",
+                    ID: 0x8020,
+                    type: Zcl.DataType.OCTET_STR,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                },
+                develcoLedControl: {
+                    name: "develcoLedControl",
+                    ID: 0x8100,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                },
+                develcoTxPower: {
+                    name: "develcoTxPower",
+                    ID: 0x8101,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xff,
+                },
             },
             commands: {},
             commandsResponse: {},
         }),
     addCustomClusterManuSpecificDevelcoIasZone: () =>
         deviceAddCustomCluster("ssIasZone", {
+            name: "ssIasZone",
             ID: Zcl.Clusters.ssIasZone.ID,
             attributes: {
                 develcoZoneStatusInterval: {
+                    name: "develcoZoneStatusInterval",
                     ID: 0x8000,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
+                develcoAlarmOffDelay: {
+                    name: "develcoAlarmOffDelay",
+                    ID: 0x8001,
                     type: Zcl.DataType.UINT16,
                     manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
                     write: true,
@@ -65,13 +118,47 @@ export const develcoModernExtend = {
         }),
     addCustomClusterManuSpecificDevelcoAirQuality: () =>
         deviceAddCustomCluster("manuSpecificDevelcoAirQuality", {
+            name: "manuSpecificDevelcoAirQuality",
             ID: 0xfc03,
             manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
             attributes: {
-                measuredValue: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                minMeasuredValue: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                maxMeasuredValue: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                resolution: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                minMeasuredValue: {name: "minMeasuredValue", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                maxMeasuredValue: {name: "maxMeasuredValue", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                resolution: {name: "resolution", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addCustomDevelcoSeMeteringCluster: () =>
+        deviceAddCustomCluster("seMetering", {
+            name: "seMetering",
+            ID: Zcl.Clusters.seMetering.ID,
+            attributes: {
+                develcoPulseConfiguration: {
+                    name: "develcoPulseConfiguration",
+                    ID: 0x0300,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
+                develcoCurrentSummation: {
+                    name: "develcoCurrentSummation",
+                    ID: 0x0301,
+                    type: Zcl.DataType.UINT48,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffffffffffff,
+                },
+                develcoInterfaceMode: {
+                    name: "develcoInterfaceMode",
+                    ID: 0x0302,
+                    type: Zcl.DataType.ENUM16,
+                    manufacturerCode: Zcl.ManufacturerCode.DEVELCO,
+                    write: true,
+                    max: 0xffff,
+                },
             },
             commands: {},
             commandsResponse: {},
@@ -111,26 +198,31 @@ export const develcoModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
-    voc: (args?: Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>>) =>
-        numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
+    voc: (args?: Partial<DevelcoVocArgs>) => {
+        // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
+        // "The mean molar mass of this mixture is 110 g/mol and hence,
+        // 1 ppb TVOC corresponds to 4.5 μg/m3."
+        const ppbToUgM3 = 4.5;
+        const {maxPpb, ...numericArgs} = args ?? {};
+
+        return numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
             name: "voc",
             cluster: "manuSpecificDevelcoAirQuality",
             attribute: "measuredValue",
             reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10},
             description: "Measured VOC value",
-            // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
-            // "The mean molar mass of this mixture is 110 g/mol and hence,
-            // 1 ppb TVOC corresponds to 4.5 μg/m3."
             scale: (value: number, type: "from" | "to") => {
                 if (type === "from") {
-                    return value * 4.5;
+                    return value * ppbToUgM3;
                 }
                 return value;
             },
             unit: "µg/m³",
             access: "STATE_GET",
-            ...args,
-        }),
+            ...(maxPpb !== undefined && {valueMin: 0, valueMax: maxPpb * ppbToUgM3}),
+            ...numericArgs,
+        });
+    },
     airQuality: (): ModernExtend => {
         // NOTE: do not setup reporting, this is handled by the voc() modernExtend
 
@@ -219,7 +311,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     currentSummation: (args?: Partial<NumericArgs<"seMetering">>) =>
-        numeric({
+        numeric<"seMetering", DevelcoSeMetering>({
             name: "current_summation",
             cluster: "seMetering",
             attribute: "develcoCurrentSummation",
@@ -230,7 +322,7 @@ export const develcoModernExtend = {
             ...args,
         }),
     pulseConfiguration: (args?: Partial<NumericArgs<"seMetering">>) =>
-        numeric({
+        numeric<"seMetering", DevelcoSeMetering>({
             name: "pulse_configuration",
             cluster: "seMetering",
             attribute: "develcoPulseConfiguration",
@@ -445,5 +537,98 @@ export const develcoModernExtend = {
         ];
 
         return {exposes: [expose], fromZigbee, configure, isModernExtend: true};
+    },
+    customPulseTrigger: (options?: {endpointNames?: string[]}): ModernExtend => {
+        const endpointNames = options?.endpointNames || [];
+        const durationExpose = e
+            .numeric("duration", ea.STATE_SET)
+            .withLabel("Pulse duration")
+            .withUnit("s")
+            .withValueMin(0.0)
+            .withValueMax(3600)
+            .withDescription("Duration of the pulse.");
+
+        const triggerExpose = e
+            .enum("trigger", ea.SET, ["press"])
+            .withDescription(
+                "Trigger a timed pulse. The length of the pulse is defined by 'Pulse duration'. If the 'Pulse duration' is undefined a default value of 1s will be used.",
+            );
+
+        const exposes: Expose[] = [...exposeEndpoints(durationExpose, endpointNames), ...exposeEndpoints(triggerExpose, endpointNames)];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["trigger", "duration"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "duration") {
+                        const val = value === null ? 1.0 : Number(value);
+                        return {state: {[key]: val}};
+                    }
+                    if (key === "trigger" && value === "press") {
+                        const epSuffix = meta.endpoint_name ? `_${meta.endpoint_name}` : "";
+                        const stateLookupKey = `duration${epSuffix}`;
+                        const seconds = meta.state[stateLookupKey] !== undefined ? Number(meta.state[stateLookupKey]) : 1.0;
+                        const deciseconds = Math.round(seconds * 10);
+                        await entity.command(
+                            "genOnOff",
+                            "onWithTimedOff",
+                            {
+                                ctrlbits: 0,
+                                ontime: deciseconds,
+                                offwaittime: 0,
+                            },
+                            meta.options,
+                        );
+                        return {state: {[key]: null}};
+                    }
+                },
+            },
+        ];
+        return {
+            isModernExtend: true,
+            exposes,
+            toZigbee,
+        };
+    },
+    faultStatus: (): ModernExtend => {
+        const reliabilityExpose = e
+            .enum("reliability", ea.STATE, ["no_fault_detected", "unreliable_other", "process_error"])
+            .withDescription("Indicates reason if any fault");
+
+        const faultExpose = e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether the device are in fault state");
+
+        const fromZigbee: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "genBinaryInput",
+                type: ["attributeReport", "readResponse"],
+                convert: (_model, msg, _publish, _options, _meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.reliability !== undefined) {
+                        const lookup = {0: "no_fault_detected", 7: "unreliable_other", 8: "process_error"};
+                        result.reliability = getFromLookup(msg.data.reliability, lookup);
+                    }
+                    if (msg.data.statusFlags !== undefined) {
+                        result.fault = msg.data.statusFlags === 1;
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, _coordinatorEndpoint, _definition) => {
+                for (const ep of device.endpoints) {
+                    if (ep.supportsInputCluster("genBinaryInput")) {
+                        await setupAttributes(ep, _coordinatorEndpoint, "genBinaryInput", [
+                            {attribute: "reliability", min: "MIN", max: "MAX", change: 0},
+                            {attribute: "statusFlags", min: "MIN", max: "MAX", change: 0},
+                        ]);
+                        break;
+                    }
+                }
+            },
+        ];
+
+        return {exposes: [reliabilityExpose, faultExpose], fromZigbee, configure, isModernExtend: true};
     },
 };

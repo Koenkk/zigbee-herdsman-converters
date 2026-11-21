@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -6,13 +7,33 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:shinasystem";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SihasMsOccupancySensing {
+    attributes: {
+        presenceStatus: number;
+        movementSensitivity: number;
+        leavingHoldTime: number;
+        occupancySensitivity: number;
+        ledBrightness: number;
+        entrySensitivity: number;
+        lastMovementValue: number;
+        lastOccupancyValue: number;
+        peakMovementValue: number;
+        peakOccupancyValue: number;
+        peakClear: number;
+        movementHoldTime: number;
+        occupancyHoldTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const fzLocal = {
     poll_summ_received_on_electrical_measurement: {
@@ -135,11 +156,52 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    sihas_people_cnt: {
+        cluster: "genAnalogInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {"0": "idle", "1": "in", "2": "out"};
+            const value = utils.precisionRound(msg.data.presentValue, 1);
+            const people = utils.precisionRound(msg.data.presentValue, 0);
+            let result = null;
+            if (value <= 80) {
+                result = {people: people, status: lookup[(value * 10) % 10]};
+                return result;
+            }
+        },
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
+    sihas_action: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff", "commandToggle"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {commandToggle: "long", commandOn: "double", commandOff: "single"};
+            let buttonMapping: KeyValueAny = null;
+            if (model.model === "SBM300ZB2") {
+                buttonMapping = {1: "1", 2: "2"};
+            } else if (model.model === "SBM300ZB3") {
+                buttonMapping = {1: "1", 2: "2", 3: "3"};
+            } else if (model.model === "SBM300ZB4") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            } else if (model.model === "SBM300ZC2") {
+                buttonMapping = {1: "1", 2: "2"};
+            } else if (model.model === "SBM300ZC3") {
+                buttonMapping = {1: "1", 2: "2", 3: "3"};
+            } else if (model.model === "SBM300ZC4") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            } else if (model.model === "MSM-300ZB") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            } else if (model.model === "SQM300ZC4") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            }
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : "";
+            return {action: `${button}${lookup[msg.type]}`};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 };
 
 const tzLocal = {
     CSM300_SETUP: {
-        key: ["rf_pairing_on", "counting_freeze", "tof_init", "led_state", "rf_state", "transaction", "fast_in", "fast_out"],
+        key: ["rf_pairing_on", "counting_freeze", "tof_init", "led_state", "rf_state", "transaction_interval", "fast_in", "fast_out"],
         convertSet: async (entity, key, value, meta) => {
             let payload = null;
             const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
@@ -187,36 +249,36 @@ const tzLocal = {
                         return {state: {rf_state: "disable"}};
                     }
                     break;
-                case "transaction":
+                case "transaction_interval":
                     if (value === "0ms") {
                         payload = {presentValue: 90};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "0ms"}};
+                        return {state: {transaction_interval: "0ms"}};
                     }
                     if (value === "200ms") {
                         payload = {presentValue: 91};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "200ms"}};
+                        return {state: {transaction_interval: "200ms"}};
                     }
                     if (value === "400ms") {
                         payload = {presentValue: 92};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "400ms"}};
+                        return {state: {transaction_interval: "400ms"}};
                     }
                     if (value === "600ms") {
                         payload = {presentValue: 93};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "600ms"}};
+                        return {state: {transaction_interval: "600ms"}};
                     }
                     if (value === "800ms") {
                         payload = {presentValue: 94};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "800ms"}};
+                        return {state: {transaction_interval: "800ms"}};
                     }
                     if (value === "1,000ms") {
                         payload = {presentValue: 95};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "1,000ms"}};
+                        return {state: {transaction_interval: "1,000ms"}};
                     }
                     break;
                 case "fast_in":
@@ -302,6 +364,17 @@ const tzLocal = {
             await entity.read("msTemperatureMeasurement", ["measuredValue"]);
         },
     } satisfies Tz.Converter,
+    sihas_set_people: {
+        key: ["people"],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
+            await endpoint.write("genAnalogInput", {presentValue: value as number});
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
+            await endpoint.read("genAnalogInput", ["presentValue"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -316,8 +389,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         description: "SiHAS multipurpose sensor",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people],
+        fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
+        toZigbee: [tzLocal.sihas_set_people],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genPowerCfg", "genAnalogInput"];
@@ -340,8 +413,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS multipurpose ToF sensor",
         meta: {battery: {voltageToPercentage: {min: 3200, max: 4100, vOffset: 1000}}},
-        fromZigbee: [fz.battery, fz.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
+        fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
+        toZigbee: [tzLocal.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genPowerCfg", "genAnalogInput"];
@@ -361,7 +434,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_state", ea.SET, "enable", "disable").withDescription("Indicate LED enable/disable, default : enable"),
             e.binary("rf_state", ea.SET, "enable", "disable").withDescription("RF function enable/disable, default : disable"),
             e
-                .enum("transaction", ea.SET, ["0ms", "200ms", "400ms", "600ms", "800ms", "1,000ms"])
+                .enum("transaction_interval", ea.SET, ["0ms", "200ms", "400ms", "600ms", "800ms", "1,000ms"])
                 .withDescription("Transaction interval, default : 400ms"),
             e.binary("fast_in", ea.SET, "enable", "disable").withDescription("Fast process enable/disable when people 0 to 1. default : enable"),
             e.binary("fast_out", ea.SET, "enable", "disable").withDescription("Fast process enable/disable when people 1 to 0. default : enable"),
@@ -452,7 +525,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS remote control",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_action],
+        fromZigbee: [fz.battery, fzLocal.sihas_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -502,7 +575,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action([
@@ -539,7 +612,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS remote control",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_action],
+        fromZigbee: [fz.battery, fzLocal.sihas_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -554,7 +627,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 2 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long"]), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: "3V_2100"}, multiEndpoint: true},
@@ -571,7 +644,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 3 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long", "3_single", "3_double", "3_long"]),
@@ -593,7 +666,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action([
@@ -630,7 +703,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS remote control",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_action],
+        fromZigbee: [fz.battery, fzLocal.sihas_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -645,7 +718,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 2 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long"]), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: "3V_2100"}, multiEndpoint: true},
@@ -662,7 +735,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 3 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long", "3_single", "3_double", "3_long"]),
@@ -684,7 +757,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action([
@@ -720,7 +793,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 full button",
-        fromZigbee: [fz.sihas_action],
+        fromZigbee: [fzLocal.sihas_action],
         extend: [m.battery()],
         toZigbee: [],
         exposes: [
@@ -977,7 +1050,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS DI/DO Module",
-        fromZigbee: [fz.sihas_action],
+        fromZigbee: [fzLocal.sihas_action],
         toZigbee: [],
         exposes: [e.action(["single", "double", "long"])],
         extend: [
@@ -1218,6 +1291,157 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x900e, type: 0x20},
                 description: "Enables/disables the physical input lock for Button 4.",
                 endpointName: "p4",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["HPM-300-WZ"],
+        model: "HPM-300-WZ",
+        vendor: "ShinaSystem",
+        description: "SiHAS mmWave presence sensor",
+        extend: [
+            m.deviceAddCustomCluster("msOccupancySensing", {
+                name: "msOccupancySensing",
+                ID: Zcl.Clusters.msOccupancySensing.ID,
+                attributes: {
+                    presenceStatus: {name: "presenceStatus", ID: 0x9000, type: Zcl.DataType.UINT16, max: 0xffff},
+                    movementSensitivity: {name: "movementSensitivity", ID: 0x9001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    leavingHoldTime: {name: "leavingHoldTime", ID: 0x9002, type: Zcl.DataType.UINT16, write: true, max: 60000},
+                    occupancySensitivity: {name: "occupancySensitivity", ID: 0x9003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    ledBrightness: {name: "ledBrightness", ID: 0x9004, type: Zcl.DataType.UINT8, write: true, max: 100},
+                    entrySensitivity: {name: "entrySensitivity", ID: 0x9005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    lastMovementValue: {name: "lastMovementValue", ID: 0x9006, type: Zcl.DataType.UINT16, max: 0xffff},
+                    lastOccupancyValue: {name: "lastOccupancyValue", ID: 0x9007, type: Zcl.DataType.UINT16, max: 0xffff},
+                    peakMovementValue: {name: "peakMovementValue", ID: 0x9008, type: Zcl.DataType.UINT16, max: 0xffff},
+                    peakOccupancyValue: {name: "peakOccupancyValue", ID: 0x9009, type: Zcl.DataType.UINT16, max: 0xffff},
+                    peakClear: {name: "peakClear", ID: 0x900a, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    movementHoldTime: {name: "movementHoldTime", ID: 0x900b, type: Zcl.DataType.UINT16, write: true, min: 5, max: 60000},
+                    occupancyHoldTime: {name: "occupancyHoldTime", ID: 0x900c, type: Zcl.DataType.UINT16, write: true, min: 5, max: 60000},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.occupancy(),
+            m.enumLookup<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "presence_status",
+                lookup: {inactive: 0, leaving: 1, occupied: 2, moving: 3, offline: 9},
+                cluster: "msOccupancySensing",
+                attribute: "presenceStatus",
+                description: "Current presence status",
+                access: "STATE_GET",
+                reporting: {min: 1, max: "1_HOUR", change: 0},
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "movement_hold_time",
+                cluster: "msOccupancySensing",
+                attribute: "movementHoldTime",
+                description: "Duration for which the moving state is maintained",
+                valueMin: 5,
+                valueMax: 60000,
+                unit: "s",
+                entityCategory: "config",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "occupancy_hold_time",
+                cluster: "msOccupancySensing",
+                attribute: "occupancyHoldTime",
+                description: "Duration for which the occupied state is maintained",
+                valueMin: 5,
+                valueMax: 60000,
+                unit: "s",
+                entityCategory: "config",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "leaving_hold_time",
+                cluster: "msOccupancySensing",
+                attribute: "leavingHoldTime",
+                description: "Duration for which the leaving state is maintained",
+                valueMin: 5,
+                valueMax: 60000,
+                unit: "s",
+                entityCategory: "config",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "entry_sensitivity",
+                cluster: "msOccupancySensing",
+                attribute: "entrySensitivity",
+                description: "Sensitivity of the initial detection while inactive (lower is more sensitive)",
+                valueMin: 15,
+                valueMax: 6000,
+                entityCategory: "config",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "movement_sensitivity",
+                cluster: "msOccupancySensing",
+                attribute: "movementSensitivity",
+                description: "Movement detection sensitivity (lower is more sensitive)",
+                valueMin: 10,
+                valueMax: 6000,
+                entityCategory: "config",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "occupancy_sensitivity",
+                cluster: "msOccupancySensing",
+                attribute: "occupancySensitivity",
+                description: "Occupancy detection sensitivity (lower is more sensitive)",
+                valueMin: 10,
+                valueMax: 6000,
+                entityCategory: "config",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "led_brightness",
+                cluster: "msOccupancySensing",
+                attribute: "ledBrightness",
+                description: "Status LED brightness",
+                valueMin: 0,
+                valueMax: 100,
+                unit: "%",
+                entityCategory: "config",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "last_movement_value",
+                cluster: "msOccupancySensing",
+                attribute: "lastMovementValue",
+                description: "Last measured movement value",
+                access: "STATE_GET",
+                reporting: {min: 120, max: 7200, change: 0},
+                entityCategory: "diagnostic",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "last_occupancy_value",
+                cluster: "msOccupancySensing",
+                attribute: "lastOccupancyValue",
+                description: "Last measured occupancy value",
+                access: "STATE_GET",
+                reporting: {min: 120, max: 7200, change: 0},
+                entityCategory: "diagnostic",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "peak_movement_value",
+                cluster: "msOccupancySensing",
+                attribute: "peakMovementValue",
+                description: "Peak measured movement value",
+                access: "STATE_GET",
+                reporting: {min: 10, max: 7200, change: 0},
+                entityCategory: "diagnostic",
+            }),
+            m.numeric<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "peak_occupancy_value",
+                cluster: "msOccupancySensing",
+                attribute: "peakOccupancyValue",
+                description: "Peak measured occupancy value",
+                access: "STATE_GET",
+                reporting: {min: 10, max: 7200, change: 0},
+                entityCategory: "diagnostic",
+            }),
+            m.enumLookup<"msOccupancySensing", SihasMsOccupancySensing>({
+                name: "peak_clear",
+                lookup: {clear: 0},
+                cluster: "msOccupancySensing",
+                attribute: "peakClear",
+                description: "Reset the peak movement and occupancy values",
+                access: "SET",
+                entityCategory: "config",
             }),
         ],
     },

@@ -79,7 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.smoke(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ["FNB56-COS06FB1.7", "FNB56-COS06FB2.1"],
+        zigbeeModel: ["FNB56-COS06FB1.7", "FNB56-COS06FB2.1", "FB56-COS02HM1.4"],
         model: "SCA01ZB",
         vendor: "Feibit",
         description: "Smart carbon monoxide sensor",

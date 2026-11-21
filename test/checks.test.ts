@@ -105,6 +105,21 @@ describe("Check definitions", () => {
         }
     });
 
+    it("Derived sensors keep their Home Assistant name", () => {
+        // These share the device_class of their source (e.g. dew_point is a temperature). Zigbee2MQTT drops the
+        // discovery name when a device_class is set, unless homeassistant.name is set, so Home Assistant would
+        // otherwise name them after the device_class (e.g. a second "Temperature").
+        const derivedSensors = ["apparent_temperature", "dew_point", "gust_speed", "humidex", "wind_chill"];
+
+        for (const definition of definitions) {
+            iterateExposes(definitionExposes(definition), (expose) => {
+                if (derivedSensors.includes(expose.name) && expose.homeassistant?.name !== expose.label) {
+                    throw new Error(`'${expose.name}' of '${definition.model}' should set homeassistant.name to '${expose.label}'`);
+                }
+            });
+        }
+    });
+
     it("Model should be unique", () => {
         const models = new Set<string>();
         for (const definition of definitions) {
@@ -120,6 +135,55 @@ describe("Check definitions", () => {
                     }
                 }
             }
+        }
+    });
+
+    it("SONOFF energy sensors keep their Home Assistant name", () => {
+        // Zigbee2MQTT gives kWh sensors device_class energy and drops the discovery name unless homeassistant.name is set,
+        // so Home Assistant would name all of them "Energy".
+        const names = [
+            "energy_today",
+            "energy_yesterday",
+            "energy_month",
+            "output_energy_today",
+            "output_energy_month",
+            "total_energy",
+            "total_energy_consumption",
+            "total_output_energy",
+        ];
+
+        for (const definition of definitions) {
+            if (!["SONOFF", "eWeLink"].includes(definition.vendor)) continue;
+            iterateExposes(definitionExposes(definition), (expose) => {
+                if (names.includes(expose.name) && expose.homeassistant?.name !== expose.label) {
+                    throw new Error(`'${expose.name}' of '${definition.model}' should set homeassistant.name to '${expose.label}'`);
+                }
+            });
+        }
+    });
+
+    it("Vendor names should be consistent in casing and styling", () => {
+        const vendors = new Map<string, string>();
+
+        const normalizeVendor = (vendor: string): string =>
+            vendor
+                .normalize("NFKC")
+                .toLowerCase()
+                .replace(/[\s\p{P}\p{S}_]+/gu, "");
+
+        for (const definition of definitions) {
+            const vendor = definition.vendor;
+            const normalizedVendor = normalizeVendor(vendor);
+            const existingMatch = vendors.get(normalizedVendor);
+
+            if (existingMatch !== undefined) {
+                if (existingMatch !== vendor) {
+                    throw new Error(`'${vendor}' has inconsistent casing/style compared to '${existingMatch}'`);
+                }
+                continue;
+            }
+
+            vendors.set(normalizedVendor, vendor);
         }
     });
 
@@ -200,8 +264,8 @@ describe("Check definitions", () => {
             "Legrand|281506",
             "LiXee|ZLinky_TIC",
             "LiXee|ZiPulses",
-            "LYTKO|L101Ze-DBN",
-            "LYTKO|L101Ze-SBN",
+            "Lytko|L101Ze-DBN",
+            "Lytko|L101Ze-SBN",
             "Aqara|TH-S04D",
             "Schneider Electric|MEG5779",
             "Slacky-DIY|THERM_SLACKY_DIY_R01",
@@ -228,6 +292,8 @@ describe("Check definitions", () => {
             "Slacky-DIY|THERM_SLACKY_DIY_R0B",
             "Slacky-DIY|THERM_SLACKY_DIY_R0C",
             "Slacky-DIY|THERM_SLACKY_DIY_R0C",
+            "Slacky-DIY|THERM_SLACKY_DIY_R0D",
+            "Slacky-DIY|THERM_SLACKY_DIY_R0D",
             "Tuya|SPM02",
             "Ubisys|H1",
             "Ubisys|H1",
@@ -325,6 +391,20 @@ describe("Check definitions", () => {
             lines += `TOTAL: ${ignoredList.size} out of ${exposesCount + optionsCount} (e=${exposesCount}, o=${optionsCount})`;
 
             console.log(lines);
+        }
+    });
+
+    it("Comfort temperature limits keep their Home Assistant name", () => {
+        // comfort_temperature_min/max get device_class temperature in Zigbee2MQTT, which drops the discovery name
+        // unless homeassistant.name is set, so Home Assistant would name them "Temperature".
+        const names = ["comfort_temperature_min", "comfort_temperature_max"];
+
+        for (const definition of definitions) {
+            iterateExposes(definitionExposes(definition), (expose) => {
+                if (names.includes(expose.name) && expose.homeassistant?.name !== expose.label) {
+                    throw new Error(`'${expose.name}' of '${definition.model}' should set homeassistant.name to '${expose.label}'`);
+                }
+            });
         }
     });
 });

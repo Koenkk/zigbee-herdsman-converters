@@ -3,10 +3,25 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    ias_keypad: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+                restore_reports: (zoneStatus & (1 << 5)) > 0,
+            };
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -96,22 +111,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SRAC-23B-ZBSR",
         vendor: "Climax",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
-        toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning, tz.squawk],
+        extend: [
+            m.battery({lowStatus: true, percentage: false, percentageReporting: false}),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.iasWarning({maxDuration: {min: 0, max: 600}}),
+            {
+                exposes: [e.squawk()],
+                toZigbee: [tz.squawk],
+                isModernExtend: true,
+            },
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "ssIasZone", "ssIasWd"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
             await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId"]);
             await endpoint.read("ssIasWd", ["maxDuration"]);
         },
-        exposes: [
-            e.battery_low(),
-            e.tamper(),
-            e.warning(),
-            e.squawk(),
-            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Duration of Siren"),
-            e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of siren"),
-        ],
     },
     {
         zigbeeModel: ["WS15_00.00.00.14TC"],
@@ -136,7 +151,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KP-23EL-ZBS-ACE",
         vendor: "Climax",
         description: "Remote Keypad",
-        fromZigbee: [fz.ias_keypad, fz.battery, fz.command_arm, fz.command_panic, fz.command_emergency],
+        fromZigbee: [fzLocal.ias_keypad, fz.battery, fz.command_arm, fz.command_panic, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery_low(), e.tamper(), e.action(["emergency", "panic", "disarm", "arm_all_zones", "arm_day_zones"])],
     },

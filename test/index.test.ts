@@ -2,6 +2,7 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import {describe, expect, it, vi} from "vitest";
+import baseDefinitions from "../src/devices/index";
 import {addExternalDefinition, findByDevice, postProcessConvertedFromZigbeeMessage, removeExternalDefinitions} from "../src/index";
 import {access, Composite, Enum, List, Numeric, presets} from "../src/lib/exposes";
 import {mockDevice} from "./utils";
@@ -104,33 +105,27 @@ describe("ZHC", () => {
                 modelID: "TS011F",
                 manufacturerName: "_TZ3000_vzopcetz",
                 endpoints: [],
-            },
-            "Router",
-            {
                 applicationVersion: 69,
             },
+            "Router",
         );
         const device2 = mockDevice(
             {
                 modelID: "TS011F",
                 manufacturerName: "_TZ3000_vzopcetz_random",
                 endpoints: [],
-            },
-            "Router",
-            {
                 applicationVersion: 69,
             },
+            "Router",
         );
         const device3 = mockDevice(
             {
                 modelID: "TS011F",
                 manufacturerName: "_TZ3000_vzopcetz_random",
                 endpoints: [],
-            },
-            "Router",
-            {
                 applicationVersion: 1,
             },
+            "Router",
         );
         const definition1 = await findByDevice(device1);
         const definition2 = await findByDevice(device2);
@@ -151,11 +146,9 @@ describe("ZHC", () => {
                     {ID: 1, profileID: 49246, deviceID: 544, inputClusterIDs: [0, 3, 4, 5, 6, 8, 768, 2821, 4096], outputClusterIDs: [25]},
                     {ID: 242, profileID: 41440, deviceID: 102, inputClusterIDs: [33], outputClusterIDs: [33]},
                 ],
-            },
-            "Router",
-            {
                 powerSource: "Mains (single phase)",
             },
+            "Router",
         );
         const device2 = mockDevice(
             {
@@ -163,11 +156,9 @@ describe("ZHC", () => {
                 manufacturerID: 9999,
                 manufacturerName: "SunRicher",
                 endpoints: [],
-            },
-            "Router",
-            {
                 powerSource: "Mains (single phase)",
             },
+            "Router",
         );
         const definition1 = await findByDevice(device1);
         const definition2 = await findByDevice(device2);
@@ -184,11 +175,9 @@ describe("ZHC", () => {
                 manufacturerID: 0,
                 manufacturerName: "eWeLink",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusterIDs: [0, 3, 1280, 1], outputClusterIDs: [3]}],
-            },
-            "EndDevice",
-            {
                 powerSource: "Battery",
             },
+            "EndDevice",
         );
         const definition1 = await findByDevice(device1);
         const device2 = mockDevice(
@@ -197,11 +186,9 @@ describe("ZHC", () => {
                 manufacturerID: 0,
                 manufacturerName: "eWeLink",
                 endpoints: [{ID: 1, profileID: 260, deviceID: 770, inputClusterIDs: [0, 3, 1026, 1029, 1], outputClusterIDs: [3]}],
-            },
-            "EndDevice",
-            {
                 powerSource: "Battery",
             },
+            "EndDevice",
         );
         const definition2 = await findByDevice(device2);
 
@@ -230,16 +217,58 @@ describe("ZHC", () => {
                 modelID: "TS011F",
                 endpoints: [],
                 manufacturerName: "_TZ3000_cehuw1lw",
-            },
-            "Router",
-            {
                 softwareBuildID: "1.0.5\u0000",
             },
+            "Router",
         );
         const definition = await findByDevice(device);
 
         expect(definition.vendor).toStrictEqual("Tuya");
         expect(definition.model).toStrictEqual("TS011F_plug_3");
+    });
+
+    it("finds the Paulmann 291.52 white label for PIIC5800 firmware", async () => {
+        const device = mockDevice(
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5800",
+                endpoints: [],
+            },
+            "Router",
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("291.52");
+    });
+
+    it.each([
+        [0x002a, "SNZB-05"],
+        [0x000d, "SNZB-03_eWeLink"],
+    ])("eWeLink SNZB-03 configure remaps to the right model by IAS zoneType %d", async (zoneType, model) => {
+        const device = mockDevice(
+            {
+                modelID: "SNZB-03",
+                manufacturerName: "eWeLink",
+                endpoints: [
+                    {
+                        ID: 1,
+                        profileID: 260,
+                        deviceID: 1026,
+                        inputClusterIDs: [0, 3, 1, 1280, 32],
+                        outputClusterIDs: [25],
+                        read: () => Promise.resolve({zoneType}),
+                    },
+                ],
+            },
+            "EndDevice",
+        );
+        vi.spyOn(device, "save").mockImplementation(() => {});
+
+        const definition = await findByDevice(device);
+        await definition.configure(device, device.getEndpoint(1), definition);
+
+        expect((await findByDevice(device)).model).toStrictEqual(model);
     });
 
     it("finds definition by fingerprint - index of size 250+", async () => {
@@ -262,15 +291,27 @@ describe("ZHC", () => {
             {
                 modelID: "GreenPower_7",
                 endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
-            },
-            "GreenPower",
-            {
                 ieeeAddr: "0x0000000001511223",
             },
+            "GreenPower",
         );
         const definition = await findByDevice(device);
 
         expect(definition.model).toStrictEqual("PTM 216Z");
+    });
+
+    it("finds definition by fingerprint - GP - PTM 215Z Friends of Hue range", async () => {
+        const device = mockDevice(
+            {
+                modelID: "GreenPower_2",
+                endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+                ieeeAddr: "0x0000000001a41678",
+            },
+            "GreenPower",
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("PTM 215Z");
     });
 
     it("does not throw when exposes function throws", async () => {
@@ -304,11 +345,9 @@ describe("ZHC", () => {
             {
                 modelID: "GreenPower_2",
                 endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
-            },
-            "GreenPower",
-            {
                 ieeeAddr: "0x0000000052373160",
             },
+            "GreenPower",
         );
 
         const definition = await findByDevice(device, true);
@@ -423,6 +462,40 @@ describe("ZHC", () => {
         expect(definitionWithExtPresent.model).toStrictEqual("ZY-M100-S_1");
     });
 
+    it("finds definition by NUL padded model ID", async () => {
+        const device = mockDevice({modelID: "lumi.sensor_motion\u0000", endpoints: []}, "Router");
+
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+    });
+
+    it("finds definition by NUL padded model ID when an external converter adds a second candidate", async () => {
+        const device = mockDevice({modelID: "lumi.sensor_motion\u0000", endpoints: []}, "Router");
+
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+
+        addExternalDefinition({
+            zigbeeModel: ["lumi.sensor_motion"],
+            model: "mock-model",
+            vendor: "dummy",
+            description: "dummy",
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: "mock-model.js",
+        });
+
+        expect((await findByDevice(device))?.model).toStrictEqual("mock-model");
+        removeExternalDefinitions("mock-model.js");
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+    });
+
+    it("finds definition by model ID with different casing when a fingerprint-only definition is a second candidate", async () => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/33654
+        const device = mockDevice({modelID: "ms01", manufacturerName: "eWeLink", endpoints: []}, "EndDevice");
+
+        expect((await findByDevice(device)).model).toStrictEqual("SNZB-03");
+    });
+
     it("exposes light with endpoint", () => {
         const expected = {
             type: "light",
@@ -493,6 +566,7 @@ describe("ZHC", () => {
         const ts0601SoilDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []});
         const ts0601Soil = await findByDevice(ts0601SoilDevice);
         expect(ts0601Soil.options.map((t) => t.name)).toStrictEqual([
+            "time_start",
             "temperature_calibration",
             "temperature_precision",
             "soil_moisture_calibration",
@@ -515,6 +589,7 @@ describe("ZHC", () => {
         const ts0111fPlug1Device = mockDevice({modelID: "TS011F", endpoints: []});
         const ts011fPlug1 = await findByDevice(ts0111fPlug1Device);
         expect(ts011fPlug1.options.map((t) => t.name)).toStrictEqual([
+            "time_start",
             "power_calibration",
             "power_precision",
             "current_calibration",
@@ -523,6 +598,7 @@ describe("ZHC", () => {
             "voltage_precision",
             "energy_calibration",
             "energy_precision",
+            "identify_timeout",
             "state_action",
         ]);
         const payload3 = {current: 0.0585};
@@ -603,5 +679,33 @@ describe("ZHC", () => {
                 ],
             },
         });
+    });
+
+    it("checks if whiteLabelOf references point to existing models", () => {
+        const models = new Set<string>();
+
+        for (const definition of baseDefinitions) {
+            models.add(definition.model);
+            if (definition.whiteLabel) {
+                for (const whiteLabel of definition.whiteLabel) {
+                    if ("fingerprint" in whiteLabel && whiteLabel.fingerprint) {
+                        models.add(whiteLabel.model);
+                    }
+                }
+            }
+        }
+
+        for (const definition of baseDefinitions) {
+            if (!definition.whiteLabel) continue;
+
+            for (const whiteLabel of definition.whiteLabel) {
+                if ("whiteLabelOf" in whiteLabel && whiteLabel.whiteLabelOf) {
+                    assert(
+                        models.has(whiteLabel.whiteLabelOf),
+                        `whiteLabelOf '${whiteLabel.whiteLabelOf}' (for ${whiteLabel.vendor ?? definition.vendor} ${whiteLabel.model}) is not a valid model`,
+                    );
+                }
+            }
+        }
     });
 });

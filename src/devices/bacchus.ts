@@ -96,9 +96,10 @@ function binaryWithOnOffCommand(args: m.BinaryArgs<"genOnOff", undefined>): Mode
         },
     ];
 
+    const endpoints = Array.isArray(endpointName) ? endpointName : [endpointName];
     const configure: Configure[] = [];
     if (reporting) {
-        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: [endpointName]}));
+        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints}));
     }
 
     return {...mExtend, toZigbee, configure, isModernExtend: true};
@@ -109,6 +110,8 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.numeric(args);
+    const precisionValue = Array.isArray(precision) ? precision[0] : precision;
+    const nameValue = Array.isArray(name) ? name[0] : name;
 
     const fromZigbee = [
         {
@@ -123,9 +126,9 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
                         value = typeof scale === "number" ? value / scale : scale(value, "from");
                     }
                     assertNumber(value);
-                    if (precision != null) value = precisionRound(value, precision);
+                    if (precisionValue != null) value = precisionRound(value, precisionValue);
 
-                    return {[name]: value};
+                    return {[nameValue]: value};
                 }
             },
         } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
@@ -133,7 +136,7 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: [name],
+            key: [nameValue],
             convertSet:
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
@@ -143,7 +146,7 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
                               payloadValue = typeof scale === "number" ? payloadValue * scale : scale(payloadValue, "to");
                           }
                           assertNumber(payloadValue);
-                          if (precision != null) payloadValue = precisionRound(payloadValue, precision);
+                          if (precisionValue != null) payloadValue = precisionRound(payloadValue, precisionValue);
                           const payload: TPartialClusterAttributes<"genTime"> | RawClusterAttributes = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
@@ -308,6 +311,17 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "seMetering",
                 attribute: "currentTier4SummDelivered",
                 description: "Energy on tariff 4",
+                access: "STATE_GET",
+                scale: 1000,
+                precision: 3,
+                reporting: electicityReporting,
+            }),
+            energy({
+                name: "energy_all",
+                unit: "kWh",
+                cluster: "seMetering",
+                attribute: "currentSummDelivered",
+                description: "Energy on all tariffs",
                 access: "STATE_GET",
                 scale: 1000,
                 precision: 3,
@@ -749,6 +763,81 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             await device.getEndpoint(1).read("msSoilMoisture", [0x0202, 0x0203]);
+        },
+    },
+    {
+        zigbeeModel: ["Flower_Sensor_v4"],
+        model: "Flower_Sensor_v4",
+        vendor: "Bacchus",
+        description: "Flower soil moisture sensor",
+        extend: [
+            m.soilMoisture({
+                access: "STATE",
+                reporting: defaultReporting,
+            }),
+            m.temperature({
+                access: "STATE",
+                reporting: defaultReporting,
+            }),
+            m.illuminance({
+                access: "STATE",
+                reporting: defaultReporting,
+            }),
+            m.numeric({
+                name: "report_delay",
+                unit: "min",
+                valueMin: 1,
+                valueMax: 600,
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0203, type: 0x21},
+                description: "Reporting interval",
+                access: "ALL",
+            }),
+            m.numeric({
+                name: "threshold",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0202, type: 0x21},
+                description: "Reporting interval",
+                access: "ALL",
+            }),
+            m.enumLookup({
+                name: "tx_radio_power",
+                lookup: {"10dbm": 10, "19dbm": 19},
+                cluster: "genPowerCfg",
+                attribute: {ID: 0x0204, type: 0x28},
+                description: "Set TX Radio Power, dbm",
+                access: "STATE_SET",
+            }),
+            m.binary({
+                name: "smart_sleep",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "genPowerCfg",
+                attribute: {ID: 0x0205, type: 0x10},
+                description: "Enable Smart Sleep, short wakeup every 6 seconds",
+                access: "STATE_SET",
+            }),
+            m.binary({
+                name: "thermal_compensation",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0206, type: 0x10},
+                description: "Thermal compensation",
+                access: "STATE_SET",
+            }),
+            m.battery({
+                voltage: true,
+                voltageReportingConfig: defaultReporting,
+                percentageReportingConfig: defaultReporting,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await device.getEndpoint(1).read("msSoilMoisture", [0x0202, 0x0203, 0x0206]);
+            await device.getEndpoint(1).read("genPowerCfg", [0x0204, 0x0205]);
         },
     },
     {

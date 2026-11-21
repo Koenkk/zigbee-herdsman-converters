@@ -24,9 +24,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("switch_status", ea.STATE).withDescription("External switch status").withValueMin(-10000).withValueMax(10000),
             e.enum("load_detection_mode", ea.STATE_SET, ["none", "first_power_on", "every_power_on"]).withDescription("Load detection mode"),
             // If you see load_type 'unknown', pls. check with Tuya gateway and app and update with label from Tuya app.
-            e
-                .enum("load_type", ea.STATE, ["unknown", "resistive_capacitive", "unknown", "detecting"])
-                .withDescription("Load type"),
+            e.enum("load_type", ea.STATE, ["unknown", "resistive_capacitive", "unknown", "detecting"]).withDescription("Load type"),
             e.enum("load_dimmable", ea.STATE, ["unknown", "dimmable", "not_dimmable"]).withDescription("Load dimmable"),
             e.enum("power_supply_mode", ea.STATE, ["unknown", "no_neutral", "with_neutral"]).withDescription("Power supply mode"),
         ],
@@ -44,7 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB003-X",
         vendor: "Fantem",
         description: "4 in 1 multi sensor",
-        fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, legacy.fz.ZB003X, legacy.fz.ZB003X_attr, legacy.fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         whiteLabel: [tuya.whitelabel("EFK", "is-thpl-zb", "4 in 1 multi sensor", ["_TZ3210_0aqbrnts", "_TZ3210_oekbi7o4"])],
         exposes: [

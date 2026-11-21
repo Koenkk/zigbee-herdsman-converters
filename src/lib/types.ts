@@ -7,7 +7,7 @@ import type {
     TCustomClusterPayload,
     ZigbeeOtaImageMeta,
 } from "zigbee-herdsman/dist/controller/tstype";
-import type {Header as ZHZclHeader} from "zigbee-herdsman/dist/zspec/zcl";
+import type {Header as ZHZclHeader, PowerSource as ZHZclPowerSource} from "zigbee-herdsman/dist/zspec/zcl";
 import type {TClusterAttributeKeys, TClusterPayload, TPartialClusterAttributes} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import type {FrameControl} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import type * as exposes from "./exposes";
@@ -20,6 +20,8 @@ export interface Logger {
 }
 
 export type Range = [number, number];
+export type ValuesOf<T> = T[keyof T];
+export type PowerSource = keyof typeof ZHZclPowerSource;
 export interface KeyValue {
     [s: string]: unknown;
 }
@@ -57,7 +59,7 @@ export interface Fingerprint {
     hardwareVersion?: number;
     manufacturerName?: string;
     modelID?: string;
-    powerSource?: "Battery" | "Mains (single phase)";
+    powerSource?: PowerSource;
     softwareBuildID?: string;
     stackVersion?: number;
     zclVersion?: number;
@@ -68,7 +70,7 @@ export interface Fingerprint {
 }
 export type WhiteLabel =
     | {vendor?: string; model: string; description?: string; fingerprint: Fingerprint[]}
-    | {vendor: string; model: string; description?: string};
+    | {vendor?: string; model: string; description?: string; whiteLabelOf?: string};
 
 export interface MockProperty {
     property: string;
@@ -135,6 +137,8 @@ export interface DefinitionMeta {
      */
     timeout?: number;
     tuyaSendCommand?: "sendData" | "dataRequest";
+    /** Keep color temperature in mireds in tuya.tz.led_control instead of scaling it to 0-254. */
+    tuyaColorTempInMireds?: boolean;
     /**
      * Set cover state based on tilt
      */
@@ -187,7 +191,7 @@ export interface DefinitionMeta {
      *
      * @defaultValue false
      */
-    omitOptionalLevelParams?: boolean;
+    omitOptionalLevelAndColorParams?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};
@@ -196,7 +200,7 @@ export interface DefinitionMeta {
     /**
      * see `toZigbee.light_color`
      *
-     * @defaultValue true
+     * @defaultValue false
      */
     supportsEnhancedHue?: boolean | ((entity: Zh.Endpoint) => boolean);
     /**
@@ -220,7 +224,7 @@ export interface DefinitionMeta {
     /**
      * Override the Home Assistant discovery payload using a custom function.
      */
-    overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
+    overrideHaDiscoveryPayload?(payload: KeyValueAny, options?: KeyValueAny): void;
     /**
      * Never use a transition when transitioning to off (even when specified)
      */
@@ -229,6 +233,8 @@ export interface DefinitionMeta {
      * Manufacturer specific
      */
     sinopeAlternateBacklightAutoDim?: boolean;
+    /** Indicates if the device does not report `swBuildId`, and a custom one was saved instead */
+    hasCustomFirmwareId?: boolean;
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
@@ -307,7 +313,7 @@ type DefinitionFeatures = {
     exposes: DefinitionExposes;
 };
 
-export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & NonNullable<Pick<DefinitionConfig, "version">>;
+export type Definition = DefinitionMatcher & DefinitionBase & DefinitionConfig & DefinitionFeatures & Required<Pick<DefinitionConfig, "version">>;
 
 export type DefinitionWithExtend = DefinitionMatcher &
     DefinitionBase &
@@ -433,6 +439,7 @@ export namespace Tz {
         membersState?: {[s: string]: KeyValue};
         publish: Publish;
         converterOptions?: KeyValue;
+        deviceExposesChanged: () => void;
     }
     // biome-ignore lint/suspicious/noConfusingVoidType: ignored using `--suppress`
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
@@ -441,7 +448,7 @@ export namespace Tz {
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoints?: string[];
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult> | ConvertSetResult;
-        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
+        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<ConvertSetResult>;
     }
 }
 
@@ -469,7 +476,7 @@ export namespace Tuya {
             publish?: Publish,
             // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
             msg?: Fz.Message<any>,
-        ) => number | string | boolean | KeyValue | KeyValue[] | null;
+        ) => number | string | string[] | boolean | KeyValue | KeyValue[] | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;

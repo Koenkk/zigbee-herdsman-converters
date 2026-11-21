@@ -67,25 +67,27 @@ export interface HeimanSpecificInfraRedRemoteCluster {
 
 export function addCustomClusterHeimanSpecificAirQuality(): ModernExtend {
     return m.deviceAddCustomCluster("heimanSpecificAirQuality", {
+        name: "heimanSpecificAirQuality",
         ...manufacturerOptions,
         // from HS2AQ-3.0海曼智能空气质量检测仪API文档-V01
         ID: 0xfc81,
         attributes: {
-            language: {ID: 0xf000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-            unitOfMeasure: {ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            language: {name: "language", ID: 0xf000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            unitOfMeasure: {name: "unitOfMeasure", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
             // (0 is not charged, 1 is charging, 2 is fully charged)
-            batteryState: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-            pm10measuredValue: {ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-            tvocMeasuredValue: {ID: 0xf004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-            aqiMeasuredValue: {ID: 0xf005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-            temperatureMeasuredMax: {ID: 0xf006, type: Zcl.DataType.INT16, write: true, min: -32768},
-            temperatureMeasuredMin: {ID: 0xf007, type: Zcl.DataType.INT16, write: true, min: -32768},
-            humidityMeasuredMax: {ID: 0xf008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-            humidityMeasuredMin: {ID: 0xf009, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-            alarmEnable: {ID: 0xf00a, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            batteryState: {name: "batteryState", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            pm10measuredValue: {name: "pm10measuredValue", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            tvocMeasuredValue: {name: "tvocMeasuredValue", ID: 0xf004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            aqiMeasuredValue: {name: "aqiMeasuredValue", ID: 0xf005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            temperatureMeasuredMax: {name: "temperatureMeasuredMax", ID: 0xf006, type: Zcl.DataType.INT16, write: true, min: -32768},
+            temperatureMeasuredMin: {name: "temperatureMeasuredMin", ID: 0xf007, type: Zcl.DataType.INT16, write: true, min: -32768},
+            humidityMeasuredMax: {name: "humidityMeasuredMax", ID: 0xf008, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            humidityMeasuredMin: {name: "humidityMeasuredMin", ID: 0xf009, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            alarmEnable: {name: "alarmEnable", ID: 0xf00a, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
         },
         commands: {
             setLanguage: {
+                name: "setLanguage",
                 ID: 0x011b,
                 parameters: [
                     // (1: English 0: Chinese)
@@ -93,6 +95,7 @@ export function addCustomClusterHeimanSpecificAirQuality(): ModernExtend {
                 ],
             },
             setUnitOfTemperature: {
+                name: "setUnitOfTemperature",
                 ID: 0x011c,
                 parameters: [
                     // (0: ℉ 1: ℃)
@@ -100,6 +103,7 @@ export function addCustomClusterHeimanSpecificAirQuality(): ModernExtend {
                 ],
             },
             getTime: {
+                name: "getTime",
                 ID: 0x011d,
                 parameters: [],
             },
@@ -110,11 +114,12 @@ export function addCustomClusterHeimanSpecificAirQuality(): ModernExtend {
 
 export function addCustomClusterHeimanSpecificAirQualityShort(): ModernExtend {
     return m.deviceAddCustomCluster("heimanSpecificAirQuality", {
+        name: "heimanSpecificAirQuality",
         ID: 0xfc81,
         attributes: {
-            batteryState: {ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-            pm10measuredValue: {ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-            aqiMeasuredValue: {ID: 0xf005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            batteryState: {name: "batteryState", ID: 0xf002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+            pm10measuredValue: {name: "pm10measuredValue", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            aqiMeasuredValue: {name: "aqiMeasuredValue", ID: 0xf005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
         },
         commands: {},
         commandsResponse: {},
@@ -123,6 +128,7 @@ export function addCustomClusterHeimanSpecificAirQualityShort(): ModernExtend {
 
 export function addCustomClusterHeimanSpecificScenes(): ModernExtend {
     return m.deviceAddCustomCluster("heimanSpecificScenes", {
+        name: "heimanSpecificScenes",
         ...manufacturerOptions,
         // from HS2SS-3.0海曼智能情景开关API文档-V01
         ID: 0xfc80,
@@ -130,22 +136,27 @@ export function addCustomClusterHeimanSpecificScenes(): ModernExtend {
         attributes: {},
         commands: {
             cinema: {
+                name: "cinema",
                 ID: 0xf0,
                 parameters: [],
             },
             atHome: {
+                name: "atHome",
                 ID: 0xf1,
                 parameters: [],
             },
             sleep: {
+                name: "sleep",
                 ID: 0xf2,
                 parameters: [],
             },
             goOut: {
+                name: "goOut",
                 ID: 0xf3,
                 parameters: [],
             },
             repast: {
+                name: "repast",
                 ID: 0xf4,
                 parameters: [],
             },
@@ -156,6 +167,7 @@ export function addCustomClusterHeimanSpecificScenes(): ModernExtend {
 
 export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
     return m.deviceAddCustomCluster("heimanSpecificInfraRedRemote", {
+        name: "heimanSpecificInfraRedRemote",
         ...manufacturerOptions,
         // from HS2IRC-3.0海曼智能红外转发控制器API-V01文档
         ID: 0xfc82,
@@ -163,6 +175,7 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
         attributes: {},
         commands: {
             sendKey: {
+                name: "sendKey",
                 ID: 0xf0,
                 parameters: [
                     {name: "id", type: Zcl.DataType.UINT8, max: 0xff},
@@ -171,6 +184,7 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
             },
             studyKey: {
                 // Total we can have 30 keycode for each device ID (1..30).
+                name: "studyKey",
                 ID: 0xf1,
                 // response: 0xf2,
                 parameters: [
@@ -179,6 +193,7 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
                 ],
             },
             deleteKey: {
+                name: "deleteKey",
                 ID: 0xf3,
                 parameters: [
                     // 1-15 - Delete specific ID, >= 16 - Delete All
@@ -189,11 +204,13 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
             },
             createId: {
                 // Total we can have 15 device IDs (1..15).
+                name: "createId",
                 ID: 0xf4,
                 // response: 0xf5,
                 parameters: [{name: "modelType", type: Zcl.DataType.UINT8, max: 0xff}],
             },
             getIdAndKeyCodeList: {
+                name: "getIdAndKeyCodeList",
                 ID: 0xf6,
                 // response: 0xf7,
                 parameters: [],
@@ -201,6 +218,7 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
         },
         commandsResponse: {
             studyKeyRsp: {
+                name: "studyKeyRsp",
                 ID: 0xf2,
                 parameters: [
                     {name: "id", type: Zcl.DataType.UINT8, max: 0xff},
@@ -209,6 +227,7 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
                 ],
             },
             createIdRsp: {
+                name: "createIdRsp",
                 ID: 0xf5,
                 parameters: [
                     {name: "id", type: Zcl.DataType.UINT8, max: 0xff}, // 0xFF - create failed
@@ -216,6 +235,7 @@ export function addCustomClusterHeimanSpecificInfraRedRemote(): ModernExtend {
                 ],
             },
             getIdAndKeyCodeListRsp: {
+                name: "getIdAndKeyCodeListRsp",
                 ID: 0xf7,
                 parameters: [
                     {name: "packetsTotal", type: Zcl.DataType.UINT8, max: 0xff},

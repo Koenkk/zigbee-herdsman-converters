@@ -2,7 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -21,6 +21,15 @@ const fzLocal = {
             return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
     } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
+    konke_action: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data.onOff;
+            const lookup: KeyValueAny = {128: "single", 129: "double", 130: "hold"};
+            return lookup[value] ? {action: lookup[value]} : null;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -29,7 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "2AJZ4KPKEY",
         vendor: "Konke",
         description: "Multi-function button",
-        fromZigbee: [fz.konke_action, fz.battery],
+        fromZigbee: [fzLocal.konke_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.action(["single", "double", "hold"])],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
@@ -126,12 +135,26 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy(), e.battery_voltage(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ["3AFE21100402102A", "3AFE22010402102A", "3AFE12010402102A"],
+        zigbeeModel: ["3AFE21100402102A", "3AFE22010402102A"],
         model: "KK-WA-J01W",
         vendor: "Konke",
         description: "Water detector",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
+    },
+    {
+        zigbeeModel: ["3AFE12010402102A"],
+        model: "KK-WA-J01W-2020",
+        vendor: "Konke",
+        description: "Water detector (2020 firmware)",
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {
+            battery: {
+                voltageToPercentage: {min: 2500, max: 3300},
+            },
+        },
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {

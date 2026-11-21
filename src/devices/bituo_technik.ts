@@ -47,6 +47,36 @@ const bituo_fz = {
             return result;
         },
     } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    // Unlike the standard converter function, so add a custom converter
+    phase_energy: {
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            const multiplier = msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number;
+            const divisor = msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number;
+            const factor = multiplier && divisor ? multiplier / divisor : null;
+            if (msg.data.currentTier1SummDelivered !== undefined) {
+                result[utils.postfixWithEndpointName("energy_phase_a", msg, model, meta)] = msg.data.currentTier1SummDelivered * factor;
+            }
+            if (msg.data.currentTier1SummReceived !== undefined) {
+                result[utils.postfixWithEndpointName("produced_energy_phase_a", msg, model, meta)] = msg.data.currentTier1SummReceived * factor;
+            }
+            if (msg.data.currentTier2SummDelivered !== undefined) {
+                result[utils.postfixWithEndpointName("energy_phase_b", msg, model, meta)] = msg.data.currentTier2SummDelivered * factor;
+            }
+            if (msg.data.currentTier2SummReceived !== undefined) {
+                result[utils.postfixWithEndpointName("produced_energy_phase_b", msg, model, meta)] = msg.data.currentTier2SummReceived * factor;
+            }
+            if (msg.data.currentTier3SummDelivered !== undefined) {
+                result[utils.postfixWithEndpointName("energy_phase_c", msg, model, meta)] = msg.data.currentTier3SummDelivered * factor;
+            }
+            if (msg.data.currentTier3SummReceived !== undefined) {
+                result[utils.postfixWithEndpointName("produced_energy_phase_c", msg, model, meta)] = msg.data.currentTier3SummReceived * factor;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 };
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -57,7 +87,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -76,14 +106,14 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Zemismart", model: "SPM01-1Z2", fingerprint: [{modelID: "SPM01-1Z2"}]}],
     },
     {
-        zigbeeModel: ["SDM01W", "SDM01-3Z1"],
+        zigbeeModel: ["SDM01W", "SDM01-3Z1", "SDM01G2W"],
         model: "SDM01W-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [bituo_fz.total_power],
+        fromZigbee: [bituo_fz.total_power, bituo_fz.phase_energy],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -112,8 +142,17 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("total_power", ea.STATE).withUnit("W").withDescription("Total Active Power"),
             e.numeric("total_power_reactive", ea.STATE).withUnit("VAR").withDescription("Total Reactive Power"),
             e.numeric("total_power_apparent", ea.STATE).withUnit("VA").withDescription("Total Apparent Power"),
+            e.numeric("energy_phase_a", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase A"),
+            e.numeric("produced_energy_phase_a", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase A"),
+            e.numeric("energy_phase_b", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase B"),
+            e.numeric("produced_energy_phase_b", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase B"),
+            e.numeric("energy_phase_c", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase C"),
+            e.numeric("produced_energy_phase_c", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase C"),
         ],
-        whiteLabel: [{vendor: "Zemismart", model: "SDM01-3Z1", fingerprint: [{modelID: "SDM01-3Z1"}]}],
+        whiteLabel: [
+            {vendor: "Zemismart", model: "SDM01-3Z1", fingerprint: [{modelID: "SDM01-3Z1"}]},
+            {vendor: "BITUO TECHNIK", model: "SDM01G2W-U01", fingerprint: [{modelID: "SDM01G2W"}]},
+        ],
     },
     {
         zigbeeModel: ["SDM01B"],
@@ -122,7 +161,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart energy monitor for 1P+N system",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -145,10 +184,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDM02-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 2P+N system",
-        fromZigbee: [bituo_fz.total_power],
+        fromZigbee: [bituo_fz.total_power, bituo_fz.phase_energy],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -171,6 +210,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.current_phase_b(),
             e.voltage_phase_b(),
             e.power_factor_phase_b(),
+            e.numeric("energy_phase_a", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase A"),
+            e.numeric("produced_energy_phase_a", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase A"),
+            e.numeric("energy_phase_b", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase B"),
+            e.numeric("produced_energy_phase_b", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase B"),
             e.numeric("total_power", ea.STATE).withUnit("W").withDescription("Total Active Power"),
             e.numeric("total_power_reactive", ea.STATE).withUnit("VAR").withDescription("Total Reactive Power"),
             e.numeric("total_power_apparent", ea.STATE).withUnit("VA").withDescription("Total Apparent Power"),
@@ -182,10 +225,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM02-U01",
         vendor: "BITUO TECHNIK",
         description: "Smart energy monitor for 3P+N system",
-        fromZigbee: [bituo_fz.total_power],
+        fromZigbee: [bituo_fz.total_power, bituo_fz.phase_energy],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -213,6 +256,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("total_power", ea.STATE).withUnit("W").withDescription("Total Active Power"),
             e.numeric("total_power_reactive", ea.STATE).withUnit("VAR").withDescription("Total Reactive Power"),
             e.numeric("total_power_apparent", ea.STATE).withUnit("VA").withDescription("Total Apparent Power"),
+            e.numeric("energy_phase_a", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase A"),
+            e.numeric("produced_energy_phase_a", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase A"),
+            e.numeric("energy_phase_b", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase B"),
+            e.numeric("produced_energy_phase_b", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase B"),
+            e.numeric("energy_phase_c", ea.STATE_GET).withUnit("kWh").withDescription("Energy phase C"),
+            e.numeric("produced_energy_phase_c", ea.STATE_GET).withUnit("kWh").withDescription("Produced energy phase C"),
         ],
         whiteLabel: [{vendor: "Zemismart", model: "SPM02-3Z3", fingerprint: [{modelID: "SPM02-3Z3"}]}],
     },
@@ -223,7 +272,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart energy monitor for 1P+N system",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -247,7 +296,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [bituo_fz.total_power],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -282,7 +331,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [bituo_fz.total_power],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -317,7 +366,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart energy monitor for 1P+N system",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -343,7 +392,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [bituo_fz.total_power],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
@@ -380,7 +429,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [bituo_fz.total_power],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(10);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
         },
