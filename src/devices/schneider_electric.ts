@@ -2196,81 +2196,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
 };
-const eko07259PhysicalTemperatures = (): ModernExtend => {
-    const converter = {
-        cluster: "msTemperatureMeasurement",
-        type: ["attributeReport", "readResponse"],
-        convert: (_model, msg) => {
-            if (!Object.hasOwn(msg.data, "measuredValue")) {
-                return {};
-            }
 
-            const rawValue = Number(msg.data.measuredValue);
-
-            if (!Number.isFinite(rawValue) || rawValue === -32768) {
-                return {};
-            }
-
-            const temperature = rawValue / 100;
-
-            if (msg.endpoint.ID === 2) {
-                return {
-                    temperature_ambient: temperature,
-                };
-            }
-
-            if (msg.endpoint.ID === 3) {
-                return {
-                    temperature_floor: temperature,
-                };
-            }
-
-            return {};
-        },
-    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>;
-
-    return {
-        isModernExtend: true,
-        exposes: [
-            e
-                .numeric("temperature_ambient", ea.STATE)
-                .withLabel("Air temperature")
-                .withUnit("°C")
-                .withDescription("Ambient air temperature measured on endpoint 2.")
-                .withHomeAssistant({
-                    name: "Air temperature",
-                    deviceClass: "temperature",
-                }),
-            e
-                .numeric("temperature_floor", ea.STATE)
-                .withLabel("Floor temperature")
-                .withUnit("°C")
-                .withDescription("External floor temperature measured on endpoint 3.")
-                .withHomeAssistant({
-                    name: "Floor temperature",
-                    deviceClass: "temperature",
-                }),
-        ],
-        fromZigbee: [converter],
-        configure: [
-            async (device) => {
-                for (const endpointID of [2, 3]) {
-                    const endpoint = device.getEndpoint(endpointID);
-
-                    if (!endpoint) {
-                        continue;
-                    }
-
-                    try {
-                        await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
-                    } catch {
-                        // The sensor may be unavailable depending on the thermostat configuration.
-                    }
-                }
-            },
-        ],
-    };
-};
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["W564100"],
@@ -3959,9 +3885,9 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.customTemperatureMeasurementCluster(),
             m.deviceEndpoints({
-                endpoints: {floor: 3},
+                endpoints: {ambient: 2, floor: 3},
             }),
-            eko07259PhysicalTemperatures(),
+            m.temperature({endpointNames: ["ambient", "floor"], reporting: false}),
             schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
             }),
