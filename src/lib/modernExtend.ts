@@ -1286,6 +1286,7 @@ export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): Modern
 export interface LightArgs {
     effect?: boolean;
     powerOnBehavior?: boolean;
+    brightness?: boolean;
     colorTemp?: {startup?: boolean; range: Range};
     color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean; moveToLevelWithOnOffDisable?: boolean};
     turnsOffAtBrightness1?: boolean;
@@ -1303,6 +1304,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         powerOnBehavior = true,
         configureReporting = false,
         ota = false,
+        brightness = true,
         color = undefined,
         levelConfig = undefined,
         turnsOffAtBrightness1 = false,
@@ -1324,20 +1326,29 @@ export function light(args: LightArgs = {}): ModernExtend {
           }
         : false;
 
-    const baseLightExpose = e.light().withBrightness();
+    const baseLightExpose = e.light();
+    if (brightness) baseLightExpose.withBrightness();
     if (homeassistant) baseLightExpose.withHomeAssistant(homeassistant);
     const lightExpose = exposeEndpoints(baseLightExpose, endpointNames);
 
     const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
-        [fz.on_off, fz.brightness, fz.level_config];
+        [fz.on_off];
+    if (brightness) {
+        fromZigbee.push(fz.brightness, fz.level_config);
+    }
     const toZigbee: Tz.Converter[] = [
-        endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
+        brightness
+            ? endpointNames
+                ? {...tz.light_onoff_brightness, endpoints: endpointNames}
+                : tz.light_onoff_brightness
+            : endpointNames
+              ? {...tz.on_off, endpoints: endpointNames}
+              : tz.on_off,
         tz.ignore_transition,
-        tz.level_config,
-        tz.ignore_rate,
-        tz.light_brightness_move,
-        tz.light_brightness_step,
     ];
+    if (brightness) {
+        toZigbee.push(tz.level_config, tz.ignore_rate, tz.light_brightness_move, tz.light_brightness_step);
+    }
     const meta: DefinitionMeta = {};
 
     if (colorTemp || argsColor) {
@@ -1415,9 +1426,11 @@ export function light(args: LightArgs = {}): ModernExtend {
 
             if (configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
-                await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(levelReportingConfig || {})},
-                ]);
+                if (brightness) {
+                    await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
+                        {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(levelReportingConfig || {})},
+                    ]);
+                }
                 if (colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [
                         {attribute: "colorTemperature", min: "10_SECONDS", max: "MAX", change: 1},
