@@ -2118,6 +2118,9 @@ export interface AqaraFp400Config {
         installationHeightMax: number;
         installationStatus: number;
         installationAngle: number;
+        entryExitRegion: Buffer;
+        interferenceRegion: Buffer;
+        monitoringRegion: Buffer;
         humanCountEnabled: number;
         aiHighPrecision: number;
         aiAdaptiveSensitivity: number;
@@ -2127,7 +2130,7 @@ export interface AqaraFp400Config {
         detectionDirection: number;
         proximityDistance: number;
     };
-    commands: never;
+    commands: {startLearning: Record<string, never>};
     commandResponses: never;
 }
 export interface AqaraFp400Radar {
@@ -2161,6 +2164,9 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             installationHeightMax: {name: "installationHeightMax", ID: 0x0006, type: Zcl.DataType.UINT16},
             installationStatus: {name: "installationStatus", ID: 0x0007, type: Zcl.DataType.ENUM8},
             installationAngle: {name: "installationAngle", ID: 0x0008, type: Zcl.DataType.UINT8},
+            entryExitRegion: {name: "entryExitRegion", ID: 0x0012, type: Zcl.DataType.OCTET_STR, write: true},
+            interferenceRegion: {name: "interferenceRegion", ID: 0x0013, type: Zcl.DataType.OCTET_STR, write: true},
+            monitoringRegion: {name: "monitoringRegion", ID: 0x0014, type: Zcl.DataType.OCTET_STR, write: true},
             humanCountEnabled: {name: "humanCountEnabled", ID: 0x0023, type: Zcl.DataType.BOOLEAN, write: true},
             aiHighPrecision: {name: "aiHighPrecision", ID: 0x0029, type: Zcl.DataType.BOOLEAN, write: true},
             aiAdaptiveSensitivity: {name: "aiAdaptiveSensitivity", ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
@@ -2170,7 +2176,7 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             detectionDirection: {name: "detectionDirection", ID: 0x002e, type: Zcl.DataType.ENUM8, write: true, max: 1},
             proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
         },
-        commands: {},
+        commands: {startLearning: {name: "startLearning", ID: 0x03, parameters: []}},
         commandsResponse: {},
     },
     aqaraFp400Radar: {
@@ -2709,6 +2715,89 @@ function fp400Room(): ModernExtend[] {
     ];
 }
 
+/**
+ * The entry/exit, interference and monitoring areas, as 80 hexadecimal characters: 20 rows (0 nearest the sensor) of 16
+ * columns of 50 cm cells, one bit per cell, most significant bit first. The monitoring mask marks the cells left out.
+ */
+function fp400Areas(): ModernExtend[] {
+    const regions = [
+        {
+            name: "entry_exit_mask_hex",
+            attribute: "entryExitRegion",
+            description: "Entrances and exits: targets are picked up and dropped faster here",
+        },
+        {
+            name: "interference_mask_hex",
+            attribute: "interferenceRegion",
+            description: "Interference sources (a fan, a curtain): movement here is ignored",
+        },
+        {name: "edge_mask_hex", attribute: "monitoringRegion", description: "Cells outside the monitored area: everything here is ignored"},
+    ] as const;
+    return [
+        ...regions.map(
+            ({name, attribute, description}): ModernExtend => ({
+                isModernExtend: true,
+                exposes: [
+                    e.text(name, ea.ALL).withCategory("config").withDescription(`${description} (80 hexadecimal characters, one bit per cell)`),
+                ],
+                fromZigbee: [
+                    {
+                        cluster: "aqaraFp400Config",
+                        type: ["attributeReport", "readResponse"],
+                        convert: (model, msg, publish, options, meta) => {
+                            const value = msg.data[attribute];
+                            if (msg.endpoint.ID === 1 && Buffer.isBuffer(value)) return {[name]: value.toString("hex").padEnd(80, "0")};
+                        },
+                    } satisfies Fz.Converter<"aqaraFp400Config", AqaraFp400Config, ["attributeReport", "readResponse"]>,
+                ],
+                toZigbee: [
+                    {
+                        key: [name],
+                        convertSet: async (entity, key, value, meta) => {
+                            if (typeof value !== "string" || !/^[0-9a-fA-F]{80}$/.test(value))
+                                throw new Error(`${key} must be 80 hexadecimal characters`);
+                            const payload: Partial<AqaraFp400Config["attributes"]> = {[attribute]: Buffer.from(value, "hex")};
+                            await meta.device
+                                .getEndpoint(1)
+                                .write<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", payload, {manufacturerCode});
+                            return {state: {[key]: value.toLowerCase()}};
+                        },
+                        convertGet: async (entity, key, meta) => {
+                            await meta.device
+                                .getEndpoint(1)
+                                .read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", [attribute], {manufacturerCode});
+                        },
+                    },
+                ],
+            }),
+        ),
+        {
+            isModernExtend: true,
+            exposes: [
+                e
+                    .enum("spatial_learning", ea.SET, ["start"])
+                    .withCategory("config")
+                    .withDescription("Have the sensor learn the empty room; keep everyone out"),
+            ],
+            toZigbee: [
+                {
+                    key: ["spatial_learning"],
+                    convertSet: async (entity, key, value, meta) => {
+                        await meta.device
+                            .getEndpoint(1)
+                            .command<"aqaraFp400Config", "startLearning", AqaraFp400Config>(
+                                "aqaraFp400Config",
+                                "startLearning",
+                                {},
+                                {manufacturerCode},
+                            );
+                    },
+                },
+            ],
+        },
+    ];
+}
+
 export const fp400 = {
     clusters: fp400Clusters,
     parseFrame: fp400ParseFrame,
@@ -2742,6 +2831,7 @@ export const lumiModernExtend = {
     },
     fp400Settings,
     fp400Room,
+    fp400Areas,
     lumiLight: (
         args?: Omit<modernExtend.LightArgs, "colorTemp"> & {
             colorTemp?: true;

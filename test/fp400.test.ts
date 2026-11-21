@@ -272,6 +272,10 @@ describe("FP400 definition", () => {
                     "targets",
                     "installation_height_min",
                     "installation_height_max",
+                    "entry_exit_mask_hex",
+                    "interference_mask_hex",
+                    "edge_mask_hex",
+                    "spatial_learning",
                     ...SETTINGS,
                 ]),
             );
