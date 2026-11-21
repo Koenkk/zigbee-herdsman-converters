@@ -5277,7 +5277,15 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "QS-zigbee-S08-16A-RF", "Wall switch module", ["_TZ3000_dlhhrhs8"]),
         ],
         description: "Wall switch module",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                onOffCountdown: true,
+                inchingSwitch: (m, modelID) => m === "_TZ3000_skueekg3" && modelID === "TS0001",
+            }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
