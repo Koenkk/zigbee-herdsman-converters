@@ -1430,3 +1430,45 @@ describe("SJCGQ12LM IAS enrollment", () => {
         await expect(definition.configure?.(device, coordinatorEndpoint, definition)).rejects.toThrow("IAS enrollment failed");
     });
 });
+
+describe("ZNXNKG01LM configure without genAnalogInput", () => {
+    it("configures without throwing when no endpoint advertises genAnalogInput and still decodes power reports", async () => {
+        const device = mockDevice(
+            {
+                modelID: "lumi.switch.rkna01",
+                manufacturerName: "LUMI",
+                endpoints: [
+                    {ID: 1, inputClusters: ["genBasic", "genIdentify", "genGroups", "genScenes", "genOnOff"]},
+                    {ID: 2, inputClusters: ["genOnOff"]},
+                    {ID: 3, inputClusters: ["genOnOff"]},
+                ],
+            },
+            "Router",
+        );
+        const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toBe("ZNXNKG01LM");
+        await expect(definition.configure?.(device, coordinatorEndpoint, definition)).resolves.toBeUndefined();
+
+        const powerConverter = definition.fromZigbee.find((converter) => converter.cluster === "genAnalogInput");
+        expect(powerConverter).toBeDefined();
+        const result = await powerConverter?.convert(
+            definition,
+            {
+                cluster: "genAnalogInput",
+                type: "attributeReport",
+                device,
+                endpoint: device.getEndpoint(1),
+                data: {presentValue: 52.04},
+                linkquality: 100,
+                groupID: 0,
+                meta: {},
+            },
+            () => {},
+            {},
+            {state: {}, device, logger: console, deviceExposesChanged: () => {}},
+        );
+        expect(result).toStrictEqual({power: 52.04});
+    });
+});
