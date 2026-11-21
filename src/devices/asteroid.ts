@@ -85,7 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.numeric("temperature", ea.STATE).withProperty("temperature_temperature").withUnit("°C").withDescription("Measured temperature value"),
             e
-                .binary("sensor_status", ea.STATE_GET, "OK", "ERROR")
+                .binary("sensor_status", ea.STATE, "OK", "ERROR")
                 .withProperty("sensor_status_sensor")
                 .withDescription("DS18B20 connection status")
                 .withCategory("diagnostic"),
