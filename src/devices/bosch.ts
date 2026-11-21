@@ -1119,6 +1119,8 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
                 attributes: {
                     switchType: {name: "switchType", ID: 0x0001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    autoOffEnabled: {name: "autoOffEnabled", ID: 0x0006, type: Zcl.DataType.BOOLEAN, write: true},
+                    autoOffTime: {name: "autoOffTime", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     childLock: {name: "childLock", ID: 0x0008, type: Zcl.DataType.BOOLEAN, write: true},
                     pulseLength: {name: "pulseLength", ID: 0x0024, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     switchMode: {name: "switchMode", ID: 0x0031, type: Zcl.DataType.BOOLEAN, write: true},
