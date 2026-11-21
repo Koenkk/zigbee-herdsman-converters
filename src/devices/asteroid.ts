@@ -42,7 +42,12 @@ const offsetToZigbee = {
     convertSet: async (_entity, _key, value, meta) => {
         const v = Number(value);
         if (
-            value === null || value === undefined || value === "" || !Number.isFinite(v) || v < -10 || v > 10 ||
+            value === null ||
+            value === undefined ||
+            value === "" ||
+            !Number.isFinite(v) ||
+            v < -10 ||
+            v > 10 ||
             Math.abs(v * 10 - Math.round(v * 10)) > 0.0001
         ) {
             throw new Error("Temperature Offset must be -10..10 °C in 0.1 °C steps");
@@ -78,20 +83,22 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [temperatureFromZigbee, statusFromZigbee, offsetFromZigbee],
         toZigbee: [offsetToZigbee, resetPairing],
         exposes: [
-            e.numeric("temperature", ea.STATE)
-                .withProperty("temperature_temperature")
-                .withUnit("°C")
-                .withDescription("Measured temperature value"),
-            e.binary("sensor_status", ea.STATE_GET, "OK", "ERROR")
+            e.numeric("temperature", ea.STATE).withProperty("temperature_temperature").withUnit("°C").withDescription("Measured temperature value"),
+            e
+                .binary("sensor_status", ea.STATE_GET, "OK", "ERROR")
                 .withProperty("sensor_status_sensor")
                 .withDescription("DS18B20 connection status")
                 .withCategory("diagnostic"),
-            e.numeric("temperature_offset", ea.ALL)
-                .withValueMin(-10).withValueMax(10).withValueStep(0.1)
+            e
+                .numeric("temperature_offset", ea.ALL)
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Temperature correction stored in ESP32-H2")
                 .withCategory("config"),
-            e.enum("reset_pairing", ea.SET, ["RESET"])
+            e
+                .enum("reset_pairing", ea.SET, ["RESET"])
                 .withDescription("Factory reset Zigbee pairing (device leaves current network)")
                 .withCategory("config"),
         ],
