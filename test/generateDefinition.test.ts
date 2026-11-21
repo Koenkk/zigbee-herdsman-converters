@@ -17,6 +17,22 @@ const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalD
 };
 
 describe("GenerateDefinition", () => {
+    const generateBatterySource = (attributes?: {attrId: number; access?: number}[], discoveryFails = false) => {
+        const device = mockDevice({modelID: "battery", endpoints: [{inputClusters: ["genPowerCfg"], outputClusters: []}]});
+        const endpoint = device.getEndpoint(1);
+        expect(endpoint).toBeDefined();
+        vi.spyOn(endpoint, "discoverAttributes").mockImplementation(() => {
+            if (discoveryFails) {
+                return Promise.reject(new Error("discovery failed"));
+            }
+
+            endpoint.saveClusterAttributeDiscovery("genPowerCfg", attributes ?? [], true);
+            return Promise.resolve();
+        });
+
+        return generateExternalDefinitionSource(device);
+    };
+
     test("empty", async () => {
         await assertGeneratedDefinition({
             device: mockDevice({modelID: "empty", endpoints: [{inputClusters: [], outputClusters: []}]}),
@@ -29,6 +45,49 @@ describe("GenerateDefinition", () => {
             write: {},
             configureReporting: {},
         });
+    });
+
+    test("input(genPowerCfg) enables reporting for reportable battery attributes", async () => {
+        const source = await generateBatterySource([
+            {attrId: 0x0021, access: 0x04},
+            {attrId: 0x0020, access: 0x04},
+        ]);
+
+        expect(source).toContain('m.battery({"percentage":true,"percentageReporting":true,"voltage":true,"voltageReporting":true})');
+    });
+
+    test("input(genPowerCfg) disables reporting for non-reportable battery attributes", async () => {
+        const source = await generateBatterySource([
+            {attrId: 0x0021, access: 0x00},
+            {attrId: 0x0020, access: 0x00},
+        ]);
+
+        expect(source).toContain('m.battery({"percentage":true,"percentageReporting":false,"voltage":true,"voltageReporting":false})');
+    });
+
+    test("input(genPowerCfg) supports voltage without percentage", async () => {
+        const source = await generateBatterySource([{attrId: 0x0020, access: 0x04}]);
+
+        expect(source).toContain('m.battery({"percentage":false,"percentageReporting":false,"voltage":true,"voltageReporting":true})');
+    });
+
+    test("input(genPowerCfg) keeps percentage reporting enabled when access metadata is unknown", async () => {
+        const source = await generateBatterySource([{attrId: 0x0021}]);
+
+        expect(source).toContain('m.battery({"percentage":true,"percentageReporting":true,"voltage":false,"voltageReporting":false})');
+    });
+
+    test("input(genPowerCfg) without battery attributes generates no battery extend", async () => {
+        const source = await generateBatterySource([]);
+
+        expect(source).toContain("extend: [],");
+        expect(source).not.toContain("m.battery(");
+    });
+
+    test("input(genPowerCfg) keeps battery defaults when attribute discovery fails", async () => {
+        const source = await generateBatterySource(undefined, true);
+
+        expect(source).toContain("m.battery()");
     });
 
     test("input(msTemperatureMeasurement),output(genIdentify)", async () => {
