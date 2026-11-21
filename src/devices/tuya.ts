@@ -7379,9 +7379,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_inpjmc0h", "_TZE210_yqwse3h5"]),
+        fingerprint: [...tuya.fingerprint("TS0301", ["_TZE210_inpjmc0h", "_TZE210_yqwse3h5"]), ...tuya.fingerprint("YKV24SAED", ["Yooksmart"])],
         model: "TS0301_dual_rail",
         vendor: "Tuya",
+        whiteLabel: [{vendor: "Yooksmart", model: "YKV24SAED", fingerprint: tuya.fingerprint("YKV24SAED", ["Yooksmart"])}],
         description: "Top-down bottom-up dual motor shade",
         extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
         exposes: [
@@ -7392,14 +7393,25 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 // Bottom rail - DP109 is control, DP101 is set position, DP102 is current position
-                [109, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1), STOP: tuya.enum(2)})],
-                [101, "position_bottom", tuya.valueConverter.coverPositionInverted],
-                [102, "position_bottom", tuya.valueConverter.coverPositionInverted],
+                // Control and set position DPs are write-only, only the current position DPs publish state
+                [
+                    109,
+                    "state_bottom",
+                    {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1), STOP: tuya.enum(2)}).to},
+                    {optimistic: false},
+                ],
+                [101, "position_bottom", {to: tuya.valueConverter.coverPositionInverted.to}, {optimistic: false}],
+                [102, null, {from: (v: number) => ({position_bottom: 100 - v, state_bottom: v === 100 ? "CLOSE" : "OPEN"})}],
                 // Top rail - DP1 is control, DP2 is set position, DP3 is current position
                 // Note: State commands are reversed for Home Assistant compatibility with top-down operation
-                [1, "state_top", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(1), CLOSE: tuya.enum(0), STOP: tuya.enum(2)})],
-                [2, "position_top", tuya.valueConverter.coverPosition],
-                [3, "position_top", tuya.valueConverter.coverPosition],
+                [
+                    1,
+                    "state_top",
+                    {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(1), CLOSE: tuya.enum(0), STOP: tuya.enum(2)}).to},
+                    {optimistic: false},
+                ],
+                [2, "position_top", {to: tuya.valueConverter.coverPosition.to}, {optimistic: false}],
+                [3, null, {from: (v: number) => ({position_top: v, state_top: v === 0 ? "CLOSE" : "OPEN"})}],
                 // Battery
                 [13, "battery", tuya.valueConverter.raw],
             ],
