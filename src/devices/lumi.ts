@@ -6836,13 +6836,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FP400",
         vendor: "Aqara",
         description: "Presence multi-sensor FP400",
-        // A new patch version has Zigbee2MQTT configure sensors paired under an older one again (0.0.2: the sensor's
-        // reporting table is shared with its own zones).
-        version: "0.0.2",
+        // A new patch version has Zigbee2MQTT configure sensors paired under an older one again.
+        version: "0.0.1",
         extend: [
             // Its own clusters 0xFC0A-0xFC0C and 0x0080 (see lib/lumi.ts).
             lumi.lumiModernExtend.fp400AddClusters(),
-            // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones (the native_zones option).
+            // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones.
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
             m.occupancy({endpointNames: ["1"]}),
             m.illuminance({endpointNames: ["2"], reporting: false}),
