@@ -1019,7 +1019,7 @@ export const boschBmctExtend = {
 
                 if (pulseModeActive) {
                     supportedSwitchTypes = Object.keys(switchTypeLookup).filter(
-                        (switchType) => switchType !== utils.getFromLookup("rocker_switch", switchTypeLookup),
+                        (switchType) => utils.getFromLookup(switchType, switchTypeLookup) !== utils.getFromLookup("rocker_switch", switchTypeLookup),
                     );
                 }
             }
