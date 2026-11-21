@@ -5123,7 +5123,7 @@ const tuyaModernExtend = {
             childLock?: boolean | ((manufacturerName: string) => boolean);
             switchMode?: boolean;
             onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
-            inchingSwitch?: boolean | ((manufacturerName: string) => boolean);
+            inchingSwitch?: boolean | ((manufacturerName: string, modelID?: string) => boolean);
         } = {},
     ): ModernExtend => {
         const {
@@ -5329,7 +5329,9 @@ const tuyaModernExtend = {
             fromZigbee.push(tuyaFz.inchingSwitch);
             toZigbee.push(tuyaTz.inchingSwitch);
             if (typeof inchingSwitch === "function") {
-                exposes.push((d) => (inchingSwitch(d.manufacturerName) ? [tuyaExposes.inchingSwitch(quantity)] : []));
+                exposes.push((d) =>
+                    inchingSwitch(d.manufacturerName, utils.isDummyDevice(d) ? undefined : d.modelID) ? [tuyaExposes.inchingSwitch(quantity)] : [],
+                );
             } else {
                 exposes.push(tuyaExposes.inchingSwitch(quantity));
             }
