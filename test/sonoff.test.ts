@@ -549,12 +549,68 @@ describe("Sonoff TRVZB", () => {
     });
 });
 
+describe("Sonoff TRV-ZBT", () => {
+    it("configures poll control and reapplies intervals on announce after a communication failure", async () => {
+        const device = mockDevice(
+            {
+                modelID: "TRV-ZBT",
+                endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "genPollCtrl", "hvacThermostat"], inputClusterIDs: [0xfc11]}],
+            },
+            "EndDevice",
+        );
+        // Battery configure persists an unknown power source; the mock has no database.
+        vi.spyOn(device, "save").mockImplementation(() => {});
+        const coordinator = mockDevice({modelID: "Coordinator", endpoints: [{ID: 1}]});
+        const endpoint = device.getEndpoint(1);
+        const definition = await findByDevice(device);
+
+        await definition.configure(device, coordinator.getEndpoint(1), definition);
+
+        expect(endpoint.bind).toHaveBeenCalledWith("genPollCtrl", coordinator.getEndpoint(1));
+        expect(endpoint.command).toHaveBeenCalledWith("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 8});
+        expect(endpoint.write).toHaveBeenCalledWith("genPollCtrl", {checkinInterval: 3600});
+        expect(endpoint.bind).toHaveBeenCalledWith("hvacThermostat", coordinator.getEndpoint(1));
+        for (const attribute of ["localTemp", "occupiedHeatingSetpoint", "systemMode"]) {
+            expect(endpoint.configureReporting).toHaveBeenCalledWith("hvacThermostat", [expect.objectContaining({attribute})]);
+        }
+
+        vi.mocked(endpoint.command).mockClear();
+        vi.mocked(endpoint.write).mockClear();
+        await definition.onEvent({type: "deviceAnnounce", data: {device, deviceExposesChanged: () => {}, state: {}, options: {}}});
+        expect(endpoint.command).toHaveBeenCalledWith("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 8});
+        expect(endpoint.write).toHaveBeenCalledWith("genPollCtrl", {checkinInterval: 3600});
+
+        let failPollControl = true;
+        vi.mocked(endpoint.command).mockImplementation((cluster, command) => {
+            if (cluster === "genPollCtrl" && command === "setLongPollInterval" && failPollControl) {
+                failPollControl = false;
+                return Promise.reject(new Error("Device asleep"));
+            }
+            return Promise.resolve({});
+        });
+        vi.mocked(endpoint.write).mockClear();
+        await expect(
+            definition.onEvent({type: "deviceAnnounce", data: {device, deviceExposesChanged: () => {}, state: {}, options: {}}}),
+        ).resolves.toBeUndefined();
+        expect(failPollControl).toBe(false);
+        expect(endpoint.write).not.toHaveBeenCalledWith("genPollCtrl", {checkinInterval: 3600});
+
+        vi.mocked(endpoint.command).mockClear();
+        vi.mocked(endpoint.write).mockClear();
+        await definition.onEvent({type: "deviceAnnounce", data: {device, deviceExposesChanged: () => {}, state: {}, options: {}}});
+        expect(endpoint.command).toHaveBeenCalledWith("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 8});
+        expect(endpoint.write).toHaveBeenCalledWith("genPollCtrl", {checkinInterval: 3600});
+    });
+});
+
 describe("Sonoff SWV", () => {
     it("continues configuring when optional water shortage auto-close attribute is unsupported", async () => {
         const device = mockDevice({
             modelID: "SWV",
             endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "genOnOff", "msFlowMeasurement"], inputClusterIDs: [0xfc11]}],
         });
+        // Battery configure persists an unknown power source; the mock has no database.
+        vi.spyOn(device, "save").mockImplementation(() => {});
         const coordinator = mockDevice({modelID: "Coordinator", endpoints: [{ID: 1}]});
         const endpoint = device.getEndpoint(1);
         const readFn = endpoint.read as Mock;
