@@ -22971,6 +22971,37 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_jrtvxwvy"]),
+        model: "TS0601_floor_thermostat_jrtvxwvy",
+        vendor: "Tuya",
+        description: "Floor heating thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withPreset(["manual", "program"])
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.child_lock(),
+            e.enum("sensor", ea.STATE_SET, ["internal", "external", "both"]).withDescription("Temperature sensor used for control"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [2, "preset", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), program: tuya.enum(1)})],
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [27, "local_temperature_calibration", tuya.valueConverter.raw],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [43, "sensor", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), external: tuya.enum(1), both: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_khah2lkr"]),
         model: "TE-1Z",
         vendor: "Tuya",
