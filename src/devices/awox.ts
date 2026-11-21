@@ -116,23 +116,17 @@ export const fzLocal = {
 };
 
 const tzLocal = {
-    ebf_rgb_zm_light_onoff_brightness: {
+    light_onoff_brightness: {
         ...tz.light_onoff_brightness,
-        // OFF with a transition ends at level 1 and the light stays on (zigbee2mqtt#31956), so dim to 1 first and send OFF afterwards.
         convertSet: async (entity, key, value, meta) => {
-            const state = typeof meta.message.state === "string" ? meta.message.state.toLowerCase() : undefined;
-            if (state === "off" || (state === "toggle" && meta.state.state === "ON")) {
-                const transition = utils.getTransition(entity, "brightness", meta);
-                if (transition.time > 0 && meta.state.state === "ON") {
-                    await entity.command(
-                        "genLevelCtrl",
-                        "moveToLevel",
-                        {level: 1, transtime: transition.time, optionsMask: 0, optionsOverride: 0},
-                        utils.getOptions(meta.mapped, entity),
-                    );
-                    await utils.sleep(transition.time * 100);
-                }
-                return await tz.on_off.convertSet(entity, "state", "off", {...meta, message: {...meta.message, state: "off"}});
+            // OFF with a transition ends at level 1 and the light stays on, so dim to 1 first and turn off afterwards.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/31956
+            const transition = utils.getTransition(entity, "brightness", meta);
+            if (String(meta.message.state).toLowerCase() === "off" && transition.time > 0 && meta.state.state === "ON") {
+                const payload = {level: 1, transtime: transition.time, optionsMask: 0, optionsOverride: 0};
+                await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
+                await utils.sleep(transition.time * 100);
+                return await tz.on_off.convertSet(entity, "state", "off", meta);
             }
             return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
@@ -383,7 +377,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EBF_RGB_Zm",
         vendor: "AwoX",
         description: "LED with adjustable color temp on main ring; extra RGB strip for full colors.",
-        toZigbee: [tzLocal.ebf_rgb_zm_light_onoff_brightness],
+        toZigbee: [tzLocal.light_onoff_brightness],
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}}), m.commandsOnOff()],
         whiteLabel: [
             {vendor: "EGLO", model: "900566"},
