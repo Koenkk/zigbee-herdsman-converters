@@ -1,5 +1,27 @@
 # Changelog
 
+## [26.136.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.135.0...v26.136.0) (2026-11-21)
+
+
+### Features
+
+* **add:** 069062 ([#13875](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13875)) ([dc4c077](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc4c0771121db1318572bec35c89c8a8200aa878))
+* **add:** MS-JT-63 ([#13874](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13874)) ([aee6b79](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aee6b799707b5a9e64fd2fffad94b6168c5782e9))
+* **add:** MS-TRI-ZB ([#13860](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13860)) ([a886c81](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a886c81f571e707b34c67f92b6fff6b15ac14031))
+* **add:** TS0601_floor_thermostat_jrtvxwvy https://github.com/Koenkk/zigbee2mqtt/issues/33766 ([f9f83c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9f83c5194e53acdd6f415bdfe20f42a2bb80222))
+* **add:** ZB-Keyfob-D0000 ([#13877](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13877)) ([e6c9afd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e6c9afdff9968281b20f0fa9424ff0c32a3b2a64))
+* Aqara FP400: expose detection areas and spatial learning ([#13859](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13859)) ([57ee53c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57ee53c8901364468d0f837666c63306b497570b))
+* Tuya TS0601_6gang_switch_2: support separate ON/OFF indicator colours ([#13609](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13609)) ([9d19151](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d19151d867e96bac907e5aa249517cb2d7acb9a))
+
+
+### Bug Fixes
+
+* Aqara LLKZMK12LM: report energy correctly on firmware 33 and newer ([#13872](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13872)) ([3bc5cf0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3bc5cf0ec2da740252ca61229f0c71a056e0cf2c))
+* Dresden Elektronik FLS-M: apply transitions when turning on or off ([#13878](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13878)) ([8fe5f9b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8fe5f9bdd50095f0cb941a3b14f7979a8b26bb7d))
+* Moes ZHT-S03: apply weekday and holiday schedules correctly ([#13870](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13870)) ([5b019b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5b019b6f4edc57b86771c1db0fe05742ad5079e9))
+* Tuya PJ-MGW1203: fix `energy` resetting instead of accumulating https://github.com/Koenkk/zigbee2mqtt/issues/33760 ([a2d7043](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a2d7043e2a8fa3dd1605ca12357ecf840c18dc5e))
+* Tuya TO-Q-SYS-JZT, PRO-900Z and MTD085-ZB, and Avatto TRV26: accept all exposed setting values ([#13848](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13848)) ([c4b7a7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4b7a7f222884ce14677df064fa627879a86f5ce))
+
 ## [26.135.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.134.0...v26.135.0) (2026-11-19)
 
 
