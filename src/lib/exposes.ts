@@ -406,16 +406,14 @@ export class Light extends Base {
         return this;
     }
 
-    withLevelConfig(
-        features: LevelConfigFeatures = [
-            "on_off_transition_time",
-            "on_transition_time",
-            "off_transition_time",
-            "execute_if_off",
-            "on_level",
-            "current_level_startup",
-        ],
-    ) {
+    withLevelConfig(features?: LevelConfigFeatures) {
+        if (features === undefined) {
+            features = ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off", "on_level", "current_level_startup"];
+            // CoupleColorTempToLevel only has an effect on lights with a color temperature
+            if (this.features.some((f) => f.name === "color_temp")) {
+                features.push("dim_to_warm");
+            }
+        }
         let levelConfig = new Composite("level_config", "level_config", access.ALL);
         if (features.includes("on_off_transition_time")) {
             levelConfig = levelConfig.withFeature(

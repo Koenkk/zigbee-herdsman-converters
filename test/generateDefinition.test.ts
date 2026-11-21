@@ -250,7 +250,7 @@ export default {
                 "flash",
                 "power_on_behavior",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy)", "power_on_behavior"],
+            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy,level_config)", "power_on_behavior"],
             bind: {},
             read: {
                 1: [
@@ -320,7 +320,7 @@ export default {
                 "flash",
                 "power_on_behavior",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy)", "power_on_behavior"],
+            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy,level_config)", "power_on_behavior"],
             bind: {},
             read: {
                 1: [
@@ -405,7 +405,7 @@ export default {
                 "effect",
                 "effect_color",
                 "effect_speed",
-                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
+                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs,level_config)",
                 "power_on_behavior",
             ],
             bind: {},
