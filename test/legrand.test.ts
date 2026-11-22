@@ -1,6 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {Group} from "zigbee-herdsman/dist/controller/model";
 import {findByDevice} from "../src/index";
+import * as legrand from "../src/lib/legrand";
 import * as globalStore from "../src/lib/store";
 import type {KeyValueAny, Tz, Zh} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -18,6 +19,7 @@ const dimmers = [
 describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model, modelID, manufacturerName}) => {
     let endpoint: Zh.Endpoint;
     let converter: Tz.Converter;
+    let toZigbee: Tz.Converter[];
 
     beforeEach(async () => {
         vi.useFakeTimers();
@@ -29,8 +31,9 @@ describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model,
         endpoint = device.getEndpoint(1);
         const definition = await findByDevice(device);
         expect(definition.model).toBe(model);
-        converter = definition.toZigbee.find((c) => c.key.includes("state"));
-        expect(converter.key).toEqual(["state"]);
+        toZigbee = definition.toZigbee;
+        converter = toZigbee.find((c) => c.key.includes("state"));
+        expect(converter).toBe(legrand.tzLegrand.light_state_device_mode_aware);
     });
 
     afterEach(() => {
@@ -48,6 +51,58 @@ describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model,
             endpoint_name: undefined,
             publish: vi.fn(),
         } as unknown as Tz.Meta) as Promise<KeyValueAny>;
+
+    // Dispatches every key of a message the way Zigbee2MQTT's publish extension does: state and
+    // brightness are moved to the back for ON (to the front for OFF), the first converter whose
+    // `key` contains the key is used, and a converter is used only once per message.
+    const dispatch = async (message: KeyValueAny, state: KeyValueAny) => {
+        const sorter = typeof message.state === "string" && message.state.toLowerCase() === "off" ? 1 : -1;
+        const entries = Object.entries(message).sort((a) => (["state", "brightness", "brightness_percent"].includes(a[0]) ? sorter : -sorter));
+        const used: Tz.Converter[] = [];
+        for (const [key, value] of entries) {
+            const conv = toZigbee.find((c) => !c.key || c.key.includes(key));
+            if (!conv || used.includes(conv)) continue;
+            used.push(conv);
+            await conv.convertSet(endpoint, key, value, {
+                message: {...message},
+                state,
+                options: {},
+                mapped: undefined,
+                device: undefined,
+                endpoint_name: undefined,
+                publish: vi.fn(),
+            } as unknown as Tz.Meta);
+        }
+        return used;
+    };
+
+    const commands = () => vi.mocked(endpoint.command).mock.calls.map(([cluster, command]) => `${cluster}.${command}`);
+
+    it.each([
+        ["toggle with on_time", {state: "TOGGLE", on_time: 5}, {state: "OFF"}, ["genOnOff.toggle"]],
+        ["on with brightness", {state: "ON", brightness: 100}, {state: "OFF"}, ["genLevelCtrl.moveToLevelWithOnOff"]],
+        ["on with brightness_percent", {state: "ON", brightness_percent: 40}, {state: "OFF"}, ["genLevelCtrl.moveToLevelWithOnOff"]],
+        ["off with transition", {state: "OFF", transition: 2}, {state: "ON", brightness: 100}, ["genLevelCtrl.moveToLevelWithOnOff"]],
+        ["on with brightness in relay mode", {state: "ON", brightness: 100}, {state: "OFF", device_mode: "dimmer_off"}, ["genOnOff.on"]],
+        ["brightness only in relay mode", {brightness: 100}, {state: "ON", device_mode: "dimmer_off"}, ["genLevelCtrl.moveToLevelWithOnOff"]],
+    ])("sends a single command for a combined message: %s", async (_name, message, state, expected) => {
+        const used = await dispatch(message, state);
+        expect(used.filter((c) => c.key.includes("state"))).toEqual([converter]);
+        expect(commands()).toEqual(expected);
+    });
+
+    it("reads currentLevel back when the first dispatched key is not state", async () => {
+        await dispatch({state: "ON", on_time: 5}, {state: "OFF", brightness: 0});
+        expect(commands()).toEqual(["genOnOff.onWithTimedOff"]);
+        await vi.advanceTimersByTimeAsync(1500);
+        expect(levelReads()).toHaveLength(1);
+    });
+
+    it("does not read currentLevel for brightness only", async () => {
+        await dispatch({brightness: 100}, {state: "OFF", brightness: 0});
+        await vi.advanceTimersByTimeAsync(5000);
+        expect(levelReads()).toHaveLength(0);
+    });
 
     const levelReads = () => (vi.mocked(endpoint.read).mock.calls as unknown[][]).filter(([cluster]) => cluster === "genLevelCtrl");
 

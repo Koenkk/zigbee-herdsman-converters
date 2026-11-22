@@ -434,22 +434,29 @@ export const tzLegrand = {
     // in that mode on/off no longer has any effect. This converter keeps the transition-aware
     // light converter for dimmer mode, and falls back to plain `tz.on_off` in relay mode.
     //
+    // It owns the same keys as `tz.light_onoff_brightness`: Zigbee2MQTT uses a converter only once
+    // per message, so with a narrower key set `m.light()`'s converter would also run for the other
+    // keys of a combined message (e.g. `{state: "TOGGLE", on_time: 5}`) and send the command twice.
+    //
     // In dimmer mode, after a plain genOnOff `On` (no brightness requested) the module restores its
     // OnLevel but never reports `currentLevel`, so a level of 0 left by a wall-button OFF stays in
     // the state. Publish OnLevel straight away when it is known, and read `currentLevel` back once
     // the fade-in is over.
     light_state_device_mode_aware: {
-        key: ["state"],
+        key: tz.light_onoff_brightness.key,
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (meta.state.device_mode === "dimmer_off") {
+            const state = typeof meta.message.state === "string" ? meta.message.state.toLowerCase() : undefined;
+            if (meta.state.device_mode === "dimmer_off" && state !== undefined) {
                 return await tz.on_off.convertSet(entity, key, value, meta);
             }
             const wasOn = meta.state.state === "ON";
             const result = (await tz.light_onoff_brightness.convertSet(entity, key, value, meta)) as KeyValueAny;
+            if (meta.state.device_mode === "dimmer_off") {
+                return result;
+            }
 
-            const requested = typeof value === "string" ? value.toLowerCase() : value;
-            const targetState = requested === "toggle" ? (wasOn ? "off" : "on") : requested;
+            const targetState = state === "toggle" ? (wasOn ? "off" : "on") : state;
             const brightnessRequested = meta.message.brightness != null || meta.message.brightness_percent != null;
             if (targetState === "on" && !brightnessRequested && utils.isEndpoint(entity)) {
                 const onLevel = Number(utils.getObjectProperty(meta.state.level_config as KeyValueAny, "on_level", 0));
