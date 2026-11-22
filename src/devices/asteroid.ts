@@ -17,6 +17,11 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["ERROR", 0],
                 description: "DS18B20 connection status",
                 access: "STATE_GET",
+                reporting: {
+                    min: 1,
+                    max: 60,
+                    change: 1,
+                },
                 entityCategory: "diagnostic",
             }),
             m.numeric({
