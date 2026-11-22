@@ -892,6 +892,22 @@ describe("Tuya ME201WZ", () => {
         expect(convert(reading(-110, 0, 1), me202wz, {})).toStrictEqual({});
     });
 
+    it("computes the percentage on the ME202WZ, which never reports DP 22", async () => {
+        const {convert} = await setup("_TZE284_mxujdmxo");
+        const me202wz = {liquid_depth: 1.19, liquid_level_percent: 94, liquid_depth_max: 1.26};
+        // The ME202WZ only reports the depth (DP 2)
+        expect(convert([tuya.dpValueFromNumberValue(2, 115)], me202wz, {})).toStrictEqual({liquid_depth: 1.15, liquid_level_percent: 91});
+        // A stale DP 22 is ignored
+        expect(convert([tuya.dpValueFromNumberValue(2, 40), tuya.dpValueFromNumberValue(22, 94)], me202wz, {})).toStrictEqual({
+            liquid_depth: 0.4,
+            liquid_level_percent: 32,
+        });
+        // Capped at 100 %
+        expect(convert([tuya.dpValueFromNumberValue(2, 127)], me202wz, {})).toStrictEqual({liquid_depth: 1.27, liquid_level_percent: 100});
+        // No percentage until liquid_depth_max is known
+        expect(convert([tuya.dpValueFromNumberValue(2, 115)], {}, {})).toStrictEqual({liquid_depth: 1.15});
+    });
+
     it("accepts a sudden change once it has been read steadily for 12 hours", async () => {
         const {convert} = await setup();
         vi.useFakeTimers();
