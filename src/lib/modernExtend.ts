@@ -1336,16 +1336,8 @@ export function light(args: LightArgs = {}): ModernExtend {
     if (brightness) {
         fromZigbee.push(fz.brightness, fz.level_config);
     }
-    const toZigbee: Tz.Converter[] = [
-        brightness
-            ? endpointNames
-                ? {...tz.light_onoff_brightness, endpoints: endpointNames}
-                : tz.light_onoff_brightness
-            : endpointNames
-              ? {...tz.on_off, endpoints: endpointNames}
-              : tz.on_off,
-        tz.ignore_transition,
-    ];
+    const onOffTz = brightness ? tz.light_onoff_brightness : tz.on_off;
+    const toZigbee: Tz.Converter[] = [endpointNames ? {...onOffTz, endpoints: endpointNames} : onOffTz, tz.ignore_transition];
     if (brightness) {
         toZigbee.push(tz.level_config, tz.ignore_rate, tz.light_brightness_move, tz.light_brightness_step);
     }
@@ -1388,7 +1380,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         }
     }
 
-    if (levelConfig) {
+    if (levelConfig && brightness) {
         lightExpose.forEach((e) => {
             levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
         });
