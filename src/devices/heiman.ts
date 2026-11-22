@@ -130,16 +130,6 @@ interface HeimanPrivateCluster {
         soundVolume: number;
         radarMicroCurrentSnr: number[];
         radarPersenceCurrentSnr: number[];
-        tapEnabled: number;
-        vibrationEnabled: number;
-        vibration: number;
-        tiltEnabled: number;
-        tiltState: number;
-        doorEnabled: number;
-        doorStatus: number;
-        gestureEnabled: number;
-        gestureState: number;
-        gestureLastId: number;
         motionSensitivityLevel: number;
 
         // Light/Switch 0x1000~0x1FFF
@@ -229,43 +219,9 @@ interface HeimanPrivateCluster {
             id: number;
             parameters: [];
         };
-        setTapEnabled: {value: number};
-        setVibrationEnabled: {value: number};
-        setTiltEnabled: {value: number};
-        requestTiltCalibration: Record<string, never>;
-        setDoorEnabled: {value: number};
-        requestDoorCalibration: Record<string, never>;
-        setGestureEnabled: {value: number};
-        gestureLearnStart: {name: string};
-        gestureDelete: {gestureId: number};
-        gestureList: {startIndex: number};
     };
     commandResponses: {
-        gestureLearnResult: {
-            status: number;
-            requestId: number;
-            gestureId: number;
-        };
-        gestureListResponse: {
-            status: number;
-            total: number;
-            index: number;
-            gestureId: number;
-            name: string;
-        };
-        actionNotification: {
-            action: number;
-        };
-        gestureStatus: {
-            state: number;
-            phase: number;
-            requestId: number;
-            sampleCount: number;
-        };
-        gestureRecognized: {
-            gestureId: number;
-            eventSequence: number;
-        };
+        actionNotification: {action: number};
     };
 }
 
@@ -624,16 +580,6 @@ const heimanExtend = {
                 soundVolume: {name: "soundVolume", ID: 0x0047, type: Zcl.DataType.UINT8, write: true},
                 radarMicroCurrentSnr: {name: "radarMicroCurrentSnr", ID: 0x004a, type: Zcl.DataType.OCTET_STR},
                 radarPersenceCurrentSnr: {name: "radarPersenceCurrentSnr", ID: 0x004b, type: Zcl.DataType.OCTET_STR},
-                tapEnabled: {name: "tapEnabled", ID: 0x004c, type: Zcl.DataType.BOOLEAN},
-                vibrationEnabled: {name: "vibrationEnabled", ID: 0x004d, type: Zcl.DataType.BOOLEAN},
-                vibration: {name: "vibration", ID: 0x004e, type: Zcl.DataType.BOOLEAN},
-                tiltEnabled: {name: "tiltEnabled", ID: 0x004f, type: Zcl.DataType.BOOLEAN},
-                tiltState: {name: "tiltState", ID: 0x0050, type: Zcl.DataType.UINT8},
-                doorEnabled: {name: "doorEnabled", ID: 0x0051, type: Zcl.DataType.BOOLEAN},
-                doorStatus: {name: "doorStatus", ID: 0x0052, type: Zcl.DataType.UINT8},
-                gestureEnabled: {name: "gestureEnabled", ID: 0x0053, type: Zcl.DataType.BOOLEAN},
-                gestureState: {name: "gestureState", ID: 0x0054, type: Zcl.DataType.UINT8},
-                gestureLastId: {name: "gestureLastId", ID: 0x0055, type: Zcl.DataType.UINT32},
                 motionSensitivityLevel: {name: "motionSensitivityLevel", ID: 0x0056, type: Zcl.DataType.UINT8, write: true},
 
                 // Light/Switch 0x1000~0x1FFF
@@ -725,103 +671,9 @@ const heimanExtend = {
                     name: "cameraTestTrigger",
                     parameters: [],
                 },
-                setTapEnabled: {
-                    ID: 0x03,
-                    name: "setTapEnabled",
-                    parameters: [{name: "value", type: Zcl.DataType.UINT8}],
-                },
-                setVibrationEnabled: {
-                    ID: 0x04,
-                    name: "setVibrationEnabled",
-                    parameters: [{name: "value", type: Zcl.DataType.UINT8}],
-                },
-                setTiltEnabled: {
-                    ID: 0x05,
-                    name: "setTiltEnabled",
-                    parameters: [{name: "value", type: Zcl.DataType.UINT8}],
-                },
-                requestTiltCalibration: {
-                    ID: 0x06,
-                    name: "requestTiltCalibration",
-                    parameters: [],
-                },
-                setDoorEnabled: {
-                    ID: 0x07,
-                    name: "setDoorEnabled",
-                    parameters: [{name: "value", type: Zcl.DataType.UINT8}],
-                },
-                requestDoorCalibration: {
-                    ID: 0x08,
-                    name: "requestDoorCalibration",
-                    parameters: [],
-                },
-                setGestureEnabled: {
-                    ID: 0x09,
-                    name: "setGestureEnabled",
-                    parameters: [{name: "value", type: Zcl.DataType.UINT8}],
-                },
-                gestureLearnStart: {
-                    ID: 0x0a,
-                    name: "gestureLearnStart",
-                    parameters: [{name: "name", type: Zcl.DataType.CHAR_STR}],
-                    response: 0x0d,
-                },
-                gestureDelete: {
-                    ID: 0x0b,
-                    name: "gestureDelete",
-                    parameters: [{name: "gestureId", type: Zcl.DataType.UINT32}],
-                },
-                gestureList: {
-                    ID: 0x0c,
-                    name: "gestureList",
-                    parameters: [{name: "startIndex", type: Zcl.DataType.UINT8}],
-                    response: 0x0e,
-                },
             },
             commandsResponse: {
-                gestureLearnResult: {
-                    ID: 0x0d,
-                    name: "gestureLearnResult",
-                    parameters: [
-                        {name: "status", type: Zcl.DataType.UINT8},
-                        {name: "requestId", type: Zcl.DataType.UINT32},
-                        {name: "gestureId", type: Zcl.DataType.UINT32},
-                    ],
-                },
-                gestureListResponse: {
-                    ID: 0x0e,
-                    name: "gestureListResponse",
-                    parameters: [
-                        {name: "status", type: Zcl.DataType.UINT8},
-                        {name: "total", type: Zcl.DataType.UINT8},
-                        {name: "index", type: Zcl.DataType.UINT8},
-                        {name: "gestureId", type: Zcl.DataType.UINT32},
-                        {name: "name", type: Zcl.DataType.CHAR_STR},
-                    ],
-                },
-                actionNotification: {
-                    ID: 0x0f,
-                    name: "actionNotification",
-                    parameters: [{name: "action", type: Zcl.DataType.UINT8}],
-                },
-                gestureStatus: {
-                    ID: 0x10,
-                    name: "gestureStatus",
-                    parameters: [
-                        {name: "state", type: Zcl.DataType.UINT8},
-                        {name: "phase", type: Zcl.DataType.UINT8},
-                        {name: "requestId", type: Zcl.DataType.UINT32},
-                        {name: "sampleCount", type: Zcl.DataType.UINT8},
-                    ],
-                },
-                gestureRecognized: {
-                    ID: 0x11,
-                    name: "gestureRecognized",
-                    parameters: [
-                        {name: "gestureId", type: Zcl.DataType.UINT32},
-                        {name: "eventSequence", type: Zcl.DataType.UINT32},
-                    ],
-                },
+                actionNotification: {ID: 0x0f, name: "actionNotification", parameters: [{name: "action", type: Zcl.DataType.UINT8}]},
             },
         }),
 
@@ -2244,89 +2096,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-
-    heiman_tap_enabled: {
-        key: ["tap_enabled"],
-        convertSet: async (entity, key, value) => {
-            utils.assertEndpoint(entity);
-
-            if (value !== "ON" && value !== "OFF") {
-                throw new Error(`${key} must be ON or OFF`);
-            }
-
-            const response = await entity.command<"heimanClusterSpecial", "setTapEnabled", HeimanPrivateCluster>(
-                "heimanClusterSpecial",
-                "setTapEnabled",
-                {value: value === "ON" ? 1 : 0},
-                {
-                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-                    disableDefaultResponse: false,
-                },
-            );
-
-            if (response?.statusCode !== Zcl.Status.SUCCESS) {
-                throw new Error(`setTapEnabled failed (status: ${response?.statusCode})`);
-            }
-
-            return {state: {tap_enabled: value}};
-        },
-        convertGet: async (entity) => {
-            utils.assertEndpoint(entity);
-            await entity.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["tapEnabled"], {
-                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-            });
-        },
-    } satisfies Tz.Converter,
-    heiman_gesture_enabled: {
-        key: ["gesture_enabled"],
-        convertSet: async (entity, key, value) => {
-            utils.assertEndpoint(entity);
-            if (value !== "ON" && value !== "OFF") throw new Error(`${key} must be ON or OFF`);
-
-            const response = await entity.command<"heimanClusterSpecial", "setGestureEnabled", HeimanPrivateCluster>(
-                "heimanClusterSpecial",
-                "setGestureEnabled",
-                {value: value === "ON" ? 1 : 0},
-                {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD, disableDefaultResponse: false},
-            );
-            if (response?.statusCode !== Zcl.Status.SUCCESS) throw new Error(`setGestureEnabled failed (status: ${response?.statusCode})`);
-            return {state: {gesture_enabled: value}};
-        },
-        convertGet: async (entity) => {
-            utils.assertEndpoint(entity);
-            await entity.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["gestureEnabled"], {
-                manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-            });
-        },
-    } satisfies Tz.Converter,
-    heiman_gesture_learn_start: {
-        key: ["gesture_learn_name", "gesture_learn_start"],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertEndpoint(entity);
-            if (key === "gesture_learn_name") {
-                utils.assertString(value, key);
-                globalStore.putValue(entity, key, value);
-                return {state: {gesture_learn_name: value}};
-            }
-            if (value !== "START") throw new Error(`${key} must be START`);
-            const name = globalStore.getValue(entity, "gesture_learn_name", meta.state.gesture_learn_name ?? "");
-            utils.assertString(name, "gesture_learn_name");
-            const length = Buffer.byteLength(name, "utf8");
-            if (length < 1 || length > 32) throw new Error("Set a gesture name of 1 to 32 UTF-8 bytes before pressing START");
-
-            const response = await entity.command<"heimanClusterSpecial", "gestureLearnStart", HeimanPrivateCluster>(
-                "heimanClusterSpecial",
-                "gestureLearnStart",
-                {name},
-                {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD, timeout: 20000},
-            );
-            const result = response?.status === 0 ? "ACCEPTED" : response?.status === Zcl.Status.UNSUP_COMMAND ? "UNSUPPORTED" : "REJECTED";
-            return {state: {gesture_learn_result: result}};
-        },
-    } satisfies Tz.Converter,
 };
-
-const gestureStates = ["UNKNOWN", "LEARNING", "READY", "ERROR"];
 
 const fzLocal = {
     heiman_camera_status: {
@@ -2418,9 +2188,6 @@ const fzLocal = {
             }
             if (data.rebootedCount !== undefined) {
                 result.reboot_count = data.rebootedCount;
-            }
-            if (data.tapEnabled === 0 || data.tapEnabled === 1) {
-                result.tap_enabled = data.tapEnabled === 1 ? "ON" : "OFF";
             }
 
             return result;
@@ -2555,57 +2322,10 @@ const fzLocal = {
         cluster: "heimanClusterSpecial",
         type: "commandActionNotification",
         convert: (model, msg) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
-            switch (msg.data.action) {
-                case 1:
-                    return {action: "triple_tap"};
-                case 2:
-                    return {action: "tilted"};
-                case 3:
-                    return {action: "tilt_recovered"};
-                case 4:
-                    return {action: "vibration"};
-                default:
-                    return;
-            }
+            const action = {1: "triple_tap", 2: "tilted", 3: "tilt_recovered", 4: "vibration"}[msg.data.action];
+            if (action) return {action};
         },
     } satisfies Fz.Converter<"heimanClusterSpecial", HeimanPrivateCluster, "commandActionNotification">,
-    heiman_gesture_attributes: {
-        cluster: "heimanClusterSpecial",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg) => {
-            const {gestureEnabled, gestureState, gestureLastId} = msg.data;
-            const result: Record<string, unknown> = {};
-            if (gestureEnabled === 0 || gestureEnabled === 1) result.gesture_enabled = gestureEnabled === 1 ? "ON" : "OFF";
-            if (gestureState !== undefined && gestureStates[gestureState] !== undefined) result.gesture_state = gestureStates[gestureState];
-            if (gestureLastId !== undefined && Number.isInteger(gestureLastId) && gestureLastId >= 0 && gestureLastId <= 0xfffffffe) {
-                result.gesture_id = gestureLastId;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"heimanClusterSpecial", HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-    heiman_gesture_progress: {
-        cluster: "heimanClusterSpecial",
-        type: "commandGestureStatus",
-        convert: (model, msg) => {
-            const {state, phase, sampleCount} = msg.data;
-            const status = gestureStates[state];
-            const label = ["Idle", "Preparing", "Recording", "Processing", "Preparing to retry", "Complete", "Failed"][phase];
-            if (status === undefined || label === undefined || !Number.isInteger(sampleCount) || sampleCount < 0 || sampleCount > 3) return;
-            return {gesture_state: status, gesture_learning_progress: phase === 0 ? label : `${label} (${sampleCount}/3 complete)`};
-        },
-    } satisfies Fz.Converter<"heimanClusterSpecial", HeimanPrivateCluster, "commandGestureStatus">,
-    heiman_gesture_recognized: {
-        cluster: "heimanClusterSpecial",
-        type: "commandGestureRecognized",
-        convert: (model, msg) => {
-            const {gestureId, eventSequence} = msg.data;
-            if (!Number.isInteger(gestureId) || gestureId < 1 || gestureId > 0xfffffffe) return;
-            if (!Number.isInteger(eventSequence) || eventSequence < 0 || eventSequence > 0xfffffffe) return;
-            if (utils.hasAlreadyProcessedMessage(msg, model, eventSequence, `${msg.device.ieeeAddr}-${msg.endpoint.ID}-gesture`)) return;
-            return {action: "gesture", gesture_id: gestureId};
-        },
-    } satisfies Fz.Converter<"heimanClusterSpecial", HeimanPrivateCluster, "commandGestureRecognized">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -5596,43 +5316,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2VTD",
         vendor: "Heiman",
         description: "Motion and contact sensor",
-        fromZigbee: [
-            fzLocal.heimanClusterSpecialfz,
-            fzLocal.heiman_action_notification,
-            fzLocal.heiman_gesture_attributes,
-            fzLocal.heiman_gesture_progress,
-            fzLocal.heiman_gesture_recognized,
-        ],
-        toZigbee: [tzLocal.heiman_tap_enabled, tzLocal.heiman_gesture_enabled, tzLocal.heiman_gesture_learn_start],
-        exposes: [
-            e.action(["triple_tap", "tilted", "tilt_recovered", "vibration", "gesture"]),
-            e.binary("tap_enabled", ea.ALL, "ON", "OFF").withDescription("Whether triple-tap detection is enabled"),
-            e.binary("gesture_enabled", ea.ALL, "ON", "OFF").withDescription("Whether gesture recognition is enabled"),
-            e.enum("gesture_state", ea.STATE, gestureStates).withDescription("Gesture learning and recognition state"),
-            e.numeric("gesture_id", ea.STATE).withDescription("Last recognized gesture ID, or 0 if none"),
-            e.text("gesture_learning_progress", ea.STATE).withDescription("Learning phase and number of valid samples"),
-            e.text("gesture_learn_name", ea.STATE_SET).withDescription("Name to use for the next learning request"),
-            e.enum("gesture_learn_start", ea.SET, ["START"]).withDescription("Start learning using the submitted gesture name"),
-            e.enum("gesture_learn_result", ea.STATE, ["ACCEPTED", "UNSUPPORTED", "REJECTED"]).withDescription("Result of the learning request"),
-        ],
+        fromZigbee: [fzLocal.heiman_action_notification],
+        exposes: [e.action(["triple_tap", "tilted", "tilt_recovered", "vibration"])],
         extend: [
             m.identify(),
-            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"], endpointId: 1}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
             heimanExtend.heimanClusterSpecial(),
-            {
-                isModernExtend: true,
-                configure: [
-                    async (device) => {
-                        const endpoint = device.getEndpoint(1);
-                        await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
-                        await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
-                            "heimanClusterSpecial",
-                            ["motionSensitivityLevel", "tapEnabled", "gestureEnabled", "gestureState", "gestureLastId"],
-                            {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
-                        );
-                    },
-                ],
-            },
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "sensitivity_level",
                 cluster: "heimanClusterSpecial",
@@ -5642,25 +5331,8 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 10,
                 valueStep: 1,
-                reporting: false,
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
-                fzConvert: (model, msg) => {
-                    const value = msg.data.motionSensitivityLevel;
-                    if (value !== undefined) return {sensitivity_level: Number.isInteger(value) && value >= 1 && value <= 10 ? value : null};
-                },
-                tzConvertSet: async (entity, key, value) => {
-                    utils.assertEndpoint(entity);
-                    if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 10) {
-                        throw new Error(`${key} must be an integer from 1 to 10`);
-                    }
-                    await entity.write<"heimanClusterSpecial", HeimanPrivateCluster>(
-                        "heimanClusterSpecial",
-                        {motionSensitivityLevel: value},
-                        {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
-                    );
-                    return {state: {sensitivity_level: value}};
-                },
             }),
         ],
         ota: true,
