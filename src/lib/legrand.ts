@@ -5,6 +5,7 @@ import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from
 import * as utils from "../lib/utils";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
+import * as globalStore from "./store";
 import type {TuyaClosuresWindowCovering} from "./tuya";
 
 const NS = "zhc:legrand";
@@ -440,8 +441,9 @@ export const tzLegrand = {
     //
     // In dimmer mode, after a plain genOnOff `On` (no brightness requested) the module restores its
     // OnLevel but never reports `currentLevel`, so a level of 0 left by a wall-button OFF stays in
-    // the state. Publish OnLevel straight away when it is known, and read `currentLevel` back once
-    // the fade-in is over.
+    // the state. When the light was off, publish OnLevel straight away (read once from the device if
+    // it is not in the state yet; the read response is stored by `fz.level_config`), and read
+    // `currentLevel` back once the fade-in is over.
     light_state_device_mode_aware: {
         key: tz.light_onoff_brightness.key,
         options: [exposes.options.transition()],
@@ -459,17 +461,32 @@ export const tzLegrand = {
             const targetState = state === "toggle" ? (wasOn ? "off" : "on") : state;
             const brightnessRequested = meta.message.brightness != null || meta.message.brightness_percent != null;
             if (targetState === "on" && !brightnessRequested && utils.isEndpoint(entity)) {
-                const onLevel = Number(utils.getObjectProperty(meta.state.level_config as KeyValueAny, "on_level", 0));
-                if (!wasOn && result?.state && onLevel >= 1 && onLevel <= 254) {
-                    result.state.brightness = onLevel;
+                if (!wasOn && result?.state) {
+                    // `fz.level_config` stores 255 as "previous": the device restores its last level.
+                    let onLevel = utils.getObjectProperty(meta.state.level_config as KeyValueAny, "on_level", undefined);
+                    if (onLevel === undefined) {
+                        try {
+                            onLevel = (await entity.read("genLevelCtrl", ["onLevel"]))?.onLevel;
+                        } catch (error) {
+                            logger.debug(`Failed to read onLevel after 'on' (${(error as Error).message})`, NS);
+                        }
+                    }
+                    if (typeof onLevel === "number" && onLevel >= 1 && onLevel <= 254) {
+                        result.state.brightness = onLevel;
+                    }
                 }
+
+                // Restart the timer on repeated commands so only one read is done once the last fade-in is over.
+                clearTimeout(globalStore.getValue(entity, "current_level_read_timer"));
                 const transition = utils.getTransition(entity, "brightness", meta);
                 const delay = Math.max(1500, transition.time * 100 + 1000);
-                setTimeout(() => {
+                const timer = setTimeout(() => {
+                    globalStore.clearValue(entity, "current_level_read_timer");
                     entity.read("genLevelCtrl", ["currentLevel"]).catch((error) => {
                         logger.debug(`Failed to read currentLevel after 'on' (${(error as Error).message})`, NS);
                     });
-                }, delay).unref?.();
+                }, delay).unref();
+                globalStore.putValue(entity, "current_level_read_timer", timer);
             }
             return result;
         },

@@ -52,8 +52,8 @@ describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model,
             publish: vi.fn(),
         } as unknown as Tz.Meta) as Promise<KeyValueAny>;
 
-    // Dispatches every key of a message the way Zigbee2MQTT's publish extension does: state and
-    // brightness are moved to the back for ON (to the front for OFF), the first converter whose
+    // Dispatches every key of a message the way Zigbee2MQTT's publish extension does: its sort moves
+    // state and brightness to the front for ON (to the back for OFF), the first converter whose
     // `key` contains the key is used, and a converter is used only once per message.
     const dispatch = async (message: KeyValueAny, state: KeyValueAny) => {
         const sorter = typeof message.state === "string" && message.state.toLowerCase() === "off" ? 1 : -1;
@@ -91,7 +91,7 @@ describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model,
         expect(commands()).toEqual(expected);
     });
 
-    it("reads currentLevel back when the first dispatched key is not state", async () => {
+    it("reads currentLevel back after on with on_time", async () => {
         await dispatch({state: "ON", on_time: 5}, {state: "OFF", brightness: 0});
         expect(commands()).toEqual(["genOnOff.onWithTimedOff"]);
         await vi.advanceTimersByTimeAsync(1500);
@@ -104,7 +104,12 @@ describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model,
         expect(levelReads()).toHaveLength(0);
     });
 
-    const levelReads = () => (vi.mocked(endpoint.read).mock.calls as unknown[][]).filter(([cluster]) => cluster === "genLevelCtrl");
+    const reads = (attribute: string) =>
+        (vi.mocked(endpoint.read).mock.calls as unknown[][]).filter(
+            ([cluster, attributes]) => cluster === "genLevelCtrl" && (attributes as string[]).includes(attribute),
+        );
+    const levelReads = () => reads("currentLevel");
+    const onLevelReads = () => reads("onLevel");
 
     it("publishes OnLevel and reads currentLevel back after a plain on from OFF", async () => {
         const result = await set(endpoint, {state: "ON"}, {state: "OFF", brightness: 0, level_config: {on_level: 254}});
@@ -117,16 +122,50 @@ describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model,
         expect(levelReads()).toEqual([["genLevelCtrl", ["currentLevel"]]]);
     });
 
-    it("reads currentLevel back even when OnLevel is unknown", async () => {
+    it("reads OnLevel from the device when it is not in the state", async () => {
+        vi.mocked(endpoint.read).mockResolvedValue({onLevel: 254});
+        const result = await set(endpoint, {state: "ON"}, {state: "OFF", brightness: 0});
+        expect(endpoint.command).toHaveBeenCalledWith("genOnOff", "on", {}, expect.anything());
+        expect(onLevelReads()).toEqual([["genLevelCtrl", ["onLevel"]]]);
+        expect(vi.mocked(endpoint.command).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(endpoint.read).mock.invocationCallOrder[0]);
+        expect(result.state).toEqual({state: "ON", brightness: 254});
+        await vi.advanceTimersByTimeAsync(1500);
+        expect(levelReads()).toEqual([["genLevelCtrl", ["currentLevel"]]]);
+    });
+
+    it.each([
+        ["OnLevel cannot be read", () => vi.mocked(endpoint.read).mockRejectedValueOnce(new Error("unsupported"))],
+        ["the device returns 255 (previous level)", () => vi.mocked(endpoint.read).mockResolvedValueOnce({onLevel: 255})],
+        ["the device returns no OnLevel", () => {}],
+    ])("falls back to the delayed read when %s", async (_name, mock) => {
+        mock();
         const result = await set(endpoint, {state: "ON"}, {state: "OFF", brightness: 0});
         expect(result.state).toEqual({state: "ON", brightness: 1});
         await vi.advanceTimersByTimeAsync(1500);
         expect(levelReads()).toEqual([["genLevelCtrl", ["currentLevel"]]]);
     });
 
-    it("ignores OnLevel 255 (previous level)", async () => {
-        const result = await set(endpoint, {state: "ON"}, {state: "OFF", brightness: 0, level_config: {on_level: 255}});
+    it("does not read OnLevel when the state has it as previous", async () => {
+        const result = await set(endpoint, {state: "ON"}, {state: "OFF", brightness: 0, level_config: {on_level: "previous"}});
         expect(result.state).toEqual({state: "ON", brightness: 1});
+        expect(onLevelReads()).toHaveLength(0);
+    });
+
+    it("does not read OnLevel when the light was already on", async () => {
+        await set(endpoint, {state: "ON"}, {state: "ON", brightness: 100});
+        expect(onLevelReads()).toHaveLength(0);
+        await vi.advanceTimersByTimeAsync(1500);
+        expect(levelReads()).toHaveLength(1);
+    });
+
+    it("reads currentLevel only once after repeated on commands", async () => {
+        await set(endpoint, {state: "ON"}, {state: "OFF", brightness: 0, level_config: {on_level: 254}});
+        await vi.advanceTimersByTimeAsync(1000);
+        await set(endpoint, {state: "ON"}, {state: "ON", brightness: 254, level_config: {on_level: 254}});
+        await vi.advanceTimersByTimeAsync(1499);
+        expect(levelReads()).toHaveLength(0);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(levelReads()).toHaveLength(1);
     });
 
     it("treats a toggle that turns the light on like on", async () => {
@@ -160,6 +199,7 @@ describe.each(dimmers)("Legrand/BTicino dimmer $model state converter", ({model,
         expect(result.state.brightness === 254).toBe(false);
         await vi.advanceTimersByTimeAsync(5000);
         expect(levelReads()).toHaveLength(0);
+        expect(onLevelReads()).toHaveLength(0);
     });
 
     it("does not read currentLevel for a group", async () => {
