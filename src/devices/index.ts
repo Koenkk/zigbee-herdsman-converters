@@ -178,7 +178,7 @@ import {definitions as kami} from "./kami";
 import {definitions as keenHome} from "./keen_home";
 import {definitions as klikaanklikuit} from "./klikaanklikuit";
 import {definitions as kmpcil} from "./kmpcil";
-import * as knockautx from "./knockautx";
+import {definitions as knockautx} from "./knockautx";
 import {definitions as konke} from "./konke";
 import {definitions as ksentry} from "./ksentry";
 import {definitions as kurvia} from "./kurvia";
