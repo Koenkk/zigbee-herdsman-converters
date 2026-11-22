@@ -2,6 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -122,11 +123,15 @@ const tzLocal = {
             // OFF with a transition ends at level 1 and the light stays on, so dim to 1 first and turn off afterwards.
             // https://github.com/Koenkk/zigbee2mqtt/issues/31956
             const transition = utils.getTransition(entity, "brightness", meta);
-            if (String(meta.message.state).toLowerCase() === "off" && transition.time > 0 && meta.state.state === "ON") {
+            const state = String(meta.message.state).toLowerCase();
+            if ((state === "off" || state === "toggle") && transition.time > 0 && meta.state.state === "ON") {
                 const payload = {level: 1, transtime: transition.time, optionsMask: 0, optionsOverride: 0};
                 await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
                 await utils.sleep(transition.time * 100);
-                return await tz.on_off.convertSet(entity, "state", "off", meta);
+                // The level stays at 1 after OFF, let the next ON restore the previous brightness.
+                globalStore.putValue(entity, "brightness", meta.state.brightness);
+                globalStore.putValue(entity, "turnedOffWithTransition", true);
+                return await tz.on_off.convertSet(entity, "state", "off", {...meta, message: {...meta.message, state: "off"}});
             }
             return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
