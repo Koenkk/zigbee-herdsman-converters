@@ -177,6 +177,7 @@ import {definitions as jxuan} from "./jxuan";
 import {definitions as kami} from "./kami";
 import {definitions as keenHome} from "./keen_home";
 import {definitions as klikaanklikuit} from "./klikaanklikuit";
+import * as knockautx from './knockautx';
 import {definitions as kmpcil} from "./kmpcil";
 import {definitions as konke} from "./konke";
 import {definitions as ksentry} from "./ksentry";
@@ -819,6 +820,7 @@ const definitions: DefinitionWithExtend[] = [
     ...engo,
     ...vsmart,
     ...manhot,
+    ...knockautx,
 ];
 
 export default definitions;
