@@ -1,6 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterOrRawAttributeKeys, ClusterOrRawAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Clusters} from "zigbee-herdsman/dist/controller/model/endpoint";
+import type {ClusterOrRawAttributeKeys, ClusterOrRawAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Light, Numeric} from "./exposes";
 import {logger} from "./logger";
 import * as globalStore from "./store";
@@ -598,9 +598,12 @@ export async function getClusterAttributeValue<
     }
 }
 
-
-export async function discoverAttributes<Cl extends string>(endpoint: Zh.Endpoint, cluster: Cl, extended?: boolean, device?: Zh.Device):
-Promise<Clusters[string]["attributeList"] | undefined> {
+export async function discoverAttributes<Cl extends string>(
+    endpoint: Zh.Endpoint,
+    cluster: Cl,
+    extended?: boolean,
+    device?: Zh.Device,
+): Promise<Clusters[string]["attributeList"] | undefined> {
     const attrs = endpoint.clusters[Zcl.Utils.getCluster(cluster).name]?.attributeList;
     if (extended && device?.meta[DISCOVER_EXT_UNSUPPORTED_META_KEY]) {
         extended = false;
