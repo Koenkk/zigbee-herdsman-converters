@@ -14,6 +14,17 @@ import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, po
 const e = exposes.presets;
 const ea = exposes.access;
 
+const mitsuVaneOptions = ["Auto", "Haut", "Mi-haut", "Milieu", "Mi-bas", "Bas", "Oscillation"];
+
+interface MitsubishiHvac {
+    attributes: {
+        vanePosition: number;
+        mitsuDebugLed: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const switchTypesList = {
     switch: 0x00,
     "multi-click": 0x02,
@@ -2569,5 +2580,142 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+    },
+    {
+        zigbeeModel: ["Mitsubishi2Zigbee", "MZ-Zigbee-C6"],
+        model: "Mitsubishi2Zigbee",
+        vendor: "Custom devices (DiY)",
+        description: "ESP32-C6 Zigbee gateway for Mitsubishi CN105 HVAC",
+        ota: true,
+        endpoint: () => ({default: 1, ota: 2}),
+        extend: [
+            m.deviceAddCustomCluster("manuSpecificMitsubishiHvac", {
+                name: "manuSpecificMitsubishiHvac",
+                ID: 0xff00,
+                attributes: {
+                    vanePosition: {name: "vanePosition", ID: 0x0000, type: Zcl.DataType.UINT8, write: true},
+                    mitsuDebugLed: {name: "mitsuDebugLed", ID: 0x0002, type: Zcl.DataType.UINT8, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (_model, msg) => {
+                    const result: KeyValue = {};
+                    if (msg.data.localTemp !== undefined) {
+                        result.local_temperature = Math.round(Number(msg.data.localTemp) / 10) / 10;
+                    }
+                    if (msg.data.systemMode !== undefined) {
+                        const modeMap: Record<number, string> = {0: "off", 1: "auto", 3: "cool", 4: "heat", 7: "fan_only", 8: "dry"};
+                        result.system_mode = typeof msg.data.systemMode === "number" ? modeMap[msg.data.systemMode] : msg.data.systemMode;
+                    }
+                    if (msg.data.occupiedHeatingSetpoint !== undefined) {
+                        const sp = Math.round(Number(msg.data.occupiedHeatingSetpoint) / 100);
+                        result.occupied_heating_setpoint = sp;
+                        result.current_heating_setpoint = sp;
+                    }
+                    return Object.keys(result).length ? result : undefined;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+            fz.fan,
+            {
+                cluster: "manuSpecificMitsubishiHvac",
+                type: ["attributeReport", "readResponse"],
+                convert: (_model, msg) => {
+                    const result: KeyValue = {};
+                    const idx = msg.data.vanePosition ?? msg.data[0] ?? msg.data["0x0000"];
+                    if (idx !== undefined) {
+                        result.swing_mode = mitsuVaneOptions[Number(idx)] ?? "Auto";
+                    }
+                    const dbg = msg.data.mitsuDebugLed ?? msg.data[2] ?? msg.data["0x0002"];
+                    if (dbg !== undefined) {
+                        result.debug = dbg === 1;
+                    }
+                    return Object.keys(result).length ? result : undefined;
+                },
+            },
+        ],
+        toZigbee: [
+            tz.thermostat_system_mode,
+            {
+                key: ["occupied_heating_setpoint"],
+                convertSet: async (entity, _key, value) => {
+                    const rounded = Math.round(Number(value));
+                    await entity.write("hvacThermostat", {
+                        occupiedHeatingSetpoint: rounded * 100,
+                        occupiedCoolingSetpoint: 3200,
+                    });
+                    return {state: {occupied_heating_setpoint: rounded, current_heating_setpoint: rounded}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
+                },
+            },
+            tz.fan_mode,
+            {
+                key: ["swing_mode"],
+                convertSet: async (entity, _key, value) => {
+                    const idx = mitsuVaneOptions.indexOf(String(value));
+                    if (idx < 0) return;
+                    await entity.write<"manuSpecificMitsubishiHvac", MitsubishiHvac>("manuSpecificMitsubishiHvac", {vanePosition: idx});
+                    return {state: {swing_mode: value}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<"manuSpecificMitsubishiHvac", MitsubishiHvac>("manuSpecificMitsubishiHvac", ["vanePosition"]);
+                },
+            },
+            {
+                key: ["debug"],
+                convertSet: async (entity, _key, value, meta) => {
+                    const on = value === true || value === "ON" || value === 1;
+                    await entity.write<"manuSpecificMitsubishiHvac", MitsubishiHvac>("manuSpecificMitsubishiHvac", {
+                        mitsuDebugLed: on ? 1 : 0,
+                    });
+                    meta.state.debug = on;
+                    return {state: {debug: on}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<"manuSpecificMitsubishiHvac", MitsubishiHvac>("manuSpecificMitsubishiHvac", ["mitsuDebugLed"]);
+                },
+            },
+        ],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat", "cool", "auto", "fan_only", "dry"])
+                .withSetpoint("occupied_heating_setpoint", 16, 31, 1)
+                .withLocalTemperature()
+                .withFanMode(["auto", "low", "medium", "high", "smart"])
+                .withSwingMode(mitsuVaneOptions),
+            e.binary("debug", ea.ALL, true, false).withDescription("Status LED: true = normal; false = off"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep = device.getEndpoint(1);
+            for (const cluster of ["hvacThermostat", "hvacFanCtrl", "manuSpecificMitsubishiHvac"]) {
+                try {
+                    await ep.bind(cluster, coordinatorEndpoint);
+                } catch {}
+            }
+            try {
+                await reporting.thermostatTemperature(ep);
+                await reporting.thermostatOccupiedHeatingSetpoint(ep);
+                await reporting.fanMode(ep);
+                await ep.configureReporting("hvacThermostat", [
+                    {attribute: "systemMode", minimumReportInterval: 1, maximumReportInterval: 300, reportableChange: 1},
+                ]);
+                await ep.configureReporting<"manuSpecificMitsubishiHvac", MitsubishiHvac>("manuSpecificMitsubishiHvac", [
+                    {attribute: "vanePosition", minimumReportInterval: 1, maximumReportInterval: 600, reportableChange: 1},
+                ]);
+            } catch {}
+            await ep.read("hvacThermostat", ["localTemp", "occupiedHeatingSetpoint", "systemMode"]);
+            await ep.read("hvacFanCtrl", ["fanMode"]);
+            try {
+                await ep.read<"manuSpecificMitsubishiHvac", MitsubishiHvac>("manuSpecificMitsubishiHvac", ["vanePosition", "mitsuDebugLed"]);
+            } catch {}
+        },
     },
 ];
