@@ -19,7 +19,7 @@ describe("utils", () => {
         it("skips discovery when attributes are already discovered", async () => {
             const device = mockDevice({modelID: "test", endpoints: [{}]});
             const endpoint = device.endpoints[0];
-            endpoint.saveClusterAttributeDiscovery("genPowerCfg", [], true);
+            endpoint.saveClusterAttributeDiscovery("genPowerCfg", [{attrId: 0x0020, access: 0x04}], true);
             const discoverSpy = vi.spyOn(endpoint, "discoverAttributes");
 
             await discoverAttributes(endpoint, "genPowerCfg");
@@ -31,8 +31,7 @@ describe("utils", () => {
             const device = mockDevice({modelID: "test", endpoints: [{}]});
             const endpoint = device.endpoints[0];
             const discoverSpy = vi.spyOn(endpoint, "discoverAttributes").mockImplementation(() => {
-                endpoint.saveClusterAttributeDiscovery("genPowerCfg", [], true);
-                return Promise.resolve();
+                return Promise.resolve({batteryVoltage: {type: 0x20, access: 0x04}});
             });
 
             await discoverAttributes(endpoint, "genPowerCfg", true);
@@ -82,7 +81,7 @@ describe("utils", () => {
         it("returns the fallback when discovery confirms the attribute is unsupported", async () => {
             const device = mockDevice({modelID: "test", endpoints: [{}]});
             const endpoint = device.endpoints[0];
-            endpoint.saveClusterAttributeDiscovery("genPowerCfg", [], true);
+            endpoint.saveClusterAttributeDiscovery("genPowerCfg", [{attrId: 0x0021, access: 0x04}], true);
 
             await expect(getClusterAttributeValue(endpoint, "genPowerCfg", "batteryVoltage", 0)).resolves.toBe(0);
             expect(endpoint.read).not.toHaveBeenCalled();
