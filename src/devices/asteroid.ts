@@ -1,4 +1,3 @@
-
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -44,31 +43,23 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             overrideHaDiscoveryPayload: (payload) => {
-                const tpl =
-                    payload.value_template ??
-                    payload.val_tpl ??
-                    "";
+                const tpl = payload.value_template ?? payload.val_tpl ?? "";
 
                 if (tpl.includes("sensor_status")) {
                     payload.name = "DS18B20";
                 }
 
-                const cls =
-                    payload.device_class ??
-                    payload.dev_cla;
+                const cls = payload.device_class ?? payload.dev_cla;
 
                 if (cls !== "temperature") return;
 
-                const topic =
-                    payload.state_topic ??
-                    payload.stat_t;
+                const topic = payload.state_topic ?? payload.stat_t;
 
                 if (!topic) return;
 
                 const status = {
                     topic,
-                    value_template:
-                        "{{ 'online' if value_json.sensor_status | default('ERROR') == 'OK' else 'offline' }}",
+                    value_template: "{{ 'online' if value_json.sensor_status | default('ERROR') == 'OK' else 'offline' }}",
                     payload_available: "online",
                     payload_not_available: "offline",
                 };
@@ -84,4 +75,3 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
-
