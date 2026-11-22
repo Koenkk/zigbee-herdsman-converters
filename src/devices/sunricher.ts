@@ -12,7 +12,7 @@ import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as sunricher from "../lib/sunricher";
-import type {Definition, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Publish, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 
@@ -105,93 +105,22 @@ const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
     52: "release",
 };
 
-// SR-ZG9002KR12-Z4: every command is emitted twice with the same ZCL transaction
-// sequence number - once with groupID 0 and once with the active group (353..356).
-// The generic deduplication keys only on device+endpoint, so the groupID 0 copy can
-// win and action_group is lost. Remember the last group per device, defer the
-// groupID 0 copy briefly, and publish the preferred copy exactly once.
-const sunricherSrZG9002kr12z4OnOffBurstMs = 50;
-const sunricherSrZG9002kr12z4StepDeferMs = 40;
-const sunricherSrZG9002kr12z4DedupMs = 10_000;
-const sunricherSrZG9002kr12z4Seen = new Map<string, number>();
-const sunricherSrZG9002kr12z4LastGroup = new Map<string, number>();
-const sunricherSrZG9002kr12z4DeferredSteps = new Map<string, {timer: ReturnType<typeof setTimeout>}>();
-// Power button: >=3 endpoints in one burst => power_on/power_off, otherwise on_N/off_N.
-const sunricherSrZG9002kr12z4OnOffBurstState = new Map<string, {endpoints: Map<number, number>; timer: ReturnType<typeof setTimeout> | undefined}>();
+// SR-ZG9002KR12-Z4: the power button sends its on/off command simultaneously
+// on multiple endpoints, while a single group button only touches one endpoint.
+// Collect the burst over a short window before deciding which action to report.
+const sunricherSrZG9002kr12z4OnOffDebounceMs = 300;
+const sunricherSrZG9002kr12z4OnOffBurstState = new Map<
+    string,
+    {endpoints: Set<number>; group: number | undefined; timer: ReturnType<typeof setTimeout> | undefined}
+>();
 
-// biome-ignore lint/suspicious/noExplicitAny: shared between several cluster converters
-type SunricherMessage = Fz.Message<any, any, any>;
-
-const sunricherSrZG9002kr12z4NoteGroup = (msg: SunricherMessage): number => {
-    const group = Number(msg.groupID) || 0;
-    if (group !== 0) {
-        sunricherSrZG9002kr12z4LastGroup.set(msg.device.ieeeAddr, group);
-    }
-    return group;
-};
-
-const sunricherSrZG9002kr12z4GroupOf = (ieeeAddr: string): number => sunricherSrZG9002kr12z4LastGroup.get(ieeeAddr) || 0;
-
-// Group IDs 353..356 map to the four group buttons 1..4.
-const sunricherSrZG9002kr12z4GroupToIndex = (group: number): number => group - 352;
-
-const sunricherSrZG9002kr12z4DedupKey = (msg: SunricherMessage, kind: string): string =>
-    `${msg.device.ieeeAddr}_${msg.endpoint.ID}_${kind}_${msg.meta.zclTransactionSequenceNumber}`;
-
-const sunricherSrZG9002kr12z4ShouldProcess = (msg: SunricherMessage, kind: string): boolean => {
-    const seq = msg.meta.zclTransactionSequenceNumber;
-    if (seq === undefined) return true;
-
-    const key = sunricherSrZG9002kr12z4DedupKey(msg, kind);
-    const now = Date.now();
-    const expiry = sunricherSrZG9002kr12z4Seen.get(key);
-    if (expiry !== undefined && expiry > now) return false;
-
-    for (const [k, v] of sunricherSrZG9002kr12z4Seen) {
-        if (v <= now) sunricherSrZG9002kr12z4Seen.delete(k);
-    }
-    sunricherSrZG9002kr12z4Seen.set(key, now + sunricherSrZG9002kr12z4DedupMs);
-    return true;
-};
-
-// Builds a converter that publishes a rotary/color/cover command only once per
-// transaction and always carries the group ID of the active group.
-const sunricherSrZG9002kr12z4MakeStep = (kind: string, build: (msg: SunricherMessage) => KeyValue) => {
-    return (model: Definition, msg: SunricherMessage, publish: Publish, options: KeyValue, meta: Fz.Meta): void => {
-        sunricherSrZG9002kr12z4NoteGroup(msg);
-        const group = Number(msg.groupID) || 0;
-        const key = sunricherSrZG9002kr12z4DedupKey(msg, kind);
-        const deferred = sunricherSrZG9002kr12z4DeferredSteps.get(key);
-
-        if (group !== 0 || deferred) {
-            if (deferred) {
-                clearTimeout(deferred.timer);
-                sunricherSrZG9002kr12z4DeferredSteps.delete(key);
-            }
-            if (!sunricherSrZG9002kr12z4ShouldProcess(msg, kind)) return;
-
-            const payload = build(msg);
-            const effectiveGroup = sunricherSrZG9002kr12z4GroupOf(msg.device.ieeeAddr);
-            if (effectiveGroup) payload.action_group = effectiveGroup;
-            publish(payload);
-            return;
-        }
-
-        const expiry = sunricherSrZG9002kr12z4Seen.get(key);
-        if (expiry !== undefined && expiry > Date.now()) return;
-
-        const payload = build(msg);
-        const timer = setTimeout(() => {
-            sunricherSrZG9002kr12z4DeferredSteps.delete(key);
-            if (!sunricherSrZG9002kr12z4ShouldProcess(msg, kind)) return;
-            const effectiveGroup = sunricherSrZG9002kr12z4GroupOf(msg.device.ieeeAddr);
-            if (effectiveGroup) payload.action_group = effectiveGroup;
-            publish(payload);
-        }, sunricherSrZG9002kr12z4StepDeferMs);
-        timer.unref();
-        sunricherSrZG9002kr12z4DeferredSteps.set(key, {timer});
-    };
-};
+// SR-ZG9002KR12-Z4: every command is sent twice, unicast to the coordinator (groupID 0) and to the
+// active group (353..356). Only handle the group copy so action_group is always set and published once.
+// biome-ignore lint/suspicious/noExplicitAny: generic
+const sunricherSrZG9002kr12z4GroupOnly = (converter: Fz.Converter<any, any, any>): Fz.Converter<any, any, any> => ({
+    ...converter,
+    convert: (model, msg, publish, options, meta) => (msg.groupID ? converter.convert(model, msg, publish, options, meta) : undefined),
+});
 
 const fzLocal = {
     SRZGP2801K45C: {
@@ -266,46 +195,31 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff"],
         convert: (model, msg, publish, options, meta) => {
-            const ieeeAddr = msg.device.ieeeAddr;
+            const ieee = msg.device.ieeeAddr;
             const command = msg.type === "commandOn" ? "on" : "off";
-            const group = sunricherSrZG9002kr12z4NoteGroup(msg);
-            const key = `${ieeeAddr}_${command}`;
-            const endpointID = msg.endpoint.ID;
+            const key = `${ieee}_${command}`;
 
             let state = sunricherSrZG9002kr12z4OnOffBurstState.get(key);
             if (!state) {
-                state = {endpoints: new Map(), timer: undefined};
+                state = {endpoints: new Set(), group: undefined, timer: undefined};
                 sunricherSrZG9002kr12z4OnOffBurstState.set(key, state);
             }
 
-            // Each frame arrives twice (groupID 0 and the active group) with the same
-            // sequence number. Count each endpoint once, prefer the non-zero group.
-            const previous = state.endpoints.get(endpointID);
-            if (previous === undefined || (previous === 0 && group !== 0)) {
-                state.endpoints.set(endpointID, group);
-            }
+            state.endpoints.add(msg.endpoint.ID);
+            state.group = msg.groupID;
 
             if (state.timer) {
                 clearTimeout(state.timer);
             }
 
             state.timer = setTimeout(() => {
-                const groups = [...state.endpoints.values()];
-                const endpointIDs = [...state.endpoints.keys()];
-                let action: string;
-                let actionGroup = 0;
-                if (endpointIDs.length >= 3) {
-                    action = `power_${command}`;
+                if (state.endpoints.size >= 3) {
+                    publish({action: `power_${command}`});
                 } else {
-                    actionGroup = groups.find((g) => g !== 0) || sunricherSrZG9002kr12z4GroupOf(ieeeAddr);
-                    action = `${command}_${actionGroup ? sunricherSrZG9002kr12z4GroupToIndex(actionGroup) : endpointIDs[0]}`;
+                    publish({action: `${command}_${[...state.endpoints][0]}`, action_group: state.group});
                 }
-
-                const payload: KeyValue = {action};
-                if (actionGroup) payload.action_group = actionGroup;
-                publish(payload);
                 sunricherSrZG9002kr12z4OnOffBurstState.delete(key);
-            }, sunricherSrZG9002kr12z4OnOffBurstMs);
+            }, sunricherSrZG9002kr12z4OnOffDebounceMs);
 
             return undefined;
         },
@@ -313,69 +227,46 @@ const fzLocal = {
     sunricher_srzg9002kr12z4_color_temp_step: {
         cluster: "lightingColorCtrl",
         type: ["commandStepColorTemp"],
-        convert: sunricherSrZG9002kr12z4MakeStep("color-temp-step", (msg) => ({
+        convert: (model, msg, publish, options, meta) => {
             // The device reports stepmode 1 when rotating towards colder (lower)
             // colour temperature, so map it to color_temperature_step_down.
-            action: msg.data.stepmode === 1 ? "color_temperature_step_down" : "color_temperature_step_up",
-            action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
-        })),
+            const direction = msg.data.stepmode === 1 ? "color_temperature_step_down" : "color_temperature_step_up";
+            return {
+                action: direction,
+                action_group: msg.groupID,
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime / 100,
+            };
+        },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandStepColorTemp"]>,
     sunricher_srzg9002kr12z4_hue_step: {
         cluster: "lightingColorCtrl",
         type: ["commandStepHue"],
-        convert: sunricherSrZG9002kr12z4MakeStep("hue-step", (msg) => ({
-            action: msg.data.stepmode === 1 ? "hue_step_up" : "hue_step_down",
-            action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
-        })),
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? "hue_step_up" : "hue_step_down";
+            return {
+                action: direction,
+                action_group: msg.groupID,
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime / 100,
+            };
+        },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandStepHue"]>,
     sunricher_srzg9002kr12z4_cover_commands: {
         cluster: "closuresWindowCovering",
         type: ["commandUpOpen", "commandDownClose", "commandStop"],
-        convert: sunricherSrZG9002kr12z4MakeStep("cover", (msg) => ({
-            action: (
-                {
-                    commandUpOpen: "curtain_open",
-                    commandDownClose: "curtain_close",
-                    commandStop: "curtain_stop",
-                } as Record<string, string>
-            )[msg.type],
-        })),
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: Record<string, string> = {
+                commandUpOpen: "curtain_open",
+                commandDownClose: "curtain_close",
+                commandStop: "curtain_stop",
+            };
+            return {
+                action: lookup[msg.type],
+                action_group: msg.groupID,
+            };
+        },
     } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["commandUpOpen", "commandDownClose", "commandStop"]>,
-    // Replaces the generic commandsLevelCtrl() converters, whose deduplication
-    // drops the group ID when the groupID 0 copy arrives first.
-    sunricher_srzg9002kr12z4_level_step: {
-        cluster: "genLevelCtrl",
-        type: ["commandStep", "commandStepWithOnOff"],
-        convert: sunricherSrZG9002kr12z4MakeStep("level-step", (msg) => ({
-            action: msg.data.stepmode === 1 ? "brightness_step_down" : "brightness_step_up",
-            action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 10,
-        })),
-    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep", "commandStepWithOnOff"]>,
-    sunricher_srzg9002kr12z4_level_move: {
-        cluster: "genLevelCtrl",
-        type: ["commandMove", "commandMoveWithOnOff"],
-        convert: sunricherSrZG9002kr12z4MakeStep("level-move", (msg) => ({
-            action: msg.data.movemode === 1 ? "brightness_move_down" : "brightness_move_up",
-            action_rate: msg.data.rate,
-        })),
-    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMove", "commandMoveWithOnOff"]>,
-    sunricher_srzg9002kr12z4_level_stop: {
-        cluster: "genLevelCtrl",
-        type: ["commandStop", "commandStopWithOnOff"],
-        convert: sunricherSrZG9002kr12z4MakeStep("level-stop", () => ({action: "brightness_stop"})),
-    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStop", "commandStopWithOnOff"]>,
-    sunricher_srzg9002kr12z4_level_move_to_level: {
-        cluster: "genLevelCtrl",
-        type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
-        convert: sunricherSrZG9002kr12z4MakeStep("level-move-to-level", (msg) => ({
-            action: "brightness_move_to_level",
-            action_level: msg.data.level,
-            action_transition_time: msg.data.transtime / 10,
-        })),
-    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]>,
 };
 
 const tzLocal = {
@@ -1950,11 +1841,11 @@ export const definitions: DefinitionWithExtend[] = [
             fzLocal.sunricher_srzg9002kr12z4_color_temp_step,
             fzLocal.sunricher_srzg9002kr12z4_hue_step,
             fzLocal.sunricher_srzg9002kr12z4_cover_commands,
-            fzLocal.sunricher_srzg9002kr12z4_level_step,
-            fzLocal.sunricher_srzg9002kr12z4_level_move,
-            fzLocal.sunricher_srzg9002kr12z4_level_stop,
-            fzLocal.sunricher_srzg9002kr12z4_level_move_to_level,
-        ],
+            fz.command_move_to_level,
+            fz.command_move,
+            fz.command_step,
+            fz.command_stop,
+        ].map(sunricherSrZG9002kr12z4GroupOnly),
         toZigbee: [],
         exposes: [
             e.action([
@@ -1968,12 +1859,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "off_3",
                 "on_4",
                 "off_4",
-                "brightness_step_up",
-                "brightness_step_down",
+                "brightness_move_to_level",
                 "brightness_move_up",
                 "brightness_move_down",
+                "brightness_step_up",
+                "brightness_step_down",
                 "brightness_stop",
-                "brightness_move_to_level",
                 "color_temperature_step_up",
                 "color_temperature_step_down",
                 "hue_step_up",
