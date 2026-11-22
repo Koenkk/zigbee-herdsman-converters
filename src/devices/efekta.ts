@@ -7214,6 +7214,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 name: "air_enthalpy",
@@ -7256,7 +7257,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "tx_radio_power",
                 lookup: {"4dbm": 4, "19dbm": 19},
                 cluster: "genPowerCfg",
-                attribute: {ID: 0x0236, type: Zcl.DataType.UINT8},
+                attribute: {ID: 0x0236, type: Zcl.DataType.INT8},
                 description: "Set TX Radio Power, dbm",
                 access: "STATE_SET",
             }),

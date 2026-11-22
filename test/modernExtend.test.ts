@@ -36,6 +36,22 @@ describe("ModernExtend", () => {
         expect(extend.exposes?.map((expose) => (expose as Numeric).value_min)).toStrictEqual([10, 10]);
     });
 
+    test("numeric rounds scaled values before writing them", async () => {
+        const extend = numeric({
+            name: "occupied_heating_setpoint",
+            cluster: "hvacThermostat",
+            attribute: "occupiedHeatingSetpoint",
+            description: "Heating setpoint",
+            scale: 100,
+        });
+        const device = mockDevice({modelID: "test", endpoints: [{ID: 1, inputClusters: ["hvacThermostat"]}]});
+        const endpoint = device.getEndpoint(1);
+
+        await extend.toZigbee[0].convertSet(endpoint, "occupied_heating_setpoint", 19.9, {device} as never);
+
+        expect(endpoint.write).toHaveBeenCalledWith("hvacThermostat", {occupiedHeatingSetpoint: 1990}, undefined);
+    });
+
     test("binary preserves explicit per-endpoint optional values", () => {
         const extend = binary({
             name: "state",
@@ -359,6 +375,20 @@ describe("ModernExtend", () => {
             write: {},
             configureReporting: {},
         });
+    });
+
+    test("philips.m.light() for a white-only bulb leaves color keys to a group's color bulbs", () => {
+        const white = philips.m.light().toZigbee ?? [];
+        const color = philips.m.light({colorTemp: {range: [153, 500]}, color: true}).toZigbee ?? [];
+        const whiteKeys = white.flatMap((c) => c.key);
+        expect(whiteKeys).toEqual(expect.arrayContaining(["state", "brightness", "brightness_percent", "transition"]));
+        for (const key of ["color", "color_temp", "color_temp_percent"]) {
+            expect(whiteKeys).not.toContain(key);
+            // Zigbee2MQTT picks a group's converter for a key from its members' converters in
+            // member order, so with the white bulb first the color bulb's must be the one found.
+            const found = [...white, ...color].find((c) => c.key.includes(key));
+            expect(color).toContain(found);
+        }
     });
 
     test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: true})`, async () => {

@@ -16,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 cluster: "metering",
                 power: false,
-                status: true,
+                // No `status`: it is not exposed, and some modules reject its reporting (UNREPORTABLE_ATTRIBUTE)
                 endpointNames: ["1"],
             }),
             m.occupancy({endpointNames: ["1"]}),

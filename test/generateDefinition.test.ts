@@ -1,5 +1,7 @@
 import {describe, expect, test, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
+import {HA_PROFILE_ID} from "zigbee-herdsman/dist/zspec/consts";
+import {ENDPOINT_DEVICE_TYPE} from "zigbee-herdsman/dist/zspec/zcl/definition/consts";
 import {findByDevice, generateExternalDefinitionSource} from "../src";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
@@ -204,6 +206,36 @@ export default {
         });
     });
 
+    test("binary light", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "onoff_light",
+                endpoints: [{profileID: HA_PROFILE_ID, deviceID: ENDPOINT_DEVICE_TYPE.HAOnOffLight, inputClusters: ["genOnOff"], outputClusters: []}],
+            }),
+            meta: {},
+            fromZigbee: [fz.on_off, fz.power_on_behavior],
+            toZigbee: ["state", "on_time", "off_wait_time", "transition", "effect", "alert", "flash", "power_on_behavior"],
+            exposes: ["effect", "light(state)", "power_on_behavior"],
+            bind: {},
+            read: {
+                1: [],
+            },
+            write: {},
+            configureReporting: {},
+            externalDefinitionSource: `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
+
+export default {
+    zigbeeModel: ['onoff_light'],
+    model: 'onoff_light',
+    vendor: '',
+    description: 'Automatically generated definition',
+    extend: [m.light({"brightness":false})],
+};
+            `,
+        });
+    });
+
     test("input(genOnOff, lightingColorCtrl)", async () => {
         const attributes = {
             lightingColorCtrl: {
@@ -216,7 +248,10 @@ export default {
         };
 
         await assertGeneratedDefinition({
-            device: mockDevice({modelID: "combo", endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}]}),
+            device: mockDevice({
+                modelID: "combo",
+                endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"], outputClusters: [], attributes}],
+            }),
             meta: {supportsEnhancedHue: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
@@ -286,7 +321,10 @@ export default {
         };
 
         await assertGeneratedDefinition({
-            device: mockDevice({modelID: "combo", endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}]}),
+            device: mockDevice({
+                modelID: "combo",
+                endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"], outputClusters: [], attributes}],
+            }),
             meta: {supportsEnhancedHue: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
@@ -359,7 +397,7 @@ export default {
             device: mockDevice({
                 modelID: "combo",
                 manufacturerID: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
-                endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}],
+                endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"], outputClusters: [], attributes}],
             }),
             meta: {supportsEnhancedHue: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philips.manuSpecificPhilips2Fz],
@@ -1083,5 +1121,39 @@ export default {
             write: {},
             configureReporting: {},
         });
+    });
+
+    test("input(msTemperatureMeasurement), output(genOta)", async () => {
+        const device = mockDevice({
+            modelID: "ota_device",
+            manufacturerName: "vendor",
+            endpoints: [{inputClusters: ["msTemperatureMeasurement"], outputClusters: ["genOta"]}],
+        });
+        expect((await findByDevice(device, true)).ota).toBe(true);
+        expect((await generateExternalDefinitionSource(device)).trim()).toEqual(
+            `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
+
+export default {
+    zigbeeModel: ['ota_device'],
+    model: 'ota_device',
+    vendor: 'vendor',
+    description: 'Automatically generated definition',
+    extend: [m.temperature()],
+    ota: true,
+};
+`.trim(),
+        );
+    });
+
+    test("input(genOnOff), output(genOta_2)", async () => {
+        const device = mockDevice({modelID: "ota_device_2", endpoints: [{inputClusters: ["genOnOff"]}, {ID: 2, outputClusters: ["genOta"]}]});
+        expect((await findByDevice(device, true)).ota).toBe(true);
+    });
+
+    test("input(genOta) does not enable OTA", async () => {
+        const device = mockDevice({modelID: "ota_server", endpoints: [{inputClusters: ["genOta"], outputClusters: []}]});
+        expect((await findByDevice(device, true)).ota).toBeUndefined();
+        expect(await generateExternalDefinitionSource(device)).not.toContain("ota:");
     });
 });

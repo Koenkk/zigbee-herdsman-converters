@@ -115,15 +115,46 @@ it("retries Code00 until the first chunk request and ignores an earlier Code04",
     await sending;
 });
 
-it("holds a send behind an active learn until the learn stops", async () => {
+it("sends while learning is active", async () => {
     const ep = endpoint();
     await learn(ep, "ON");
     const sending = send(ep);
     await vi.advanceTimersByTimeAsync(0);
-    expect(ep.command).toHaveBeenCalledTimes(1);
-    await learn(ep, "OFF");
-    await vi.advanceTimersByTimeAsync(0);
+    expect(ep.command).toHaveBeenCalledTimes(2);
     expect(ep.command).toHaveBeenLastCalledWith("zosungIRTransmit", "zosungSendIRCode00", expect.anything(), expect.anything());
     await complete(ep, 0);
     await sending;
+});
+
+it("does not queue a send behind repeated learn starts", async () => {
+    const ep = endpoint();
+    await learn(ep, "ON");
+    await learn(ep, "ON");
+    await learn(ep, "ON");
+    const sending = send(ep);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(ep.command).toHaveBeenCalledTimes(4);
+    expect(ep.command).toHaveBeenLastCalledWith("zosungIRTransmit", "zosungSendIRCode00", expect.anything(), expect.anything());
+    await complete(ep, 0);
+    await sending;
+});
+
+it("sends the study command that matches a learn start and stop", async () => {
+    const ep = endpoint();
+    await learn(ep, "ON");
+    await learn(ep, "OFF");
+    expect(ep.command).toHaveBeenNthCalledWith(
+        1,
+        "zosungIRControl",
+        "zosungControlIRCommand00",
+        {data: Buffer.from(JSON.stringify({study: 0}))},
+        expect.anything(),
+    );
+    expect(ep.command).toHaveBeenNthCalledWith(
+        2,
+        "zosungIRControl",
+        "zosungControlIRCommand00",
+        {data: Buffer.from(JSON.stringify({study: 1}))},
+        expect.anything(),
+    );
 });
