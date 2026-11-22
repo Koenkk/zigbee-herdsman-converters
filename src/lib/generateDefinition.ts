@@ -369,16 +369,15 @@ async function extenderPowerCfg(device: Zh.Device, endpoints: Zh.Endpoint[]): Pr
 
     const args: m.BatteryArgs = {};
     const endpoint = endpoints[0];
-    await discoverAttributes(endpoint, "genPowerCfg", true);
+    const attrs = await discoverAttributes(endpoint, "genPowerCfg", true, device);
 
-    const attrs = endpoint.clusters["genPowerCfg"]?.attributeList;
-
+    // keep defaults
     if (attrs) {
         // keep percentage by default
-        args.percentage = endpoint.hasClusterAttribute("genPowerCfg", "batteryPercentageRemaining") !== false;
+        args.percentage = attrs.batteryPercentageRemaining !== undefined;
         args.percentageReporting = args.percentage ? ((attrs.batteryPercentageRemaining?.access ?? 0x04) & 0x04) !== 0 : false;
 
-        args.voltage = endpoint.hasClusterAttribute("genPowerCfg", "batteryVoltage");
+        args.voltage = attrs.batteryVoltage !== undefined;
         args.voltageReporting = ((attrs.batteryVoltage?.access ?? 0) & 0x04) !== 0;
 
         if (!args.percentage && !args.voltage) {

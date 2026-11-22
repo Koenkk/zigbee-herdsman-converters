@@ -28,8 +28,13 @@ describe("GenerateDefinition", () => {
                 return Promise.reject(new Error("discovery failed"));
             }
 
-            endpoint.saveClusterAttributeDiscovery("genPowerCfg", attributes ?? [], true);
-            return Promise.resolve();
+            const discoveredAttributes = Object.fromEntries(
+                (attributes ?? []).map(({attrId, access}) => [
+                    attrId === 0x0021 ? "batteryPercentageRemaining" : attrId === 0x0020 ? "batteryVoltage" : String(attrId),
+                    {type: attrId === 0x0021 ? 0x18 : 0x20, access},
+                ]),
+            );
+            return Promise.resolve(discoveredAttributes);
         });
 
         return generateExternalDefinitionSource(device);
@@ -80,7 +85,7 @@ describe("GenerateDefinition", () => {
     });
 
     test("input(genPowerCfg) without battery attributes generates no battery extend", async () => {
-        const source = await generateBatterySource([]);
+        const source = await generateBatterySource([{attrId: 0x0022}]);
 
         expect(source).toContain("extend: [],");
         expect(source).not.toContain("m.battery(");

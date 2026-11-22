@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawAttributeKeys, ClusterOrRawAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
+import type {Clusters} from "zigbee-herdsman/dist/controller/model/endpoint";
 import type {Light, Numeric} from "./exposes";
 import {logger} from "./logger";
 import * as globalStore from "./store";
@@ -20,6 +21,7 @@ import type {
 } from "./types";
 
 const NS = "zhc:utils";
+const DISCOVER_EXT_UNSUPPORTED_META_KEY = "zclDiscoverExtUnsupported";
 
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
@@ -589,28 +591,42 @@ export async function getClusterAttributeValue<
     }
 }
 
-export async function discoverAttributes<Cl extends string>(endpoint: Zh.Endpoint, cluster: Cl, extended?: boolean) {
-    if (endpoint.hasClusterAttributes(cluster, extended)) {
-        return;
+export async function discoverAttributes<Cl extends string>(endpoint: Zh.Endpoint, cluster: Cl, extended?: boolean, device?: Zh.Device):
+Promise<Clusters[string]["attributeList"] | undefined> {
+    const attrs = endpoint.clusters[Zcl.Utils.getCluster(cluster).name]?.attributeList;
+    if (extended && device?.meta[DISCOVER_EXT_UNSUPPORTED_META_KEY]) {
+        extended = false;
     }
+    if (attrs && Object.keys(attrs).length > 0 && (!extended || Object.values(attrs)[0].access)) {
+        return attrs;
+    }
+    let result: Clusters[string]["attributeList"] | number;
     try {
-        const result = await endpoint.discoverAttributes(cluster, extended, {
+        result = await endpoint.discoverAttributes(cluster, extended, {
             sendPolicy: "immediate",
             disableRecovery: true,
             disableDefaultResponse: true,
         });
-        if (!result && extended && !endpoint.hasClusterAttributes(cluster)) {
-            // fallback if extended command is unsupported
-            await endpoint.discoverAttributes(cluster, false, {
-                sendPolicy: "immediate",
-                disableRecovery: true,
-                disableDefaultResponse: true,
-            });
+        if (extended && result === Zcl.Status.UNSUP_COMMAND) {
+            // extended command is unsupported
+            if (device) {
+                device.meta[DISCOVER_EXT_UNSUPPORTED_META_KEY] = true;
+            }
+            if (attrs === undefined || Object.keys(attrs).length === 0) {
+                result = await endpoint.discoverAttributes(cluster, false, {
+                    sendPolicy: "immediate",
+                    disableRecovery: true,
+                    disableDefaultResponse: true,
+                });
+            } else {
+                result = attrs;
+            }
         }
     } catch (error) {
         const message = (error as Error).message;
         logger.debug(`discovery error in cluster ${cluster}: ${message}`, NS);
     }
+    return result instanceof Object ? result : undefined;
 }
 
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
