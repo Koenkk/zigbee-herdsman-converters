@@ -5381,7 +5381,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiKnobRotation(),
             lumiElectricityMeter(),
-            lumiPower(),
+            lumiPower({reporting: false}),
             lumiZigbeeOTA(),
         ],
     },
