@@ -9,6 +9,18 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ROB_200-082-0"],
+        model: "ROB_200-082-0",
+        vendor: "ROBB",
+        description: "4-button wireless Zigbee switch",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
         zigbeeModel: ["ROB_200-011-1"],
         model: "ROB_200-011-1",
         vendor: "ROBB",

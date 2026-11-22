@@ -1,5 +1,338 @@
 # Changelog
 
+## [26.136.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.135.0...v26.136.0) (2026-11-22)
+
+
+### Features
+
+* Add Atlantic Agilia+ radiators ([#13892](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13892)) ([e1bda41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1bda41d012ead4bce9ea01ab115329f8870fed7))
+* **add:** 069062 ([#13875](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13875)) ([dc4c077](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dc4c0771121db1318572bec35c89c8a8200aa878))
+* **add:** 100050768800 https://github.com/Koenkk/zigbee2mqtt/issues/33777 ([d1c26d2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d1c26d21dec746200f378ada1506fa7415b6bf6a))
+* **add:** 9290038538A ([#13897](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13897)) ([9488e60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9488e607f610eff307b61a2d002e5abbf4ffe655))
+* **add:** CAM-Router ([#13864](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13864)) ([551f238](https://github.com/Koenkk/zigbee-herdsman-converters/commit/551f238c1e18e3896c8649205ed7205de1a80c03))
+* **add:** MS-JT-63 ([#13874](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13874)) ([aee6b79](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aee6b799707b5a9e64fd2fffad94b6168c5782e9))
+* **add:** MS-TRI-ZB ([#13860](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13860)) ([a886c81](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a886c81f571e707b34c67f92b6fff6b15ac14031))
+* **add:** TS0601_floor_thermostat_jrtvxwvy https://github.com/Koenkk/zigbee2mqtt/issues/33766 ([f9f83c5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9f83c5194e53acdd6f415bdfe20f42a2bb80222))
+* **add:** ZB-Keyfob-D0000 ([#13877](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13877)) ([e6c9afd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e6c9afdff9968281b20f0fa9424ff0c32a3b2a64))
+* Aqara FP400: expose detection areas and spatial learning ([#13859](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13859)) ([57ee53c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57ee53c8901364468d0f837666c63306b497570b))
+* Bosch BMCT-RZ: expose auto-off settings and fix switch controls ([#13888](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13888)) ([3f16a42](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f16a42398824ecd81f7f7d0d5dd391b76663c21))
+* Ecolink 4655BC0-R: expose battery percentage and voltage ([#13882](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13882)) ([0cfd054](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0cfd054102c2eaf3e5d053e764c9330e8a528c55))
+* Hive SLT2: expose temperature ([#13880](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13880)) ([3f978e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f978e4fb2256bec68a65a8f90d91f0a29eccac8))
+* Tuya TS0601_6gang_switch_2: support separate ON/OFF indicator colours ([#13609](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13609)) ([9d19151](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d19151d867e96bac907e5aa249517cb2d7acb9a))
+* Tuya WHD02: expose inching control ([#13879](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13879)) ([9bb230d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bb230d6bd294a459abee1bb5a9bb4fb868c5fd9))
+
+
+### Bug Fixes
+
+* Aqara LLKZMK12LM: report energy correctly on firmware 33 and newer ([#13872](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13872)) ([3bc5cf0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3bc5cf0ec2da740252ca61229f0c71a056e0cf2c))
+* Aqara ZNXNKG01LM: fix configuration failing ([#13893](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13893)) ([4e42997](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4e42997a348790b4330afa947dfbca202b67d0f6))
+* Definition generator: binary lights and multi ep in generateDefinitions ([#13887](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13887)) ([5736121](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57361213104b60485fd2846d535402adba5304c2))
+* **detect:** Detect `EBF_RGB_Zm` as EGLO 901466 ([#13886](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13886)) ([0940440](https://github.com/Koenkk/zigbee-herdsman-converters/commit/094044014822c4ef3780f2cb831d6d4f2d23b436))
+* Dresden Elektronik FLS-M: apply transitions when turning on or off ([#13878](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13878)) ([8fe5f9b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8fe5f9bdd50095f0cb941a3b14f7979a8b26bb7d))
+* **ignore:** bump @biomejs/biome from 2.6.7 to 2.6.8 in the minor-patch group ([#13896](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13896)) ([03842d0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03842d05ae718320ebf082320bf7cf01e2fc0f77))
+* Lincukoo SZLR08T: fix inverted `relay_mode` auto and manual values https://github.com/Koenkk/zigbee2mqtt/issues/33765 ([4b29951](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b29951a92e058baeed8fc701cd1eb6c60b9daac))
+* Moes ZHT-S03: apply weekday and holiday schedules correctly ([#13870](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13870)) ([5b019b6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5b019b6f4edc57b86771c1db0fe05742ad5079e9))
+* Tuya PJ-MGW1203: fix `energy` resetting instead of accumulating https://github.com/Koenkk/zigbee2mqtt/issues/33760 ([a2d7043](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a2d7043e2a8fa3dd1605ca12357ecf840c18dc5e))
+* Tuya TO-Q-SYS-JZT, PRO-900Z and MTD085-ZB, and Avatto TRV26: accept all exposed setting values ([#13848](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13848)) ([c4b7a7f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4b7a7f222884ce14677df064fa627879a86f5ce))
+* Zosung IR blaster: allow transmitting while learning an IR code ([#13894](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13894)) ([4b3de26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b3de26dde67063e6099169bc394fa7866c72677))
+
+## [26.135.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.134.0...v26.135.0) (2026-11-19)
+
+
+### Features
+
+* **add:** CB0450 ([#13866](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13866)) ([0ada57f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0ada57fc6c9d2f996de69684157ee517781ef63f))
+* Namron 4512788: expose energy metering and dimming settings ([#13867](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13867)) ([fd22e1d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd22e1d0fb3829f7f91ae0986129ba3ae8abfbb9))
+* Plugwise 170-01: expose `preset` selection and heating and cooling setpoints ([#13861](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13861)) ([6f8db00](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6f8db00f82c470cc70441563f48b861ed9c2b165))
+
+
+### Bug Fixes
+
+* Shelly BLU TRV: apply settings reliably across sleep periods ([#13842](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13842)) ([9cacc3b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9cacc3b796e0456e49b58e15845ff4240b5f918f))
+
+## [26.134.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.133.0...v26.134.0) (2026-11-18)
+
+
+### Features
+
+* **add:** L1-E, H1-E ([#13852](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13852)) ([b231387](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b231387c0bef699cbd8dcacf9d05f24bbc7988c9))
+* **add:** RST-2GCCZG ([#13844](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13844)) ([1022a77](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1022a779f3ef11cd8671d963ad1a7a39d8719421))
+* Aqara FP400: expose positions of tracked people and pets ([#13836](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13836)) ([38192bd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38192bdc3adb1407acebeb8fba8080c8c167e8c3))
+* Plugwise 170-01: expose `override_outdoor_temperature` and `weather_icon` on the home screen ([#13857](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13857)) ([e5a2f27](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5a2f2788139b69207ecadccdc99a71aaab977f1))
+* SONOFF MINI-ZB2GS-L: expose external switch actions ([#13854](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13854)) ([9836843](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9836843e25b2397ec79f0a1e3c21e3b8e26e8a13))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_sjb7pafq` as AVATTO ZWSM16-2 and `_TZ3000_9il3ag1z` as AVATTO ZWSM16-DC-1 ([#13855](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13855)) ([e8bab44](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8bab441def982a2b7f3d98807f16068b7c51898))
+* **detect:** Detect `_TZE2841000000_sonkaxrd` as Nous E12 https://github.com/Koenkk/zigbee2mqtt/issues/33731 ([197f8a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/197f8a795cea6ea75508b7ee2c1dced1410f22d2))
+* **detect:** Detect `_TZE28C1000000_ac0fhfiq` as Tuya TS0601_bidirectional_energy meter ([#13849](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13849)) ([0d5153e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0d5153eb41e03c79b0046db02902eb983ee9b7f0))
+* **detect:** Detect `_TZE28C1000000_cvub6xbb` as Tuya TGM50-ZB https://github.com/Koenkk/zigbee2mqtt/issues/33732 ([499256d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/499256d998205a39cb9c0752637cc24ed91c41ae))
+* **detect:** Detect `_TZE28C1000000_fjms2pi9` as Nova Digital MS-DM-ZB-2 ([#13851](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13851)) ([a8f94f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a8f94f39a084c2f3f566aab637842256c92919e6))
+* Sber SBDV-00199 and SBDV-00200: stop exposing unsupported button mode ([#13850](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13850)) ([d61906d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d61906d6318a8f34f45e91c7330d378ea3e529f5))
+* Schneider Electric EKO07259: revert exposing `temperature_ambient` and `temperature_floor` ([#13706](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13706)) ([2fde05e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2fde05ec771103fa7bb246a30cb02677537faeb1))
+* Zemismart ZMS-206: fix warm white and warm yellow color control ([#13847](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13847)) ([a395e57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a395e578f6515604bd774cff992ccad2f69dc967))
+
+## [26.133.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.132.0...v26.133.0) (2026-11-16)
+
+
+### Features
+
+* **add:** 100050072300 ([#13787](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13787)) ([1fb2ba2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fb2ba2aba2ca37a947735d0ccb9c1655b9653c0))
+* **add:** FL 290 C ([#13843](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13843)) ([017cbbe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/017cbbeeb3d4c9baf51d7e62fb4bf99cb136617f))
+* **add:** HS209Z ([#13701](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13701)) ([b7ff61e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7ff61e373dcca5d4dcb6ac88bbd62b00b516987))
+* **add:** T3E_mua6ucdj ([#13834](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13834)) ([3cf3fac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3cf3fac6fbb4cbc20e205cbfdfd3d4652d0d0736))
+* **add:** VB-FTW-A19, VB-RGBTW-A19 ([#13829](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13829)) ([f368dcd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f368dcd1336b59d88702c98905ba30b7103d9db2))
+* Repenic Ltd. RD-250ZG: expose sleep, sunrise and moonlight schedules ([#13791](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13791)) ([868dd0a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/868dd0ab37c4c95743dcaf47897072c564466875))
+* SONOFF TP-WGZBA: expose `ntc_temperature` as a numeric sensor ([#13741](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13741)) ([b09d9a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b09d9a46fcee1f8e3df281fa6629b4be2b89e05e))
+* Tuya ZP01: expose `sensitivity` and `keep_time` ([#13840](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13840)) ([240b645](https://github.com/Koenkk/zigbee-herdsman-converters/commit/240b645caf5f17daaaab821f729ccd5935480c01))
+
+
+### Bug Fixes
+
+* Chayo devices: report the updated brand name ([#13841](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13841)) ([c52672f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c52672f3ad1acb925e816354a022765c389f14a0))
+* **detect:** Detect `_TZE2841000000_kyyu8rbj` and `_TZE2841000000_7uqwvoua` as Tuya ME201WZ ([bdbd553](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdbd553087fa6203edf84257b192b51a174334a3))
+* Tuya ME201WZ: clarify that `liquid_depth_max` sets the full tank depth ([#13808](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13808)) ([ab9491b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab9491b21b347b23187c38a267b6ac2a7ea6f7f4))
+
+## [26.132.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.131.0...v26.132.0) (2026-11-15)
+
+
+### Features
+
+* **add:** FP400 ([#13812](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13812)) ([dd14ed3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd14ed35964d13e513bda51578643dc4080866f9))
+* **add:** IFR 7001 ([#13801](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13801)) ([0b239eb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b239eb93654e717f22ac65dbc256f564a6d1837))
+* **add:** SP-P06D ([#13819](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13819)) ([11c5f85](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11c5f85afe8027e85c407774bf65949ef7b5d43c))
+* **add:** TH03 ([#13837](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13837)) ([3eb476f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3eb476f8f1200a753a3e449b7912dbbc34a866f7))
+* **add:** TS0601_GIRIER ([#13824](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13824)) ([4ef6642](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ef6642c9167edd3ff32075fab78a6988b173c0e))
+* Legrand WNRR15/WNRR20: add 064887 whitelabel, LED, identify, power_apparent and power_on_behavior ([#13835](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13835)) ([9dd3af2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9dd3af2866ee15fd737148cdbd3e0bc088c7257a))
+* Schneider Electric EER53000: expose `window_open`, add limescale protection and fix setpoint changes not reaching the valve ([#13548](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13548)) ([fb513ed](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb513ed2be9759570cfef7ffa5cef77aedad7c83))
+* Sinopé RM3500ZB: expose `keypad_lockout` ([#13826](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13826)) ([f12e377](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f12e377e7d641edd1e6f5936b49f71c2f4fd9d37))
+* support OTA updates for devices with a generated definition ([#13813](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13813)) ([97e94c0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97e94c08f55fe219c86a998a31699871d30c6ac5))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE28C1000000_gxbdnfrh` as Nova Digital SA-6 ([#13815](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13815)) ([4a16c84](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a16c8411eb0d42c73ecbfe9d190db5753aff7da))
+* **detect:** Detect `_TZE28C1000000_uqfph8ah` as BSEED BSEED_TS0601_cover ([#13822](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13822)) ([8a8c00d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8a8c00dfd02a116891464022926adce33eba052b))
+* **detect:** Detect `929004610902` as Philips 929004610902 ([#13828](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13828)) ([81d6863](https://github.com/Koenkk/zigbee-herdsman-converters/commit/81d68630793ec389522dd9f83fc848f77d27f315))
+* **detect:** Detect `Wing` as Shenzhen Forever Young Technology UZ-05T ([#13838](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13838)) ([c44a51a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c44a51a02af5b8bca7b8b0cb37d37136d244147a))
+* Excellux ZG-109TDS: clarify water quality sensor description ([#13811](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13811)) ([7535b48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7535b48a9322a9817cd36f04b1b60dc582f38ec3))
+* Fix rounding of send scaled values ([#13833](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13833)) ([cd1bd26](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd1bd265e1f04e108baaa19b057f41f7fab28079))
+* **ignore:** bump @biomejs/biome from 2.6.5 to 2.6.7 in the minor-patch group ([#13827](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13827)) ([ca5a2ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca5a2ef3ea036306c4752b52ee80da06cce37ff7))
+* IKEA STARKVIND: report fan speed percentage correctly in auto mode ([#13821](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13821)) ([cff0cd5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cff0cd56a7b074bb4a715a5bcfa3168e74bd57c9))
+* Intuis intuisradiator: fix occupancy reporting after pairing ([#13831](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13831)) ([3160890](https://github.com/Koenkk/zigbee-herdsman-converters/commit/31608905c906424a2f7abf245a99d6af643c1d9b))
+* Legrand 067776A, 067776: skip tilt reporting when unsupported https://github.com/Koenkk/zigbee-herdsman-converters/issues/13823 ([a8de0c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a8de0c9782ac86a3f1ab79a7a8f60c814dcd0ab8))
+* Moes BHT-002: allow `min_temperature_limit` up to 10 °C https://github.com/Koenkk/zigbee2mqtt/issues/33715 ([5ef4f98](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ef4f9864a9b4ef412dffa628a15411acac3c228))
+* Nobø SWT-IZ and SPC-IZ: fix stale thermostat state after restart ([#13807](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13807)) ([8984240](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8984240686ac715313cd83fcf215e0cb99dbda8c))
+* Tuya ME202WZ: allow liquid depth readings above the reported installation height ([#13832](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13832)) ([9049f8f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9049f8f9ffc5bd9a3d333bbea93ae7437f0e7200))
+* Tuya Nuos A7Z: hide unsupported switch type button option ([#13814](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13814)) ([490d101](https://github.com/Koenkk/zigbee-herdsman-converters/commit/490d101f487f412a59e7771a9bcba7a906cb2133))
+* Vesternet VES-ZB-WAL-006, VES-ZB-WAL-011 and VES-ZB-WAL-012: fix incorrect battery percentage on newer firmware ([#13818](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13818)) ([fd1fe65](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd1fe65e6bd77d2f859077365bfb9a8f8174ade0))
+
+## [26.131.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.130.0...v26.131.0) (2026-11-13)
+
+
+### Features
+
+* **add:** HPM-300-WZ ([#13802](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13802)) ([397dda7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/397dda75c80add249c21cd727edf13d17f9abf1d))
+* **add:** SS-Z2N ([#13792](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13792)) ([41a342b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/41a342baf031f24757dbb8ee77ccb30393283637))
+* **add:** TS0601_lqhqj73n ([#13793](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13793)) ([8ccd0e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ccd0e0af2ae0318698f611c1b863b555091f5a8))
+* Danfoss 014G2461: expose per-day heating schedules ([#13785](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13785)) ([6636ae9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6636ae9bf84370e97f31bdfd69eca15c24402a8f))
+* Heiman HS9MS: expose `camera_image_size` and `camera_video_duration` ([#13794](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13794)) ([39c892a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39c892ab68a8ef3b91fd5ec2158b6092a2b4f953))
+* Plugwise 170-01: support firmware updates ([#13795](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13795)) ([fa6ddf8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fa6ddf85700ea0b1667d5b3c3b87ca394218eeff))
+* Schneider NH3516A: expose `indicator_mode` to control the indicator light ([#13797](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13797)) ([acde2a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/acde2a4ce822dfd213a0e2ac23768c34d5238ed4))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3002_wowrpxxu` as Tuya TS0726_1_gang https://github.com/Koenkk/zigbee2mqtt/issues/33677 ([ad43c48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad43c4882d5ed0586b1ef00eb734d3d72feaf14f))
+* Paulmann 291.50: add additional fingerprint ([#13790](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13790)) ([64ac11e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64ac11ec74502ad5df027aa9f90819609d1f41c1))
+* Tuya Nuos A7Z: expose switch type button ([#13803](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13803)) ([c5608e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5608e708c0da0bcc6ed788764ba7919628a9e41))
+
+## [26.130.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.129.0...v26.130.0) (2026-11-11)
+
+
+### Features
+
+* **add:** 929003858301 ([#13779](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13779)) ([c5ce802](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5ce802b48442bf5b8acc732f6bfed8d74f96524))
+* **add:** GWA1221 ([#13784](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13784)) ([d01883e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d01883ed10c2516dade741073b1506ab88080a11))
+* **add:** SC6 ([#13769](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13769)) ([fd9d5f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd9d5f8740c46bf94f8a82b35a519be3338dbf4a))
+* HEIMAN HS9MS: support more features ([#13771](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13771)) ([b2708a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2708a5e79afe1ed858c6eeb1aa0d1bdb16ea963))
+* Schneider Electric CCT5010-0003: expose `action_l1` and `action_l2` for scene actions ([#13775](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13775)) ([e9346bd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e9346bd1cedd5c0222ef8d46a271cc68546e278f))
+* Tuya IH-K663: expose hold action ([#13788](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13788)) ([3375f53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3375f53cbc5645499b75172c82aa9ef8de966f9b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE28C1000000_lbhh5o6z` as AVATTO ZWSMD-4 ([#13776](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13776)) ([972de3d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/972de3d42d876e6989459fc5615bc3669950b1e3))
+* **detect:** Detect `PIIC540B` as Paulmann 291.53 ([#13780](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13780)) ([73f3474](https://github.com/Koenkk/zigbee-herdsman-converters/commit/73f347499c2cf178e127e777873d509686b441bf))
+* Ekaza EKGD-T4085P-4Z: fix configuration failing on startup ([#13767](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13767)) ([5850300](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5850300eec41a4d45914912df9daf86baa8a037a))
+* HOBEIAN ZG-101ZD: allow configuration to complete when operation mode reads are unsupported ([#13786](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13786)) ([a2e45ee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a2e45eeea0b263a0eb22af8396dfe9634bff6b6c))
+* Powernity / Xanlite PO-BOCO-ELEC: fix schedule times incorrect https://github.com/Koenkk/zigbee2mqtt/issues/33631 ([f4ce2a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f4ce2a6e29ef0759e79f9f88c6b6ce8f16fd3e7e))
+* Prevent duplicate vendor names ([#13778](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13778)) ([fb9f9e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb9f9e38f8ba6e683052ec5b317a069a70ab1425))
+* Schneider Electric EER51000: allow temperature adjustment ([#13747](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13747)) ([d9b6280](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9b62808cd237934710906879041272f5738d385))
+* Thermor 400704 - 100040070400: report `running_state` correctly ([#13777](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13777)) ([8ee3bf4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ee3bf4c4019488ca2fa75d23cf7c095edf96f7f))
+
+## [26.129.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.128.0...v26.129.0) (2026-11-09)
+
+
+### Features
+
+* add ECODO DR-MW-2436 as white label of TS0502B ([#13725](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13725)) ([0955356](https://github.com/Koenkk/zigbee-herdsman-converters/commit/09553568922a4b90b9f2e174dfb9d1aac9b2ab0e))
+* **add:** 100040070400 ([#13742](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13742)) ([2db0814](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2db08143f8475b1be0309fd28fe2ddaf9a5a8a92))
+* **add:** D1-E ([#13753](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13753)) ([4ea6e16](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ea6e165bb727acd1625c3c7285bfee3747c20a3))
+* **add:** ME173 ([#13731](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13731)) ([0454974](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0454974648d034ce7233cc114a4cc4329dd0040e))
+* **add:** mTouch_OnOff ([#13734](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13734)) ([549bdb6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/549bdb6d6ceff40718d59488f3c28daaa70f440f))
+* **add:** RS-T03AZG ([#13728](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13728)) ([e6ffc33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e6ffc331c1a77f8013ee03bb229469923eb5bb72))
+* **add:** SA-WK 4X4 ([#13758](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13758)) ([66a5fff](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66a5fff194107aa59aec3dbe61d31d9450b8c19e))
+* **add:** SQ610NH ([#13730](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13730)) ([410d08d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/410d08d83fe7664f3014c93d2961bf8b063f6bf4))
+* **add:** visspoint-io4 ([#13675](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13675)) ([ba40aa5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba40aa51769f7dd0180f1a460ba7a422cf5a27f1))
+* **add:** W08-Z10T ([#13760](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13760)) ([2eb99b1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2eb99b1d47e8d3adfb096fefa5f7110b03f24d4f))
+* EGLO 12224/12245 white-labels, factory-firmware fingerprint for AwoX 12226 ([#13739](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13739)) ([bad63a8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bad63a847ca4236f4073f105f586844ff3d7793f))
+* OSRAM AB32840 and AC03641: expose `power_on_behavior` ([#13717](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13717)) ([ca5b941](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca5b941ae78556bc10389e69c2890ef2e3532416))
+* Shelly Dimmer Gen4: expose SW1/SW2 button presses as actions ([#13744](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13744)) ([c2533fb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c2533fb6a685133cdad5aa27565ab050a9c4eb04))
+* Tuya ME201WZ: allow level readings to update in fast-changing tanks ([#13716](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13716)) ([27b1846](https://github.com/Koenkk/zigbee-herdsman-converters/commit/27b1846008bc8f4a20b8c433ce8e9f23a942588b))
+
+
+### Bug Fixes
+
+* Aqara WSDCGQ12LM: fix configure failing ([#13762](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13762)) ([8557de9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8557de94454c66088fe346cda4b5b4fabc117191))
+* **detect:** Detect `_TZ3210_n0wbkysi` as Tuya _TZ3000_mw1pqqqt ([#13761](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13761)) ([70ac25d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70ac25d5e903fbffc0fa3c83cc6bb7798c7eea61))
+* **detect:** Detect `_TZB210_azjhlyvy` as MiBoxer FUTC04ZR ([#13754](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13754)) ([30f786f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/30f786f158125fbad7dee32758a8894b3f60b761))
+* **detect:** Detect `_TZE204_kwi6bbk4` as Tuya ZTH13 ([#13756](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13756)) ([cd06273](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cd06273159b0c4de03aa5781ef6b9ce3ab10dfe7))
+* **detect:** Detect `_TZE284_pfbtmgo1` as Sygonix W08-Z10T ([#13763](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13763)) ([7ecb15b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ecb15ba7183a4d4a93996fb72ffc15409f2a8a4))
+* **detect:** Detect `324131137411` as Philips 324131137411 ([#13745](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13745)) ([0e8a39f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0e8a39fddf62199767fbe1621241ccda3029cb09))
+* **detect:** Detect `teelicht-nrf` as teelicht pro teelicht ([#13733](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13733)) ([6021d2d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6021d2dd16495bed1f776359fdb76e9e2dc81bea))
+* EFEKTA EFEKTA_TH_POW: fix TX radio power control ([#13755](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13755)) ([7ac674f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ac674f372af3239a5e796c5fb5811d08ff3ea1b))
+* **ignore:** bump the minor-patch group with 3 updates ([#13735](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13735)) ([4578191](https://github.com/Koenkk/zigbee-herdsman-converters/commit/45781911fef446d63af58c8dd964eaf5e7cc651b))
+* **ignore:** lint ([7c2c655](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c2c6552dd684ece4138e1752defd8af3a20556a))
+* Legrand 067771: fix configuration failing on non-dimmer units ([#13737](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13737)) ([3768cf8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3768cf83c7a4a12324943c0713418142f349796d))
+* Legrand 067776A: report `moving` on request and preserve movement direction ([#13608](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13608)) ([aff8131](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aff8131e604842cd04b59bbae9e5bbd0411800f1))
+* SONOFF S60ZBTPF, S60ZBTPG, BASIC-ZB1GSP, MINI-ZB1GSP, MINI-ZB1GP and S61SZBTPB: show distinct energy sensor names in Home Assistant ([#13749](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13749)) ([f0cd63b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f0cd63ba471ace66d312deac8a259ae7939626c2))
+* SONOFF SNZB-02D, SNZB-02DR2, SNZB-02UL and ZigbeeTLC devices: keep comfort temperature limits distinctly named in Home Assistant ([#13748](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13748)) ([6e29f6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e29f6a62b6ab04878091563faec8b33a8f781ee))
+* SONOFF SNZB-03: correctly identify SNZB-05 water leak sensors ([#13746](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13746)) ([d220c89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d220c896acf1489051ec4113ed219fd20bfadd2e))
+* SONOFF SNZB-03: fix not identified when modelId is `ms01` https://github.com/Koenkk/zigbee2mqtt/issues/33654 ([00b764b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/00b764b97bc504571e2680c6fdbed4fbcdb88d8c))
+* SONOFF, RTI-Tek, Heiman, EFEKTA and Shelly: keep derived sensor names in Home Assistant ([#13719](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13719)) ([7d7249b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d7249b4cf213665befa667a0388ecccfec7ed5e))
+* TS0601_rcbo: allow a 50 V under-voltage threshold ([#13732](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13732)) ([d0ac192](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0ac19210eeb484a37c5733d9eaa8972839a49b2))
+* Tuya SDM01: report voltage, current, power and energy correctly across device variants ([#13729](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13729)) ([f2604a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f2604a2f92bbd0a41bf6e1cb84e71f405b2aeb80))
+
+## [26.128.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.127.0...v26.128.0) (2026-11-06)
+
+
+### Features
+
+* **add:** AirBee ([#13714](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13714)) ([2a81148](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a81148f4d6a728eda329a61bbb6221bd672f9a9))
+* **add:** LS12136 ([#13721](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13721)) ([a281ee5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a281ee54a3dca449a5581844e72fa49cc36ecfbc))
+* **add:** micro-duo ([#13700](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13700)) ([6a3a640](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6a3a640baafcd52148fa8601c951be189f7eb7a6))
+* **add:** ROB_200-082-0 ([#13720](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13720)) ([d40828e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d40828e4e9d7f2f98e71c2cb851599551207cd80))
+* **add:** T30S3Z ([#13711](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13711)) ([ae9c07c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae9c07cc5b0d48538aa57ed6f39039d0ef702c16))
+* **add:** TS0601_ND_4Gang ([#13722](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13722)) ([aa20b15](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa20b15ffb69cb7b4b459351184c68250587e739))
+* **add:** ZIGBEE_ERL ([#13410](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13410)) ([c5b6a87](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5b6a878646bfff5ca95ef9cdce25ab4f1419006))
+* **add:** ZREL ([#13703](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13703)) ([640f29a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/640f29a3d80dfc0abd4f6ed3a6627cff2876fd12))
+* Aqara SP-P05D: expose indicator light state, brightness and color ([#13697](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13697)) ([de2be86](https://github.com/Koenkk/zigbee-herdsman-converters/commit/de2be8631bad2fb3f21884f59b0d1dafed4e001d))
+* NodOn SIN-4-RS-20: expose `calibration_auto_adjust` and let users keep manual calibration values and disconnect the wired input ([#13715](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13715)) ([13b05b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/13b05b5f5cf1a8301206a71e4459663f89e3cd93))
+* Nous D1Z: expose alarms, faults and device settings ([#13698](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13698)) ([62b417e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/62b417ee3f5dd51c30ad8b3c9c647fb6d1bc163d))
+* Schneider Electric EKO07259: expose `temperature_ambient` and `temperature_floor` ([#13706](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13706)) ([34c6b92](https://github.com/Koenkk/zigbee-herdsman-converters/commit/34c6b92b18f22d246f7aa7de54f0efc2db7d33fa))
+* Sunricher ZG2835: expose battery and voltage ([#13699](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13699)) ([58b6a09](https://github.com/Koenkk/zigbee-herdsman-converters/commit/58b6a099d1b8c3443836291e92efb12118c6e307))
+
+
+### Bug Fixes
+
+* Beok BOT-R9V-ZB: expose all six daily schedule periods and keep the thermostat clock accurate ([#13713](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13713)) ([3ab76ef](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ab76ef1b9c77c48865ccd118b309598ddb08f12))
+* **detect:** Detect `_TZ3000_a8mhmsol` as Tuya _TZ3000_a8mhmsol ([#13707](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13707)) ([3f02cc6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f02cc6df9b4b6618990883a5a2fcf72502c500e))
+* **detect:** Detect `Ysia 5 Zigbee Europe` as Somfy 1871158 ([#13705](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13705)) ([06735fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/06735fca50cb94d849d82c5be9101ac5e8d46737))
+* Nous A7Z: remove unsupported switch type setting ([#13704](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13704)) ([8ed59a1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ed59a1925ab2df4934d36d8117fe03112ee1c98))
+* Zosung IR blaster: fix errors before learning infrared timings ([#13712](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13712)) ([a814694](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a814694f3fc65a533b0a5612bf4f480a43748e83))
+
+## [26.127.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.126.0...v26.127.0) (2026-11-04)
+
+
+### Features
+
+* **add:** H2-ZB-SW-V1 ([#13673](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13673)) ([f9c4f21](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9c4f21c81ba02b1d288dbca45081bebbbfd45ed))
+* **add:** SFD02-Z ([#13666](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13666)) ([b2c0c4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2c0c4b88e114a5b3c9d8ac4a10077029e7ad4da))
+* **add:** ZMD-208-2 ([#13691](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13691)) ([397efa7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/397efa75f96d242b9d856dd1c16b7f9478f62a93))
+* Heiman M1P-E: allow resetting radar learning settings ([#13692](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13692)) ([7b1685b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b1685b291250ce1ddd9e04582a69589200299d2))
+* Tuya TS0005: expose countdown ([#13690](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13690)) ([6e96768](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e9676822e41dbe33dca2fdca3ee386f63b555c2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_fzo2pocs` as Zemismart ZM25TQ ([#13689](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13689)) ([7adb445](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7adb4454c6b9da84dfc9fc583aa687916c4f328d))
+* Moes _TZE204_rtrmfadk: report the manual preset correctly while heating ([#13695](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13695)) ([70efbb8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70efbb89def01bb1b06eb3f1cf69a41fc01c66e5))
+
+## [26.126.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.125.0...v26.126.0) (2026-11-03)
+
+
+### Features
+
+* **add:** _TYST11_yfmeg60f ([#13602](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13602)) ([0c4a7f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0c4a7f5672db3b050cc4fe40dd45eaf40fc16dbf))
+* **add:** 07P4 ([#13625](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13625)) ([a0e1c76](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a0e1c76f52ad437e55125972c52528cf597f51de))
+* **add:** 929004440102 ([#13642](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13642)) ([5ad03eb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ad03eb477515316889247e8ad6b48bb92048541))
+* **add:** 929004456604 ([#13688](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13688)) ([470f192](https://github.com/Koenkk/zigbee-herdsman-converters/commit/470f1927f429e01ec6b6ed15755264e2f2df43c6))
+* **add:** CPXC 2X4 TUWH ([#13667](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13667)) ([e3700f1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e3700f12546ec5596ecaf93f49ef05386e81de34))
+* **add:** D1Z ([#13665](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13665)) ([3977842](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3977842acda58b91c231250dcfe9f7b1f264c6fa))
+* **add:** EAYCBM-Z-1P ([#13658](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13658)) ([837250e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/837250e2fc180016161846351a2c1f16f39e9d99))
+* **add:** G08A-Z20T, N02-Z10T ([#13633](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13633)) ([c7f647e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c7f647e2c4cda2a69abf3d67630556ab8ca577bd))
+* **add:** HS-720ES ([#13639](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13639)) ([1995e8d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1995e8df92ea01d48f99bed47f6467253f07c32c))
+* **add:** HS206Z, HS207Z ([#13613](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13613)) ([8f09559](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8f09559fde8a0a1809624eccf140eb2e1fd14814))
+* **add:** HS209Z ([#13670](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13670)) ([297d44d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/297d44d55ca6dddbc0492f9e662df0a06bfdfaf0))
+* **add:** HS300TF ([#13628](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13628)) ([2451dfa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2451dfa80f8d2b2fa28ec4281fe10c4f6724efb5))
+* **add:** HYSYIOT HS204ZV, HS303Z, HS308Z, HS204ZX, HS204ZL, HS807Z ([#13622](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13622)) ([9937651](https://github.com/Koenkk/zigbee-herdsman-converters/commit/99376515834c96dd1bb5255793c0f3a1d3e2938e))
+* **add:** JKD-839Z ([#13626](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13626)) ([be6ac23](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be6ac23411bdaa2b5bfeea6db129f9279e5e0965))
+* **add:** SA-2 ([#13578](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13578)) ([a81e946](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a81e946bccb7faa93567e9c4efd9790c3aa090f3))
+* **add:** SP-P05D ([#13624](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13624)) ([62d2650](https://github.com/Koenkk/zigbee-herdsman-converters/commit/62d2650d58556d23d118ea6500ab62cc16c3b60c))
+* **add:** T000R_ZG ([#12504](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12504)) ([115f347](https://github.com/Koenkk/zigbee-herdsman-converters/commit/115f347e2fc29bdda4cb2483812b95407b1ce343))
+* **add:** WNRL24 ([#13640](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13640)) ([0102e1b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0102e1b5bb87be9ba4f6462a3594ea3a2fca3ec4))
+* **add:** WNRL34 ([#13671](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13671)) ([2820834](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28208349a2e691713f857e3ea914ee9b90abe442))
+* **add:** X7633 ([#13661](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13661)) ([4c8cf41](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c8cf4150796ff3e071a0aac97bca1a741ea205c))
+* **add:** ZIGEE-PLUG-16A ([#13644](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13644)) ([925f686](https://github.com/Koenkk/zigbee-herdsman-converters/commit/925f686ef6386b9ce2df66f0d135030343ad824b))
+* HeatHUB HHST001: expose weekly schedules, temperature unit and additional thermostat settings ([#13569](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13569)) ([5de5adc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5de5adc569bda4afafb3464f587243429fc071df))
+* Heiman M1P-E: expose radar learning reset ([#13634](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13634)) ([0280e80](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0280e80073e35780037ee1b0bce51cbbd371612a))
+* HOBEIAN ZG-204ZL-z: expose remote On/Off, light level and illuminance threshold ([#13635](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13635)) ([aa77c98](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aa77c98f02a1ae6db2547f461a8f6f65f00291a2))
+* Moes AM43-0.45/40-ES-EB: expose `tilt` in tilt opening mode ([#13597](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13597)) ([780e0db](https://github.com/Koenkk/zigbee-herdsman-converters/commit/780e0db3d154e1fdc2a02a9293759bd696bd6765))
+* NEO NAS-AB06B2: expose siren control and keep battery level updated ([#13672](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13672)) ([9f60836](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9f608366765645456dfcd07f717c2c0c35a9d52f))
+* Schneider Electric S520619: expose display brightness, active timeout and heating output mode ([#13653](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13653)) ([a75967f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a75967f37fd6793840ff2c976555d0c6b946385c))
+* SONOFF MINI-ZB2GS: expose external switch actions ([#13631](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13631)) ([15dbf60](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15dbf60ca9dfa5243362749da609cd972fcb2c47))
+* SONOFF MINI-ZBRBS: support single-button pulse control ([#13632](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13632)) ([09376a3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/09376a3cd5ae95f7baf3c0dd143da7a7802be60f))
+* TERNCY TERNCY-PP01: expose battery and separate motion sensors ([#13396](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13396)) ([3eae933](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3eae933ea05ce969743ac6bf34e2dcef087978b8))
+* Third Reality, Inc 3RRE0194Z: expose on/off control ([#13668](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13668)) ([28ed85e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28ed85eb384a693f3cbbadf89c027ba82297bcaa))
+* Tuya SPM01, SPM01V2.5 and SPM02: expose alarm settings, fault status and energy reset ([#13599](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13599)) ([930b02d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/930b02d42d8c1ac24bbce6a9c09e70a6681268ba))
+* Tuya ZG-109TDS: expose `temperature_probe` as a temperature sensor ([#13645](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13645)) ([9af87a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9af87a5270c08c760ff2f736c1a22772e3b2d5e2))
+* Zemismart ZM25TQ: expose `work_state` and `remote_pairing` ([#13679](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13679)) ([15e9d1f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/15e9d1f311a2344062e23e37c1202736b5fd2ad9))
+
+
+### Bug Fixes
+
+* ADEO IM-CDZDGAAG005KA-MZN: report the supported color temperature range correctly ([#13662](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13662)) ([b5e5ca1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b5e5ca1376d051f842ed62ce71b56fcf63d43d03))
+* Aqara: report `power_on_behavior` read from the device ([#13623](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13623)) ([934bb43](https://github.com/Koenkk/zigbee-herdsman-converters/commit/934bb4333404dcdb7d6ebd0b4db2facda975a8bb))
+* Danfoss Ally: allow heating system mode changes ([#13664](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13664)) ([a44870a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a44870ad5998f2c8e75200ca35a4e8f046764ea0))
+* **detect:** Detect `_TZ3000_9ni6xxld` as OURTOP ATMS1603AZ ([#13660](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13660)) ([5a64540](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5a6454011e96496a8be5e04935782dd011d2e0aa))
+* **detect:** Detect `_TZ3000_g5pzotdr` as MoveSmart MS-M2Z ([#13621](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13621)) ([4764c4e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4764c4ea65051e03971e193ef7370bef87c131a4))
+* **detect:** Detect `_TZE284_1iii6x0y` as JWCOM SA-ZB417F-BR ([#13630](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13630)) ([3e39237](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e3923794cf04a697a8d60aaf4264ddf05f049a9))
+* **detect:** Detect `_TZE2841000000_nlrfgpny` as NEO NAS-AB06B2 ([#13646](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13646)) ([d2994f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2994f38cc11df3c2893bdeefa36c6b74e02524b))
+* **detect:** Detect `_TZE28C1000000_2fnssffc` as Moes ZM6LT1 ([#13629](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13629)) ([3e2c8af](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e2c8af36d8d5b3d4b9077b19ac742e6ecaffbf1))
+* **detect:** Detect `_TZE28C1000000_goecjd1t` as AVATTO ZWPM16 ([#13649](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13649)) ([d1bcc32](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d1bcc32b9a1452a1866b7cdcba56324a84178fab))
+* **detect:** Detect `3RCB1097Z` as Third Reality 3RCB1097Z ([#13674](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13674)) ([66d3728](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66d3728afdc2742448bd3d37d599c5148b95d55c))
+* **detect:** Detect `D726-ZG` from `HZC` as Namron 4512788 ([#13680](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13680)) ([28680fe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/28680fea354d69e114709478f79b1586bbaf3c31))
+* EGLO 901471: fix ring control on variant without separate RGB endpoint ([#13659](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13659)) ([fd4fcd7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd4fcd74a76b07407cf410302d3a21990d4f87c4))
+* **ignore:** bump brace-expansion from 5.0.3 to 5.0.12 ([#13682](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13682)) ([b2de072](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2de072628e74533df20de281c362b7b00be8625))
+* **ignore:** bump minimatch from 10.2.2 to 10.2.6 ([#13684](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13684)) ([7c4b097](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c4b09724c3b970d11d17ca6472c07695de58fb5))
+* **ignore:** bump source-map-js from 1.2.1 to 1.2.2 ([#13683](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13683)) ([b288982](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b288982513402682510a2c47e8ca7f5a98b01ac2))
+* **ignore:** bump the minor-patch group across 1 directory with 3 updates ([#13686](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13686)) ([c194b4c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c194b4cf714970cf7805c630eadf1aeeea26a76f))
+* **ignore:** bump vite from 7.3.5 to 8.3.5 ([#13685](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13685)) ([2acabe1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2acabe139287a1a80df955ea48a0a4251cc8be53))
+* **ignore:** fix ci failing ([40711f4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40711f4dadb52920c70238fa9258230a552bd538))
+* Lidl 14149505L/14149506L_2: fix color temperature control ([#13657](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13657)) ([bb09d2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bb09d2c9686cd404b51f0a1c7169dcd3557595d1))
+* Lonsonho QS-Zigbee-C03: stabilize intermediate positions ([#13286](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13286)) ([6dab3e4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6dab3e425292146df231189b59aba7bd50ebf575))
+* MiBoxer E3-ZR: fix last RGB color not being restored after turning off and on ([#13627](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13627)) ([f8b4e87](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f8b4e8738a3577b5b0a41f41a829af5381b55530))
+* NEO NAS-AB06B2: report battery level correctly ([#13678](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13678)) ([b9d600a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b9d600a8e1e13fcc8a05c3be08d0c642590e9e94))
+* Philips Hue: fix color commands being dropped for groups with white-only lights ([#13663](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13663)) ([db814bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db814bc537700f72fc99a85905c8f8749665f9f3))
+* Remove legacy MHO-C401N ([#13687](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13687)) ([8b6c1a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b6c1a42f4d6ef85e59d2ccbcfa6252b78051544))
+* Slacky R02: preserve fractional VOC readings ([#13669](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13669)) ([d46f723](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d46f723113dea413b7d0846d381051b91e9c3284))
+* SONOFF SWV-ZNE, SWV-ZFE, SWV-ZNU and SWV-ZFU: fix excessive battery drain ([#13620](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13620)) ([5b10df3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5b10df3dbab2cf70f97fa43f1c8f016a583115e5))
+* Tuya HY607W-3A: fix incorrect time shown on the thermostat ([#13676](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13676)) ([fc2f51e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc2f51ec6954fcb38aa10c257ad623b4985b7dc7))
+* Tuya TS011F_5: fix power outage memory setting and reporting ([#13611](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13611)) ([7daf600](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7daf600030574b462f80e397f3de0e47c9779e1f))
+* Tuya: update `do_not_disturb` description ([#13650](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13650)) ([7a2393d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a2393daf4c6f5d12e140d22479feae4d305e14a))
+
 ## [26.125.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.124.0...v26.125.0) (2026-10-27)
 
 

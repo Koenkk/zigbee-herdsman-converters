@@ -101,6 +101,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.iasArmCommandDefaultResponse()],
     },
     {
+        zigbeeModel: ["ZB-Keyfob-D0000"],
+        model: "ZB-Keyfob-D0000",
+        vendor: "ADEO",
+        description: "Security system key fob",
+        fromZigbee: [fz.command_arm, fz.command_panic],
+        toZigbee: [],
+        exposes: [e.action(["panic", "disarm", "arm_day_zones", "arm_all_zones"])],
+        extend: [m.iasArmCommandDefaultResponse()],
+    },
+    {
         zigbeeModel: ["ZBEK-1"],
         model: "IA-CDZOTAAA007MA-MAN",
         vendor: "ADEO",
@@ -183,7 +193,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IM-CDZDGAAG005KA-MZN",
         vendor: "ADEO",
         description: "ENKI LEXMAN GU-10 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-12"],

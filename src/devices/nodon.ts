@@ -79,6 +79,21 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
+    calibrationAutoAdjust: (args?: Partial<m.BinaryArgs<"closuresWindowCovering">>) =>
+        m.binary({
+            name: "calibration_auto_adjust",
+            cluster: "closuresWindowCovering",
+            attribute: {ID: 0x1002, type: Zcl.DataType.BOOLEAN},
+            valueOn: ["ON", 1],
+            valueOff: ["OFF", 0],
+            description:
+                "When ON (default), the device refines the calibration run times on every full up/down travel, " +
+                "overwriting manually set values. When OFF, the manually set run times are kept as is.",
+            access: "ALL",
+            entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            ...args,
+        }),
     impulseMode: (args?: Partial<m.NumericArgs<"genOnOff">>) => {
         const resultName = "impulse_mode_configuration";
         const resultUnit = "ms";
@@ -641,13 +656,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-RS-20",
         vendor: "NodOn",
         description: "Roller shutter relay switch",
+        version: "0.0.1",
+        endpoint: (device) => ({default: 1}),
         extend: [
+            m.identify(),
             m.windowCovering({controls: ["tilt", "lift"], coverMode: true}),
             nodonModernExtend.calibrationVerticalRunTimeUp(),
             nodonModernExtend.calibrationVerticalRunTimeDowm(),
             nodonModernExtend.calibrationRotationRunTimeUp(),
             nodonModernExtend.calibrationRotationRunTimeDown(),
+            nodonModernExtend.calibrationAutoAdjust(),
             nodonModernExtend.switchTypeWindowCovering(),
+            nodonModernExtend.wiredInputBind({cluster: "closuresWindowCovering", endpointId: 1}),
         ],
         ota: true,
     },

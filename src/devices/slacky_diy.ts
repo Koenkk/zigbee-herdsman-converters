@@ -1404,7 +1404,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: ppmReporting,
                 unit: "ppm",
                 scale: 0.000001,
-                precision: 2,
+                precision: 3,
                 description: "Measured VOC value",
             }),
             m.temperature(),

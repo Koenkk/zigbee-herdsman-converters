@@ -543,7 +543,8 @@ function sth1zDerivedEnvironment(): ModernExtend {
             e
                 .numeric("dew_point", ea.STATE)
                 .withUnit(fahrenheit ? "°F" : "°C")
-                .withValueStep(0.1),
+                .withValueStep(0.1)
+                .withHomeAssistant({name: "Dew point"}),
             e.numeric("vpd", ea.STATE).withUnit("kPa").withValueStep(0.01),
             e.enum("humidity_comfort", ea.STATE, ["dry", "comfort", "wet", "normal"]),
             e

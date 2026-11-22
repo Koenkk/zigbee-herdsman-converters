@@ -93,14 +93,24 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny", "_TZE2841000000_nlrfgpny"]),
         model: "NAS-AB06B2",
         vendor: "NEO",
         description: "Outdoor solar alarm",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 21600,
+            }),
+        ],
         exposes: [
             e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "no_alarm"]).withDescription("Alarm status"),
-            e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm"),
+            e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm").withHomeAssistant({
+                type: "siren",
+                name: "Siren",
+            }),
             e.binary("tamper_alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable tamper alarm"),
             e.binary("tamper_alarm", ea.STATE, "ON", "OFF").withDescription("Indicates whether the device is tampered"),
             e.enum("alarm_melody", ea.STATE_SET, ["melody_1", "melody_2", "melody_3"]).withDescription("Alarm sound effect"),
@@ -112,10 +122,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("min")
                 .withDescription("Alarm duration in minutes"),
-            e.binary("charging", ea.STATE, true, false).withDescription("Charging status"),
+            e.binary("charging", ea.STATE, true, false).withDescription("Wired USB-C charging status (solar charging not monitored by hardware)"),
             e.battery(),
         ],
         meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (typeof payload.command_topic === "string" && payload.command_topic.endsWith("/set/alarm_switch")) {
+                    payload.command_template = "{{ value }}";
+                    payload.state_value_template = "{{ value_json.alarm_switch | default('') }}";
+                    delete payload.value_template;
+                    payload.payload_on = "ON";
+                    payload.payload_off = "OFF";
+                    payload.support_duration = false;
+                    payload.support_volume_set = false;
+                }
+            },
             tuyaDatapoints: [
                 [
                     1,
@@ -138,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [7, "alarm_time", tuya.valueConverter.raw],
                 [6, "charging", tuya.valueConverter.raw],
-                [15, "battery", tuya.valueConverter.raw],
+                [15, "battery", {from: (v: number) => (v === 0 ? 100 : v)}],
             ],
         },
     },

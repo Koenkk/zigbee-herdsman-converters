@@ -886,7 +886,7 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     keypad_lockout: {
-        // SW2500ZB
+        // SW2500ZB and RM3500ZB
         key: ["keypad_lockout"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {unlock: 0, lock: 1};
@@ -2336,7 +2336,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({energy: {divisor: 1000, multiplier: 1}}),
         ],
         fromZigbee: [fzLocal.ias_water_leak_alarm, fzLocal.sinope, fz.temperature],
-        toZigbee: [tzLocal.low_water_temp_protection],
+        toZigbee: [tzLocal.low_water_temp_protection, tzLocal.keypad_lockout],
         exposes: [
             e
                 .numeric("low_water_temp_protection", ea.ALL)
@@ -2345,6 +2345,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(65)
                 .withValueStep(1)
                 .withDescription("Temperature at which water heating will resume automatically (default: 45°C)"),
+            e.enum("keypad_lockout", ea.ALL, ["unlock", "lock"]).withDescription("Enables or disables the physical button"),
             e.water_leak(),
             e.temperature(),
         ],
@@ -2356,6 +2357,10 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.configureReporting("ssIasZone", [
                 {attribute: "zoneStatus", minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
             ]);
+            await endpoint.configureReporting<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", [
+                {attribute: "keypadLockout", minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
+            ]);
+            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["keypadLockout", "drConfigWaterTempMin"]);
         },
     },
     {
