@@ -433,6 +433,11 @@ export const tzLegrand = {
     // always drives `state` through `tz.light_onoff_brightness`, which uses `genLevelCtrl`, so
     // in that mode on/off no longer has any effect. This converter keeps the transition-aware
     // light converter for dimmer mode, and falls back to plain `tz.on_off` in relay mode.
+    //
+    // In dimmer mode, after a plain genOnOff `On` (no brightness requested) the module restores its
+    // OnLevel but never reports `currentLevel`, so a level of 0 left by a wall-button OFF stays in
+    // the state. Publish OnLevel straight away when it is known, and read `currentLevel` back once
+    // the fade-in is over.
     light_state_device_mode_aware: {
         key: ["state"],
         options: [exposes.options.transition()],
@@ -440,7 +445,26 @@ export const tzLegrand = {
             if (meta.state.device_mode === "dimmer_off") {
                 return await tz.on_off.convertSet(entity, key, value, meta);
             }
-            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            const wasOn = meta.state.state === "ON";
+            const result = (await tz.light_onoff_brightness.convertSet(entity, key, value, meta)) as KeyValueAny;
+
+            const requested = typeof value === "string" ? value.toLowerCase() : value;
+            const targetState = requested === "toggle" ? (wasOn ? "off" : "on") : requested;
+            const brightnessRequested = meta.message.brightness != null || meta.message.brightness_percent != null;
+            if (targetState === "on" && !brightnessRequested && utils.isEndpoint(entity)) {
+                const onLevel = Number(utils.getObjectProperty(meta.state.level_config as KeyValueAny, "on_level", 0));
+                if (!wasOn && result?.state && onLevel >= 1 && onLevel <= 254) {
+                    result.state.brightness = onLevel;
+                }
+                const transition = utils.getTransition(entity, "brightness", meta);
+                const delay = Math.max(1500, transition.time * 100 + 1000);
+                setTimeout(() => {
+                    entity.read("genLevelCtrl", ["currentLevel"]).catch((error) => {
+                        logger.debug(`Failed to read currentLevel after 'on' (${(error as Error).message})`, NS);
+                    });
+                }, delay).unref?.();
+            }
+            return result;
         },
         convertGet: async (entity, key, meta) => {
             return await tz.light_onoff_brightness.convertGet(entity, key, meta);
