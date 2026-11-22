@@ -24379,8 +24379,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(10)
                 .withValueMax(60)
                 .withValueStep(5),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/19.0 09:00/16.0 16:00/25.0 23:30/16.0"),
         ],
         meta: {
+            publishDuplicateTransaction: true,
             tuyaDatapoints: [
                 [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, auto: true})],
                 [2, "current_heating_setpoint", tuya.valueConverter.divideBy10],
@@ -24416,7 +24418,101 @@ export const definitions: DefinitionWithExtend[] = [
                 [53, "min_temperature_limit", tuya.valueConverter.divideBy10],
                 [54, "switch_delay", tuya.valueConverterBasic.divideBy(1)],
                 [55, "display_brightness", tuya.valueConverterBasic.divideBy(1)], //divideBy1 required to force the format. Raw does not work
-                //[16, 'schedule', tuya.valueConverter.Raw],
+                [
+                    16,
+                    null,
+                    {
+                        from: (v: Buffer | number[], meta: Fz.Meta) => {
+                            const dayBits = [
+                                [1, "schedule_monday"],
+                                [2, "schedule_tuesday"],
+                                [4, "schedule_wednesday"],
+                                [8, "schedule_thursday"],
+                                [16, "schedule_friday"],
+                                [32, "schedule_saturday"],
+                                [64, "schedule_sunday"],
+                            ] as const;
+                            const mask = v[0];
+                            const result: KeyValue = {};
+
+                            for (const [bit, dayKey] of dayBits) {
+                                if ((mask & bit) === 0) continue;
+
+                                const existing =
+                                    typeof meta?.state?.[dayKey] === "string" && !meta.state[dayKey].includes("undefined")
+                                        ? meta.state[dayKey].trim().split(/\s+/)
+                                        : [];
+                                const transitions = existing.length === 4 ? [...existing] : ["00:00/16.0", "00:00/16.0", "00:00/16.0", "00:00/16.0"];
+
+                                for (let offset = 1; offset + 4 < v.length; offset += 5) {
+                                    const slotIndex = v[offset];
+                                    if (slotIndex >= 0 && slotIndex < 4) {
+                                        const hour = String(v[offset + 1]).padStart(2, "0");
+                                        const minute = String(v[offset + 2]).padStart(2, "0");
+                                        const temp = (((v[offset + 3] << 8) | v[offset + 4]) / 10).toFixed(1);
+                                        transitions[slotIndex] = `${hour}:${minute}/${temp}`;
+                                    }
+                                }
+
+                                const scheduleStr = transitions.join(" ");
+                                if (meta?.state) {
+                                    meta.state[dayKey] = scheduleStr;
+                                }
+                                result[dayKey] = scheduleStr;
+                            }
+
+                            return result;
+                        },
+                    },
+                ],
+                ...(
+                    [
+                        ["schedule_monday", 1],
+                        ["schedule_tuesday", 2],
+                        ["schedule_wednesday", 4],
+                        ["schedule_thursday", 8],
+                        ["schedule_friday", 16],
+                        ["schedule_saturday", 32],
+                        ["schedule_sunday", 64],
+                    ] as const
+                ).map(([key, dayNum]): [number, string, Tuya.ValueConverterSingle] => [
+                    16,
+                    key,
+                    {
+                        to: async (v: string, meta: Tz.Meta) => {
+                            const transitions = v.trim().split(/\s+/);
+                            if (transitions.length !== 4) {
+                                throw new Error(`Invalid schedule: expected 4 transitions, got ${transitions.length}`);
+                            }
+                            const entity = meta.device.endpoints[0];
+                            for (let i = 0; i < 4; i++) {
+                                const [timePart, tempPart] = transitions[i].split("/");
+                                const [hourStr, minStr] = (timePart ?? "").split(":");
+                                const hour = Number.parseInt(hourStr, 10);
+                                const min = Number.parseInt(minStr, 10);
+                                const temp = Math.round(Number.parseFloat(tempPart) * 10);
+                                if (
+                                    Number.isNaN(hour) ||
+                                    Number.isNaN(min) ||
+                                    Number.isNaN(temp) ||
+                                    hour < 0 ||
+                                    hour > 23 ||
+                                    min < 0 ||
+                                    min > 59 ||
+                                    temp < 50 ||
+                                    temp > 350
+                                ) {
+                                    throw new Error(`Invalid hour, minute or temperature in transition: ${transitions[i]}`);
+                                }
+                                const packet = Buffer.from([dayNum, i, hour, min, (temp >> 8) & 0xff, temp & 0xff]);
+                                await tuya.sendDataPointRaw(entity, 16, packet);
+                                if (i < 3) {
+                                    await utils.sleep(300);
+                                }
+                            }
+                        },
+                    },
+                ]),
             ],
         },
     },
