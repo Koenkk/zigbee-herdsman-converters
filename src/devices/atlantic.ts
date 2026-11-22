@@ -87,9 +87,9 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const atlanticPlusRadiatorExtend = (options: {horizontal: boolean}): ModernExtend[] => [
+const atlanticPlusRadiatorExtend = (options: {horizontal: boolean; light?: boolean}): ModernExtend[] => [
     m.deviceEndpoints({
-        endpoints: {"1": 1, "230": 230, "232": 232},
+        endpoints: {"1": 1, "230": 230, "232": 232, ...(options.light ? {"233": 233} : {})},
         multiEndpointSkip: [
             "local_temperature",
             "occupied_heating_setpoint",
@@ -131,6 +131,7 @@ const atlanticPlusRadiatorExtend = (options: {horizontal: boolean}): ModernExten
           ]
         : // instantaneousDemand is unsupported, currentSummDelivered is in Wh while some firmwares report multiplier=1000/divisor=1000
           [m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"}})]),
+    ...(options.light ? [m.light({endpointNames: ["233"]})] : []),
 ];
 
 export const definitions: DefinitionWithExtend[] = [
@@ -293,6 +294,13 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         extend: atlanticPlusRadiatorExtend({horizontal: false}),
+    },
+    {
+        zigbeeModel: ["100050768800"],
+        model: "100050768800",
+        vendor: "Atlantic Group",
+        description: "Divali Neo connected radiator vertical with light",
+        extend: atlanticPlusRadiatorExtend({horizontal: false, light: true}),
     },
     {
         zigbeeModel: ["100050072300"],
