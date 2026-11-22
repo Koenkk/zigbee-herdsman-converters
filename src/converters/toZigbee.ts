@@ -855,18 +855,14 @@ export const level_config: Tz.Converter = {
         // options - 8-bit map
         //   bit 0: ExecuteIfOff - when 0, Move commands are ignored if the device is off;
         //          when 1, CurrentLevel can be changed while the device is off.
-        //   bit 1: CoupleColorTempToLevel - when 1, a level change in color temperature mode also moves the
-        //          color temperature between ColorTempPhysicalMaxMireds and CoupleColorTempToLevelMinMireds
-        //          of the Color Control cluster (ZCL "dim to warm").
-        // Both bits are written together so that setting one does not clear the other; a bit that is not in
-        // the payload keeps its last known value from the state.
+        //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature ("dim to warm").
         if (value.execute_if_off != null || value.dim_to_warm != null) {
-            const current: KeyValueAny = utils.getObjectProperty(meta.state, "level_config", {});
-            const executeIfOffValue = value.execute_if_off != null ? !!value.execute_if_off : !!current.execute_if_off;
-            const dimToWarmValue = value.dim_to_warm != null ? !!value.dim_to_warm : !!current.dim_to_warm;
-            const options = (executeIfOffValue ? 1 : 0) | (dimToWarmValue ? 2 : 0);
-            await entity.write("genLevelCtrl", {options}, utils.getOptions(meta.mapped, entity));
-            Object.assign(state, {execute_if_off: executeIfOffValue, dim_to_warm: dimToWarmValue});
+            // Write both bits, a bit not in the payload keeps its value from the state
+            const current = (meta.state.level_config ?? {}) as KeyValueAny;
+            const executeIfOff = !!(value.execute_if_off ?? current.execute_if_off);
+            const dimToWarm = !!(value.dim_to_warm ?? current.dim_to_warm);
+            await entity.write("genLevelCtrl", {options: (executeIfOff ? 1 : 0) | (dimToWarm ? 2 : 0)}, utils.getOptions(meta.mapped, entity));
+            Object.assign(state, {execute_if_off: executeIfOff, dim_to_warm: dimToWarm});
         }
 
         if (Object.keys(state).length > 0) {

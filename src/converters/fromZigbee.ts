@@ -679,9 +679,7 @@ export const level_config: Fz.Converter<"genLevelCtrl", undefined, ["attributeRe
         // options - 8-bit map
         //   bit 0: ExecuteIfOff - when 0, Move commands are ignored if the device is off;
         //          when 1, CurrentLevel can be changed while the device is off.
-        //   bit 1: CoupleColorTempToLevel - when 1, a level change in color temperature mode also moves the
-        //          color temperature between ColorTempPhysicalMaxMireds and CoupleColorTempToLevelMinMireds
-        //          of the Color Control cluster (ZCL "dim to warm").
+        //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature ("dim to warm").
         if (msg.data.options !== undefined) {
             result[level_config].execute_if_off = !!(Number(msg.data.options) & 1);
             result[level_config].dim_to_warm = !!(Number(msg.data.options) & 2);

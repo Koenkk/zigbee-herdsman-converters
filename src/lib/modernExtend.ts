@@ -1378,14 +1378,8 @@ export function light(args: LightArgs = {}): ModernExtend {
     }
 
     if (levelConfig || colorTemp) {
-        // Every light with a color temperature exposes dim_to_warm (CoupleColorTempToLevel)
-        let features = levelConfig?.features;
-        if (colorTemp && (!levelConfig || features)) {
-            features = [...(features ?? []), "dim_to_warm"];
-        }
-        lightExpose.forEach((e) => {
-            features ? e.withLevelConfig(features) : e.withLevelConfig();
-        });
+        const features: LevelConfigFeatures = levelConfig ? levelConfig.features && [...levelConfig.features, "dim_to_warm"] : ["dim_to_warm"];
+        for (const e of lightExpose) e.withLevelConfig(features);
     }
 
     const exposes: Expose[] = lightExpose;

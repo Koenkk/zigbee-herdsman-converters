@@ -62,9 +62,8 @@ const bulbOnEvent: OnEvent.Handler = async (event) => {
             await device.endpoints[0].write("lightingColorCtrl", {options: 1});
         }
         const levelConfig = state.level_config as KeyValue;
-        const levelOptions = (levelConfig?.execute_if_off === true ? 1 : 0) | (levelConfig?.dim_to_warm === true ? 2 : 0);
-        if (levelOptions !== 0) {
-            await device.endpoints[0].write("genLevelCtrl", {options: levelOptions});
+        if (levelConfig?.execute_if_off === true || levelConfig?.dim_to_warm === true) {
+            await device.endpoints[0].write("genLevelCtrl", {options: (levelConfig.execute_if_off ? 1 : 0) | (levelConfig.dim_to_warm ? 2 : 0)});
         }
         if (levelConfig?.on_level !== undefined) {
             const onLevelRaw = levelConfig.on_level;

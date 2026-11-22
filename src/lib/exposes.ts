@@ -406,14 +406,17 @@ export class Light extends Base {
         return this;
     }
 
-    withLevelConfig(features?: LevelConfigFeatures) {
-        if (features === undefined) {
-            features = ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off", "on_level", "current_level_startup"];
-            // CoupleColorTempToLevel only has an effect on lights with a color temperature
-            if (this.features.some((f) => f.name === "color_temp")) {
-                features.push("dim_to_warm");
-            }
-        }
+    withLevelConfig(
+        features: LevelConfigFeatures = [
+            "on_off_transition_time",
+            "on_transition_time",
+            "off_transition_time",
+            "execute_if_off",
+            "dim_to_warm",
+            "on_level",
+            "current_level_startup",
+        ],
+    ) {
         let levelConfig = new Composite("level_config", "level_config", access.ALL);
         if (features.includes("on_off_transition_time")) {
             levelConfig = levelConfig.withFeature(
@@ -449,13 +452,11 @@ export class Light extends Base {
                 ),
             );
         }
-        if (features.includes("dim_to_warm")) {
+        if (features.includes("dim_to_warm") && this.features.some((f) => f.name === "color_temp")) {
             levelConfig = levelConfig.withFeature(
                 new Binary("dim_to_warm", access.ALL, true, false)
                     .withLabel("Dim to warm")
-                    .withDescription(
-                        "A brightness change in color temperature mode also moves the color temperature between the warmest supported value and the value of the CoupleColorTempToLevelMinMireds attribute",
-                    ),
+                    .withDescription("When enabled, a brightness change in color temperature mode also changes the color temperature"),
             );
         }
         if (features.includes("on_level")) {
