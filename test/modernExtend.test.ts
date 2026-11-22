@@ -137,7 +137,7 @@ describe("ModernExtend", () => {
                 "flash",
                 "power_on_behavior",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup)", "power_on_behavior"],
+            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,level_config)", "power_on_behavior"],
             bind: {},
             read: {
                 1: [
@@ -184,7 +184,7 @@ describe("ModernExtend", () => {
                 "alert",
                 "flash",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)"],
+            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs,level_config)"],
             bind: {},
             read: {
                 1: [
@@ -233,7 +233,7 @@ describe("ModernExtend", () => {
                 "flash",
                 "power_on_behavior",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy)", "power_on_behavior"],
+            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy,level_config)", "power_on_behavior"],
             bind: {},
             read: {
                 1: [
@@ -361,7 +361,7 @@ describe("ModernExtend", () => {
                 "gradient_scene",
                 "gradient_style",
                 "identify",
-                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
+                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs,level_config)",
 
                 "power_on_behavior",
             ],
