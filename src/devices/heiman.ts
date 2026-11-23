@@ -64,18 +64,6 @@ function heimanRawData(): ModernExtend {
     };
 }
 
-interface HeimanMo24TemperatureMeasurement {
-    attributes: {temperatureCalibration: number};
-    commands: never;
-    commandResponses: never;
-}
-
-interface HeimanMo24IasZone {
-    attributes: {hush: number; smokeChamber: number};
-    commands: never;
-    commandResponses: never;
-}
-
 interface RadarSensorHeimanZcl {
     attributes: {
         enableIndicator: number;
@@ -2477,74 +2465,52 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "Smart smoke alarm",
         extend: [
-            m.deviceAddCustomCluster("msTemperatureMeasurement", {
-                name: "msTemperatureMeasurement",
-                ID: Zcl.Clusters.msTemperatureMeasurement.ID,
-                attributes: {
-                    temperatureCalibration: {
-                        name: "temperatureCalibration",
-                        ID: 0xf006,
-                        type: Zcl.DataType.INT8,
-                        manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-                        write: true,
-                        min: -100,
-                        max: 100,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            m.deviceAddCustomCluster("ssIasZone", {
-                name: "ssIasZone",
-                ID: Zcl.Clusters.ssIasZone.ID,
-                attributes: {
-                    hush: {name: "hush", ID: 0xf003, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
-                    smokeChamber: {
-                        name: "smokeChamber",
-                        ID: 0xf009,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
             m.battery(),
             m.identify(),
             m.temperature(),
             m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low", "test"]}),
             m.iasWarning(),
-            m.numeric<"msTemperatureMeasurement", HeimanMo24TemperatureMeasurement>({
+            // Temperature calibration offset (confirmed against hardware: INT8, scale x10, range -10..10 C).
+            // Uses a raw manufacturer-specific attribute (not deviceAddCustomCluster) - adding a custom
+            // msTemperatureMeasurement/ssIasZone cluster here was found to break standard attribute reads
+            // (e.g. plain `temperature`) against the real device, returning UNSUPPORTED_ATTRIBUTE.
+            m.numeric({
                 name: "temperature_calibration",
                 cluster: "msTemperatureMeasurement",
-                attribute: "temperatureCalibration",
+                attribute: {ID: 0xf006, type: Zcl.DataType.INT8},
                 description: "Temperature calibration offset",
                 unit: "°C",
                 valueMin: -10,
                 valueMax: 10,
                 valueStep: 0.1,
                 scale: 10,
+                access: "ALL",
                 entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
-            m.binary<"ssIasZone", HeimanMo24IasZone>({
+            // Smoke detected in optical chamber / pre-alarm (confirmed against hardware: UINT8, 0/1)
+            m.binary({
                 name: "smoke_chamber",
                 cluster: "ssIasZone",
-                attribute: "smokeChamber",
+                attribute: {ID: 0xf009, type: Zcl.DataType.UINT8},
                 description: "Smoke detected in the optical chamber (pre-alarm)",
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 access: "STATE_GET",
                 reporting: {min: 0, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
-            m.binary<"ssIasZone", HeimanMo24IasZone>({
+            // Hush: set when the alarm sounded and someone pressed the device's button to silence it
+            m.binary({
                 name: "hush",
                 cluster: "ssIasZone",
-                attribute: "hush",
+                attribute: {ID: 0xf003, type: Zcl.DataType.UINT16},
                 description: "Alarm was manually silenced at the device",
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 access: "STATE_GET",
                 reporting: {min: 0, max: "1_HOUR", change: 0},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
         ],
     },
