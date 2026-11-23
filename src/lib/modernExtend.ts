@@ -65,6 +65,7 @@ import {
 } from "./utils";
 
 const NS = "zhc:modernextend";
+const MAX_POLL_INTERVAL_SECONDS = 20 * 24 * 60 * 60;
 
 const IAS_EXPOSE_LOOKUP = {
     occupancy: e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates whether the device detected occupancy"),
@@ -788,7 +789,6 @@ export function poll(args: {
     optionKey?: string;
 }): ModernExtend {
     const optionKey = args.optionKey ?? `${args.key}_poll_interval`;
-    const maxIntervalSeconds = 20 * 24 * 60 * 60;
     const onEvent: OnEvent.Handler[] = [
         (event) => {
             if (event.type === "start" || (event.type === "deviceOptionsChanged" && event.data.from[optionKey] !== event.data.to[optionKey])) {
@@ -799,8 +799,8 @@ export function poll(args: {
                 if (args.option) {
                     seconds = toNumber(event.data.options[optionKey] ?? args.defaultIntervalSeconds, optionKey);
                 }
-                if (!Number.isFinite(seconds) || seconds > maxIntervalSeconds) {
-                    throw new Error(`${optionKey} must be finite and no greater than ${maxIntervalSeconds} seconds`);
+                if (!Number.isFinite(seconds) || seconds > MAX_POLL_INTERVAL_SECONDS) {
+                    throw new Error(`${optionKey} must be finite and no greater than ${MAX_POLL_INTERVAL_SECONDS} seconds`);
                 }
 
                 if (seconds <= 0 || event.data.options.disabled) {
