@@ -2467,13 +2467,20 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.identify(),
-            m.temperature(),
+            // This device doesn't declare msTemperatureMeasurement in its Simple Descriptor's
+            // input cluster list, even though it responds to attribute reports on it. That makes
+            // zigbee-herdsman-converters' automatic configure (bind + read/configure-reporting,
+            // which requires a declared input cluster) fail and retry forever; explicit reads of
+            // this cluster are also rejected by the device (UNSUPPORTED_ATTRIBUTE). Values still
+            // arrive fine via the device's own unsolicited attribute reports, so configure/explicit
+            // reads are disabled here (reporting: false, no GET access) to stop the futile retries.
+            m.temperature({reporting: false, access: "STATE"}),
             m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low", "test"]}),
             m.iasWarning(),
             // Temperature calibration offset (confirmed against hardware: INT8, scale x10, range -10..10 C).
-            // Uses a raw manufacturer-specific attribute (not deviceAddCustomCluster) - adding a custom
-            // msTemperatureMeasurement/ssIasZone cluster here was found to break standard attribute reads
-            // (e.g. plain `temperature`) against the real device, returning UNSUPPORTED_ATTRIBUTE.
+            // Write-only (no GET): explicit reads are rejected by the device (UNSUPPORTED_ATTRIBUTE) and
+            // it isn't declared as an input cluster (see note on m.temperature() above), so configure
+            // would fail the same way. Writing still works.
             m.numeric({
                 name: "temperature_calibration",
                 cluster: "msTemperatureMeasurement",
@@ -2484,11 +2491,14 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 10,
                 valueStep: 0.1,
                 scale: 10,
-                access: "ALL",
+                access: "SET",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
-            // Smoke detected in optical chamber / pre-alarm (confirmed against hardware: UINT8, 0/1)
+            // Smoke detected in optical chamber / pre-alarm (confirmed against hardware: UINT8, 0/1).
+            // ssIasZone is a declared input cluster so reporting configuration succeeds, but explicit
+            // reads of this manufacturer-specific attribute are rejected by the device
+            // (UNSUPPORTED_ATTRIBUTE); state-only (no GET), updates arrive via attribute reports.
             m.binary({
                 name: "smoke_chamber",
                 cluster: "ssIasZone",
@@ -2496,11 +2506,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Smoke detected in the optical chamber (pre-alarm)",
                 valueOn: [true, 1],
                 valueOff: [false, 0],
-                access: "STATE_GET",
+                access: "STATE",
                 reporting: {min: 0, max: "1_HOUR", change: 1},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
-            // Hush: set when the alarm sounded and someone pressed the device's button to silence it
+            // Hush: set when the alarm sounded and someone pressed the device's button to silence it.
+            // Same read limitation as smoke_chamber above.
             m.binary({
                 name: "hush",
                 cluster: "ssIasZone",
@@ -2508,7 +2519,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Alarm was manually silenced at the device",
                 valueOn: [true, 1],
                 valueOff: [false, 0],
-                access: "STATE_GET",
+                access: "STATE",
                 reporting: {min: 0, max: "1_HOUR", change: 0},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
