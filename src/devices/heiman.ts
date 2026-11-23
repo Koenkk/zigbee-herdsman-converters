@@ -2476,6 +2476,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MO24-001",
         vendor: "Heiman",
         description: "Smart smoke alarm",
+        // High temperature alarm (confirmed against hardware): the device sends a generic ZCL
+        // Alarms 'alarm' command referencing the temperature measurement cluster (0x0402), with
+        // alarmcode 0x01 meaning the high temperature alarm is active, any other code clears it.
+        fromZigbee: [
+            {
+                cluster: "genAlarms",
+                type: ["commandAlarm"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.clusterid === 0x0402) {
+                        return {high_temperature: msg.data.alarmcode === 1};
+                    }
+                },
+            } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
+        ],
+        exposes: [e.binary("high_temperature", ea.STATE, true, false).withDescription("Indicates whether the high temperature alarm is active")],
         extend: [
             m.deviceAddCustomCluster("msTemperatureMeasurement", {
                 name: "msTemperatureMeasurement",
