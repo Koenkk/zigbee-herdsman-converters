@@ -2490,7 +2490,41 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
         ],
-        exposes: [e.binary("high_temperature", ea.STATE, true, false).withDescription("Indicates whether the high temperature alarm is active")],
+        // Warning sound (confirmed against hardware): mode, level and strobe have no effect on
+        // this device, only duration matters. Home Assistant's siren card always sends a
+        // {mode, level, duration} payload regardless of which composite features are declared, so
+        // mode/level are accepted here but ignored. WarningControl is fixed at 0x20 (mode=fire, no
+        // strobe, low level); duration 0 (or mode 'stop') stops the warning.
+        toZigbee: [
+            {
+                key: ["warning"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value);
+                    const duration = value.mode === "stop" ? 0 : ((value.duration as number) ?? 10);
+                    await entity.command("ssIasWd", "startWarning", {
+                        startwarninginfo: duration > 0 ? 0x20 : 0x00,
+                        warningduration: duration,
+                        strobedutycycle: 0,
+                        strobelevel: 0,
+                    });
+                    return {state: {warning: value}};
+                },
+            } satisfies Tz.Converter,
+        ],
+        exposes: [
+            e.binary("high_temperature", ea.STATE, true, false).withDescription("Indicates whether the high temperature alarm is active"),
+            e
+                .composite("warning", "warning", ea.SET)
+                .withFeature(
+                    e
+                        .numeric("duration", ea.SET)
+                        .withUnit("s")
+                        .withValueMin(0)
+                        .withValueMax(0xffff)
+                        .withDescription("Duration in seconds of the alarm"),
+                )
+                .withDescription("Start (duration > 0) or stop (0) the audible warning sound"),
+        ],
         extend: [
             m.deviceAddCustomCluster("msTemperatureMeasurement", {
                 name: "msTemperatureMeasurement",
@@ -2528,7 +2562,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.temperature(),
             m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low", "test"]}),
-            m.iasWarning(),
             m.numeric<"msTemperatureMeasurement", HeimanMo24TemperatureMeasurement>({
                 name: "temperature_calibration",
                 cluster: "msTemperatureMeasurement",
