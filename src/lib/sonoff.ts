@@ -335,12 +335,14 @@ export type FirmwareFeatureGate = (device: Zh.Device) => boolean;
 export const firmwareSupportFeaturesVersion = (
     targetVersion: string,
     type: "lower" | "higher",
-    options?: {modelID?: string},
+    options?: {modelID?: string | string[]},
 ): FirmwareFeatureGate => {
     const targetParts = targetVersion.split(".").map(Number);
 
     return (device): boolean => {
-        if (options?.modelID !== undefined && device.modelID !== options.modelID) return false;
+        const modelID = options?.modelID;
+
+        if (modelID !== undefined && !(Array.isArray(modelID) ? modelID.includes(device.modelID) : modelID === device.modelID)) return false;
         if (!device.softwareBuildID) return false;
 
         const currentParts = device.softwareBuildID.split(".").map(Number);
