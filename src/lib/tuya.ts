@@ -133,6 +133,9 @@ export interface TuyaLightingColorCtrl {
         tuyaDoNotDisturb: {
             enable: number;
         };
+        tuyaSceneData: {
+            data: Buffer;
+        };
         tuyaOnOffTransitionTime: {
             unknown: number;
             onTransitionTime: number;
@@ -3138,6 +3141,163 @@ export const valueConverter = {
     },
 };
 
+export interface TuyaLightSceneUnit {
+    /** 0-100, higher is faster */
+    speed: number;
+    /** 0-100 */
+    duration: number;
+    /** 1 = jump, 2 = gradient (0 = static is ignored by the firmware) */
+    mode: 0 | 1 | 2;
+    /** Hue 0-360 */
+    h: number;
+    /** Saturation 0-1000 */
+    s: number;
+    /** Colour value 0-1000 */
+    v: number;
+    /** White brightness 0-1000 */
+    b: number;
+    /** White temperature 0-1000, 0 = warm */
+    t: number;
+}
+
+export interface TuyaLightScene {
+    id: number;
+    units: TuyaLightSceneUnit[];
+}
+
+/**
+ * Tuya Zigbee light scene (DP6) helpers.
+ * Cloud format: 1 byte scene id + 13 bytes per unit: speed, duration, mode, H, S, V, B, T (16 bit BE).
+ * Zigbee format (lightingColorCtrl command 0xF1): scene id, mode MSB bitmap (bit 0 = unit 1),
+ * then 8 bytes per unit: [mode LSB:1|speed:7] [H bit 8:1|duration:7] [H 7..0] [S/V/B/T bits 9..8] [S] [V] [B] [T].
+ */
+export const lightScene = {
+    encode: (scene: TuyaLightScene): Buffer => {
+        if (scene.units.length < 1 || scene.units.length > 8) throw new Error("A scene needs 1-8 units");
+        const clamp = (value: number, max: number) => Math.min(max, Math.max(0, Math.round(value)));
+        const out = [scene.id & 0xff, 0];
+        scene.units.forEach((unit, i) => {
+            const mode = clamp(unit.mode, 3);
+            const h = clamp(unit.h, 360);
+            const s = clamp(unit.s, 1000);
+            const v = clamp(unit.v, 1000);
+            const b = clamp(unit.b, 1000);
+            const t = clamp(unit.t, 1000);
+            if (mode & 0b10) out[1] |= 1 << i;
+            out.push(
+                ((mode & 1) << 7) | clamp(unit.speed, 0x7f),
+                (((h >> 8) & 1) << 7) | clamp(unit.duration, 0x7f),
+                h & 0xff,
+                ((s >> 8) << 6) | ((v >> 8) << 4) | ((b >> 8) << 2) | (t >> 8),
+                s & 0xff,
+                v & 0xff,
+                b & 0xff,
+                t & 0xff,
+            );
+        });
+        return Buffer.from(out);
+    },
+    decode: (data: Buffer): TuyaLightScene | undefined => {
+        if (data.length < 10 || (data.length - 2) % 8 !== 0) return undefined;
+        const units: TuyaLightSceneUnit[] = [];
+        for (let i = 0, o = 2; o < data.length; i++, o += 8) {
+            const high = data[o + 3];
+            units.push({
+                mode: ((((data[1] >> i) & 1) << 1) | (data[o] >> 7)) as 0 | 1 | 2,
+                speed: data[o] & 0x7f,
+                duration: data[o + 1] & 0x7f,
+                h: ((data[o + 1] >> 7) << 8) | data[o + 2],
+                s: (((high >> 6) & 3) << 8) | data[o + 4],
+                v: (((high >> 4) & 3) << 8) | data[o + 5],
+                b: (((high >> 2) & 3) << 8) | data[o + 6],
+                t: ((high & 3) << 8) | data[o + 7],
+            });
+        }
+        return {id: data[0], units};
+    },
+    fromCloudHex: (value: string): TuyaLightScene => {
+        const hex = value.replace(/[^0-9a-fA-F]/g, "");
+        if (hex.length < 28 || (hex.length - 2) % 26 !== 0) {
+            throw new Error("Scene must be Tuya cloud hex: 1 byte id + 13 bytes per unit");
+        }
+        const buffer = Buffer.from(hex, "hex");
+        const units: TuyaLightSceneUnit[] = [];
+        for (let o = 1; o < buffer.length; o += 13) {
+            units.push({
+                speed: buffer[o],
+                duration: buffer[o + 1],
+                mode: buffer[o + 2] as 0 | 1 | 2,
+                h: buffer.readUInt16BE(o + 3),
+                s: buffer.readUInt16BE(o + 5),
+                v: buffer.readUInt16BE(o + 7),
+                b: buffer.readUInt16BE(o + 9),
+                t: buffer.readUInt16BE(o + 11),
+            });
+        }
+        return {id: buffer[0], units};
+    },
+    toCloudHex: (scene: TuyaLightScene): string => {
+        const parts = [Buffer.from([scene.id & 0xff])];
+        for (const unit of scene.units) {
+            const buffer = Buffer.alloc(13);
+            buffer[0] = unit.speed;
+            buffer[1] = unit.duration;
+            buffer[2] = unit.mode;
+            buffer.writeUInt16BE(unit.h, 3);
+            buffer.writeUInt16BE(unit.s, 5);
+            buffer.writeUInt16BE(unit.v, 7);
+            buffer.writeUInt16BE(unit.b, 9);
+            buffer.writeUInt16BE(unit.t, 11);
+            parts.push(buffer);
+        }
+        return Buffer.concat(parts).toString("hex");
+    },
+};
+
+const sceneColor = (h: number, mode: 1 | 2, speed: number, duration = speed, v = 1000, s = 1000): TuyaLightSceneUnit => ({
+    speed,
+    duration,
+    mode,
+    h,
+    s,
+    v,
+    b: 0,
+    t: 0,
+});
+const sceneWhite = (b: number, t: number, mode: 1 | 2, speed: number, duration = speed): TuyaLightSceneUnit => ({
+    speed,
+    duration,
+    mode,
+    h: 0,
+    s: 0,
+    v: 0,
+    b,
+    t,
+});
+
+const whiteLightEffects: Record<string, TuyaLightSceneUnit[]> = {
+    breathe_white: [sceneWhite(1000, 500, 2, 40), sceneWhite(30, 500, 2, 40)],
+    warm_cold_fade: [sceneWhite(1000, 0, 2, 30), sceneWhite(1000, 1000, 2, 30)],
+    candle_flicker: [sceneWhite(700, 0, 2, 95, 90), sceneWhite(400, 0, 2, 95, 85), sceneWhite(850, 50, 2, 95, 90), sceneWhite(550, 0, 2, 95, 80)],
+    flash_white: [sceneWhite(1000, 500, 1, 90), sceneWhite(10, 500, 1, 90)],
+};
+
+export const lightEffects: {white: Record<string, TuyaLightSceneUnit[]>; color: Record<string, TuyaLightSceneUnit[]>} = {
+    white: whiteLightEffects,
+    color: {
+        ...whiteLightEffects,
+        rainbow: [0, 60, 120, 180, 240, 300].map((h) => sceneColor(h, 2, 50)),
+        rgb_fade: [0, 120, 240].map((h) => sceneColor(h, 2, 40)),
+        rgb_jump: [0, 120, 240].map((h) => sceneColor(h, 1, 70)),
+        party: [0, 300, 60, 180, 30, 240, 120, 270].map((h) => sceneColor(h, 1, 95)),
+        sunset: [sceneColor(30, 2, 25), sceneColor(10, 2, 25, 25, 700), sceneColor(345, 2, 25, 25, 500), sceneColor(280, 2, 25, 25, 300)],
+        ocean: [sceneColor(200, 2, 25), sceneColor(225, 2, 25, 25, 600), sceneColor(180, 2, 25, 25, 900, 800)],
+        fireplace: [sceneColor(20, 2, 90, 85), sceneColor(30, 2, 90, 80, 700), sceneColor(12, 2, 90, 90, 900), sceneColor(35, 2, 90, 85, 500)],
+        police: [sceneColor(0, 1, 100), sceneColor(240, 1, 100)],
+        breathe_color: [sceneColor(0, 2, 40), sceneColor(0, 2, 40, 40, 30)],
+    },
+};
+
 const tuyaTz = {
     power_on_behavior_1: {
         key: ["power_on_behavior", "power_outage_memory"],
@@ -3287,9 +3447,25 @@ const tuyaTz = {
         key: ["color_power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             const v = utils.getFromLookup(value, {initial: 0, previous: 1, customized: 2});
+            // Data is H (0-360), S, V, brightness and color temperature (0-1000), 16 bit BE.
+            // For customized the current light state is used.
+            const data = Buffer.alloc(10);
+            if (v === 2) {
+                const brightness = Math.round(Math.max(10, Math.min(1000, (((meta.state.brightness as number) ?? 254) / 254) * 1000)));
+                if (meta.state.color_mode === "hs" || meta.state.color_mode === "xy") {
+                    const color = (meta.state.color ?? {}) as KeyValue;
+                    data.writeUInt16BE(Math.round(Math.min(360, (color.hue as number) ?? 0)), 0);
+                    data.writeUInt16BE(Math.round(Math.min(1000, ((color.saturation as number) ?? 100) * 10)), 2);
+                    data.writeUInt16BE(brightness, 4);
+                } else {
+                    const mireds = Math.max(153, Math.min(500, (meta.state.color_temp as number) ?? 300));
+                    data.writeUInt16BE(brightness, 6);
+                    data.writeUInt16BE(Math.round(((500 - mireds) / (500 - 153)) * 1000), 8);
+                }
+            }
             await entity.command<"lightingColorCtrl", "tuyaOnStartUp", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaOnStartUp", {
                 mode: v * 256,
-                data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                data: [...data],
             });
             return {state: {color_power_on_behavior: value}};
         },
@@ -5039,6 +5215,8 @@ const tuyaModernExtend = {
             switchType?: boolean;
             doNotDisturb?: boolean;
             colorPowerOnBehavior?: boolean;
+            /** Effects (Tuya scenes) played by the light itself, exposed as `effect`, plus `scene_data` for custom scenes */
+            effects?: Record<string, TuyaLightSceneUnit[]>;
         },
     ): ModernExtend {
         args = {minBrightness: "none", powerOnBehavior: false, switchType: false, doNotDisturb: true, colorPowerOnBehavior: true, ...args};
@@ -5049,9 +5227,80 @@ const tuyaModernExtend = {
             args.color = {applyRedFix: true, enhancedHue: false, ...(utils.isBoolean(args.color) ? {} : args.color)};
         }
 
-        const result = modernExtend.light({...args, powerOnBehavior: false});
+        const result = modernExtend.light({...args, powerOnBehavior: false, ...(args.effects ? {effect: false} : {})});
 
         result.fromZigbee.push(tuyaFz.brightness);
+
+        if (args.effects) {
+            const effects = args.effects;
+            const playScene = async (entity: Zh.Endpoint | Zh.Group, scene: TuyaLightScene) => {
+                await entity.command<"lightingColorCtrl", "tuyaSceneData", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaSceneData", {
+                    data: lightScene.encode(scene),
+                });
+                // Mode: 0 = white, 1 = color, 2 = scene
+                await entity.command<"lightingColorCtrl", "tuyaRgbMode", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {enable: 2});
+            };
+            const isColorMode = (state: KeyValue) => state.color_mode === "hs" || state.color_mode === "xy";
+            // The light stays in scene mode until the mode is changed, so leave it when a color or color temperature is set.
+            result.toZigbee = result.toZigbee.map((converter) => {
+                if (!converter.key?.includes("color") && !converter.key?.includes("color_temp")) return converter;
+                return {
+                    ...converter,
+                    convertSet: async (entity, key, value, meta) => {
+                        const mode = key === "color" ? 1 : key === "color_temp" ? 0 : undefined;
+                        const effectActive = meta.state.effect !== undefined && meta.state.effect !== "stop";
+                        if (mode !== undefined && effectActive) {
+                            await entity.command<"lightingColorCtrl", "tuyaRgbMode", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {
+                                enable: mode,
+                            });
+                        }
+                        const converted = await converter.convertSet(entity, key, value, meta);
+                        if (mode !== undefined && converted) converted.state = {...(converted.state ?? {}), effect: "stop"};
+                        return converted;
+                    },
+                };
+            });
+            result.toZigbee.push(
+                {
+                    key: ["effect"],
+                    convertSet: async (entity, key, value, meta) => {
+                        if (value === "stop") {
+                            await entity.command<"lightingColorCtrl", "tuyaRgbMode", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {
+                                enable: isColorMode(meta.state) ? 1 : 0,
+                            });
+                            return {state: {effect: value}};
+                        }
+                        utils.assertString(value, key);
+                        const names = Object.keys(effects);
+                        const units = utils.getFromLookup(value, effects);
+                        const scene = {id: names.indexOf(value), units};
+                        await playScene(entity, scene);
+                        return {state: {effect: value, scene_data: lightScene.toCloudHex(scene), state: "ON"}};
+                    },
+                },
+                {
+                    key: ["scene_data"],
+                    convertSet: async (entity, key, value, meta) => {
+                        utils.assertString(value, key);
+                        const scene = lightScene.fromCloudHex(value);
+                        if (scene.units.every((unit) => unit.mode === 0)) {
+                            throw new Error("Static scenes are not supported, use jump (01) or gradient (02) units");
+                        }
+                        await playScene(entity, scene);
+                        return {state: {effect: "custom", scene_data: lightScene.toCloudHex(scene), state: "ON"}};
+                    },
+                },
+            );
+            result.exposes.push(
+                e.enum("effect", ea.STATE_SET, [...Object.keys(effects), "stop"]).withDescription("Effect played by the light, 'stop' ends it"),
+                e
+                    .text("scene_data", ea.STATE_SET)
+                    .withDescription(
+                        "Custom effect in Tuya cloud scene format (hex): 1 byte id, then per unit (max 8) speed (0-100), duration (0-100), " +
+                            "mode (01 jump, 02 gradient), H (0-360), S, V, brightness and color temperature (0-1000), each 2 bytes",
+                    ),
+            );
+        }
 
         if (args.doNotDisturb) {
             result.toZigbee.push(tuyaTz.do_not_disturb);
@@ -5744,6 +5993,7 @@ const tuyaClusters = {
                     ],
                 },
                 tuyaDoNotDisturb: {name: "tuyaDoNotDisturb", ID: 0xfa, parameters: [{name: "enable", type: Zcl.DataType.UINT8, max: 0xff}]},
+                tuyaSceneData: {name: "tuyaSceneData", ID: 0xf1, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
                 tuyaOnOffTransitionTime: {
                     name: "tuyaOnOffTransitionTime",
                     ID: 0xfb,

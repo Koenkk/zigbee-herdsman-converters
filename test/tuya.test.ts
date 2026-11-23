@@ -793,6 +793,119 @@ describe("lib/tuya", () => {
             );
         });
     });
+    describe("lightScene", () => {
+        const unit = (h: number, mode: 1 | 2, speed: number): tuya.TuyaLightSceneUnit => ({
+            speed,
+            duration: speed,
+            mode,
+            h,
+            s: 1000,
+            v: 1000,
+            b: 0,
+            t: 0,
+        });
+
+        it("encodes a gradient scene", () => {
+            // Verified on a Skydance WZS5: red <-> blue, fading
+            const scene = {id: 6, units: [unit(0, 2, 30), unit(240, 2, 30)]};
+            expect(tuya.lightScene.encode(scene).toString("hex")).toStrictEqual("06031e1e00f0e8e800001e1ef0f0e8e80000");
+        });
+
+        it("encodes a jump scene", () => {
+            // Verified on a Skydance WZS5: red <-> blue, jumping
+            const scene = {id: 6, units: [unit(0, 1, 70), unit(240, 1, 70)]};
+            expect(tuya.lightScene.encode(scene).toString("hex")).toStrictEqual("0600c64600f0e8e80000c646f0f0e8e80000");
+        });
+
+        it("converts between the cloud and zigbee format", () => {
+            const cloud = "06464601000003e803e800000000464602012c03e801f400000000";
+            const scene = tuya.lightScene.fromCloudHex(cloud);
+            expect(scene.units[1]).toStrictEqual({speed: 70, duration: 70, mode: 2, h: 300, s: 1000, v: 500, b: 0, t: 0});
+            expect(tuya.lightScene.toCloudHex(tuya.lightScene.decode(tuya.lightScene.encode(scene)))).toStrictEqual(cloud);
+        });
+
+        it("round trips all effects", () => {
+            for (const units of Object.values(tuya.lightEffects.color)) {
+                const scene = {id: 1, units};
+                expect(tuya.lightScene.decode(tuya.lightScene.encode(scene))).toStrictEqual(scene);
+            }
+        });
+
+        it("rejects invalid scenes", () => {
+            expect(() => tuya.lightScene.fromCloudHex("0646")).toThrow("Scene must be Tuya cloud hex");
+            expect(() => tuya.lightScene.encode({id: 0, units: []})).toThrow("A scene needs 1-8 units");
+            expect(tuya.lightScene.decode(Buffer.from([1, 2, 3]))).toBeUndefined();
+        });
+    });
+
+    describe("tuyaLight effects", () => {
+        const setup = async () => {
+            const device = mockDevice({modelID: "TS0505B", manufacturerName: "_TZB210_3zfp8mki", endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const endpoint = device.getEndpoint(1);
+            const convertSet = async (key: string, value: unknown, state: KeyValueAny = {}) => {
+                const converter = definition.toZigbee.find((c) => c.key.includes(key));
+                return await converter.convertSet(endpoint, key, value, {
+                    device,
+                    mapped: definition,
+                    message: {[key]: value},
+                    options: {},
+                    state,
+                    endpoint_name: undefined,
+                    publish: () => {},
+                });
+            };
+            return {definition, endpoint, convertSet};
+        };
+
+        it("exposes effects and scene_data", async () => {
+            const {definition} = await setup();
+            expect(definition.model).toStrictEqual("WZS5");
+            const exposed = (definition.exposes as Definition["exposes"] & unknown[]).map((expose) => ("name" in expose ? expose.name : undefined));
+            expect(exposed).toContain("effect");
+            expect(exposed).toContain("scene_data");
+            expect(exposed).toContain("color_power_on_behavior");
+        });
+
+        it("plays an effect", async () => {
+            const {endpoint, convertSet} = await setup();
+            const result = await convertSet("effect", "police");
+            expect(endpoint.command).toHaveBeenNthCalledWith(1, "lightingColorCtrl", "tuyaSceneData", {data: expect.any(Buffer)});
+            expect(endpoint.command).toHaveBeenNthCalledWith(2, "lightingColorCtrl", "tuyaRgbMode", {enable: 2});
+            expect(result.state.effect).toStrictEqual("police");
+        });
+
+        it("plays custom scene data and refuses static scenes", async () => {
+            const {endpoint, convertSet} = await setup();
+            await convertSet("scene_data", "06 1e1e02 0000 03e8 03e8 0000 0000 1e1e02 00f0 03e8 03e8 0000 0000");
+            expect(endpoint.command).toHaveBeenNthCalledWith(1, "lightingColorCtrl", "tuyaSceneData", {
+                data: Buffer.from("06031e1e00f0e8e800001e1ef0f0e8e80000", "hex"),
+            });
+            await expect(convertSet("scene_data", "00 0e0d00 0000 0000 0000 00c8 0000")).rejects.toThrow("Static scenes are not supported");
+        });
+
+        it("stops the effect", async () => {
+            const {endpoint, convertSet} = await setup();
+            await convertSet("effect", "stop", {color_mode: "color_temp"});
+            expect(endpoint.command).toHaveBeenCalledWith("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
+        });
+
+        it("leaves the effect when a color is set", async () => {
+            const {endpoint, convertSet} = await setup();
+            const result = await convertSet("color", {hue: 120, saturation: 100}, {effect: "rainbow"});
+            expect(endpoint.command).toHaveBeenNthCalledWith(1, "lightingColorCtrl", "tuyaRgbMode", {enable: 1});
+            expect(result.state.effect).toStrictEqual("stop");
+        });
+
+        it("stores the current color as customized power on state", async () => {
+            const {endpoint, convertSet} = await setup();
+            await convertSet("color_power_on_behavior", "customized", {brightness: 254, color_mode: "hs", color: {hue: 200, saturation: 50}});
+            expect(endpoint.command).toHaveBeenCalledWith("lightingColorCtrl", "tuyaOnStartUp", {
+                mode: 512,
+                data: [0x00, 0xc8, 0x01, 0xf4, 0x03, 0xe8, 0, 0, 0, 0],
+            });
+        });
+    });
 });
 
 describe("legacy.fz.moes_thermostat", () => {
