@@ -3822,6 +3822,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
+        version: "0.0.1",
         ota: true,
         extend: [
             m.thermostat({
@@ -3885,7 +3886,16 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.customTemperatureMeasurementCluster(),
             m.deviceEndpoints({
-                endpoints: {floor: 3},
+                endpoints: {ambient: 2, floor: 3},
+            }),
+            m.temperature({
+                name: "xtemperature",
+                label: ["Ambient temperature", "Floor temperature"],
+                endpointNames: ["ambient", "floor"],
+                homeassistant: [
+                    {deviceClass: "temperature", name: "Ambient temperature"},
+                    {deviceClass: "temperature", name: "Floor temperature"},
+                ],
             }),
             schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
