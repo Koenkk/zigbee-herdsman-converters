@@ -1,4 +1,5 @@
 import * as exposes from "../lib/exposes";
+import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -1235,6 +1236,28 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
             ],
+        },
+    },
+    {
+        // Reports itself as TS0002 but is a 1-gang relay with a single endpoint (ep 1).
+        // Without this definition it matches the generic 2-gang TS0002, whose configure fails on the missing endpoint 2.
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3218_sfjr4fnz"]),
+        model: "EREL-16ZB",
+        vendor: "ENGO",
+        description: "Smart relay 1x16A",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOnBehavior2: true,
+                indicatorMode: true,
+                onOffCountdown: true,
+            }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
     },
 ];
