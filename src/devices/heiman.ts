@@ -2476,9 +2476,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MO24-001",
         vendor: "Heiman",
         description: "Smart smoke alarm",
-        // High temperature alarm (confirmed against hardware): the device sends a generic ZCL
-        // Alarms 'alarm' command referencing the temperature measurement cluster (0x0402), with
-        // alarmcode 0x01 meaning the high temperature alarm is active, any other code clears it.
+        // High temperature alarm: reported via a generic Alarms command referencing the temperature cluster (0x0402), alarmcode 0x01 = active.
         fromZigbee: [
             {
                 cluster: "genAlarms",
@@ -2490,11 +2488,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
         ],
-        // Warning sound (confirmed against hardware): mode, level and strobe have no effect on
-        // this device, only duration matters. Home Assistant's siren card always sends a
-        // {mode, level, duration} payload regardless of which composite features are declared, so
-        // mode/level are accepted here but ignored. WarningControl is fixed at 0x20 (mode=fire, no
-        // strobe, low level); duration 0 (or mode 'stop') stops the warning.
+        // Warning: mode/level/strobe have no effect on this device, only duration does.
         toZigbee: [
             {
                 key: ["warning"],
