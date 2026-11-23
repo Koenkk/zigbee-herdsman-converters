@@ -2496,9 +2496,11 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
             // Smoke detected in optical chamber / pre-alarm (confirmed against hardware: UINT8, 0/1).
-            // ssIasZone is a declared input cluster so reporting configuration succeeds, but explicit
-            // reads of this manufacturer-specific attribute are rejected by the device
-            // (UNSUPPORTED_ATTRIBUTE); state-only (no GET), updates arrive via attribute reports.
+            // The device rejects both explicit reads and ConfigureReporting for this manufacturer-
+            // specific attribute (UNSUPPORTED_ATTRIBUTE on both), even though ssIasZone itself is a
+            // declared input cluster. It still sends unsolicited attribute reports on its own when
+            // the state changes, which are picked up passively; reporting/read are disabled here to
+            // avoid the rejected configure attempt.
             m.binary({
                 name: "smoke_chamber",
                 cluster: "ssIasZone",
@@ -2507,11 +2509,11 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 access: "STATE",
-                reporting: {min: 0, max: "1_HOUR", change: 1},
+                reporting: false,
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
             // Hush: set when the alarm sounded and someone pressed the device's button to silence it.
-            // Same read limitation as smoke_chamber above.
+            // Same read/configure-reporting limitation as smoke_chamber above.
             m.binary({
                 name: "hush",
                 cluster: "ssIasZone",
@@ -2520,7 +2522,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
                 valueOff: [false, 0],
                 access: "STATE",
-                reporting: {min: 0, max: "1_HOUR", change: 0},
+                reporting: false,
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
             }),
         ],
