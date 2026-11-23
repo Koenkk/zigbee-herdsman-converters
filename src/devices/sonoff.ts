@@ -12712,7 +12712,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["SNZB-02B"],
+        zigbeeModel: ["SNZB-02B", "SNZT-02B"],
+        whiteLabel: [{model: "SNZT-02B", vendor: "SONOFF", fingerprint: [{modelID: "SNZT-02B"}]}],
         model: "SNZB-02B",
         vendor: "SONOFF",
         description: "Temperature and humidity sensor",
