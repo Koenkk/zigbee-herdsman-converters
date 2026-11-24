@@ -13904,17 +13904,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [18, "current", tuya.valueConverter.divideBy1000],
                 [19, "power", tuya.valueConverter.divideBy10],
                 [20, "voltage", tuya.valueConverter.divideBy10],
-                [
-                    101,
-                    "energy",
-                    {
-                        // Device reports the energy of the last interval instead of a cumulative counter
-                        from: (v: number, meta: Fz.Meta) => {
-                            const energy = typeof meta.state.energy === "number" ? meta.state.energy : 0;
-                            return Math.round((energy + v / 1000) * 1000) / 1000;
-                        },
-                    },
-                ],
+                [101, "energy", tuya.valueConverter.divideBy1000],
             ],
         },
         whiteLabel: [tuya.whitelabel("Tuya", "PJ-1203-W", "Electricity energy monitor", ["_TZE284_cjbofhxw", "_TZE28C1000000_cjbofhxw"])],
