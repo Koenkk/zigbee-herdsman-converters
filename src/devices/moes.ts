@@ -57,6 +57,16 @@ const fzLocal = {
     } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
 };
 
+/** Leave state updates to the ZM9LT1's reports and read responses. */
+function zm9lt1SetOnly(converter: Required<Pick<Tz.Converter, "key" | "convertSet">>, keys = converter.key): Tz.Converter {
+    return {
+        key: keys,
+        convertSet: async (entity, key, value, meta) => {
+            await converter.convertSet(entity, key, value, meta);
+        },
+    };
+}
+
 type MoesAlarmThreshold = {id: number; min: number; max: number};
 const moesAlarmThresholds: Record<string, MoesAlarmThreshold> = {
     over_current_threshold: {id: 1, min: 1, max: 63},
@@ -1929,6 +1939,32 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
             device.powerSource = "Mains (single phase)";
             device.save();
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_iwtpbrvn"]),
+        model: "ZM9LT1",
+        vendor: "Moes",
+        description: "1-gang Zigbee switch module",
+        endpoint: () => ({default: 1}),
+        extend: [tuya.clusters.addTuyaGenOnOffCluster(), tuya.clusters.addManuSpecificTuya3Cluster()],
+        fromZigbee: [fz.on_off, tuya.fz.on_off_countdown, tuya.fz.power_on_behavior_1, tuya.fz.switch_type],
+        toZigbee: [
+            zm9lt1SetOnly(tuya.tz.on_off_countdown),
+            zm9lt1SetOnly(tuya.tz.power_on_behavior_1, ["power_on_behavior"]),
+            zm9lt1SetOnly(tuya.tz.switch_type),
+        ],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            te.countdown(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            te.switchType().withAccess(ea.STATE_SET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint?.supportsInputCluster("genOnOff")) {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            }
         },
     },
     {
