@@ -2621,6 +2621,8 @@ const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Dev
     return result;
 };
 
+const me201wzComputedPercent = ["_TZE284_mxujdmxo"];
+
 // Shared by the liquid state, depth and percent datapoints, which are filtered together once per message.
 const me201wzFiltered = new WeakMap<object, KeyValue>();
 const me201wzLevel: Tuya.ValueConverterSingle = {
@@ -2632,7 +2634,15 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
             // Firmware ME201Z.x reports the depth on DP114 instead of DP2
             const depth = dp[2] ?? dp[114];
             if (depth !== undefined) result.liquid_depth = (depth as number) / 100;
-            if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
+            if (me201wzComputedPercent.includes(meta.device.manufacturerName)) {
+                // The ME202WZ never reports DP22, so compute the percentage from the depth, relative to liquid_depth_max (DP21)
+                const depthMax = meta.state.liquid_depth_max as number | undefined;
+                if (result.liquid_depth !== undefined && depthMax) {
+                    result.liquid_level_percent = Math.min(100, Math.max(0, Math.round(((result.liquid_depth as number) / depthMax) * 100)));
+                }
+            } else if (dp[22] !== undefined) {
+                result.liquid_level_percent = dp[22];
+            }
             me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps === true));
         }
         return me201wzFiltered.get(msg);
