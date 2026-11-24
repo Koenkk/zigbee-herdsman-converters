@@ -586,6 +586,118 @@ describe("FP400 definition", () => {
             await stop();
         });
 
+        const CELLS = `ff${"00".repeat(39)}`;
+        // A read of the zone list from endpoint 1, made up: zone 1 with one cell, and zone 5 with none and turned off.
+        const ZONE_LIST = hex(`1c5f110101 1000 00 48 4c 0200 0400200130004128${CELLS}1001 0400200530004128${"00".repeat(40)}1000`);
+        /** The zone list as herdsman decodes it from the read response. */
+        const zoneList = () => {
+            const frame = Zcl.Frame.fromBuffer(0xfc0a, Zcl.Header.fromBuffer(ZONE_LIST), ZONE_LIST, fp400.clusters);
+            const [record] = frame.payload as {attrId: number; attrData: {elmType: number; elmVal: unknown}[][]}[];
+            expect(record.attrId).toBe(0x0010);
+            return record.attrData;
+        };
+        const zoneListReads = (device: Zh.Device) =>
+            vi
+                .mocked(device.getEndpoint(1).read)
+                .mock.calls.filter(([cluster, attributes]) => cluster === "aqaraFp400Config" && attributes.includes("zones"));
+
+        it("publishes the zone list from endpoint 1, as native_zone takes zones", async () => {
+            expect(await exposedProperties(sensor())).toEqual(expect.arrayContaining(["native_zones", "native_zone", "native_zone_remove"]));
+            const zones = zoneList();
+            expect((await receive(sensor(), 1, "aqaraFp400Config", "readResponse", {zones})).state.native_zones).toStrictEqual([
+                {zone_id: 1, mask_hex: CELLS, enabled: true},
+                {zone_id: 5, mask_hex: "00".repeat(40), enabled: false},
+            ]);
+            expect((await receive(sensor(), 1, "aqaraFp400Config", "readResponse", {zones: []})).state.native_zones).toStrictEqual([]);
+            expect((await receive(sensor(), 4, "aqaraFp400Config", "readResponse", {zones})).state).not.toHaveProperty("native_zones");
+        });
+
+        it("publishes nothing from a cut or malformed list, which would read as zones gone", async () => {
+            const [zone] = zoneList();
+            for (const zones of [
+                [zone.slice(0, 3)],
+                [[zone[0], zone[1], {elmType: Zcl.DataType.OCTET_STR, elmVal: Buffer.alloc(39)}, zone[3]]],
+                [[{elmType: Zcl.DataType.ENUM8, elmVal: 1}, ...zone.slice(1)]],
+                "zones",
+            ]) {
+                expect((await receive(sensor(), 1, "aqaraFp400Config", "readResponse", {zones})).state).not.toHaveProperty("native_zones");
+            }
+        });
+
+        it("reads the zone list on refresh and after each zone change the sensor accepts", async () => {
+            const device = sensor();
+            const commands = vi.mocked(device.getEndpoint(1).command).mockResolvedValue({status: 0});
+            const definition = await findByDevice(device);
+            const meta = {device, message: {}, options: {}, state: {}, mapped: definition};
+            const converter = (key: string) => definition.toZigbee.find((c) => c.key.includes(key));
+            // @ts-expect-error mock meta
+            await converter("native_zones").convertGet(device.getEndpoint(1), "native_zones", meta);
+            expect(zoneListReads(device)).toStrictEqual([["aqaraFp400Config", ["zones"], {manufacturerCode: 0x115f}]]);
+            // @ts-expect-error mock meta
+            await converter("native_zone").convertSet(device.getEndpoint(1), "native_zone", {zone_id: 2, mask_hex: CELLS}, meta);
+            // @ts-expect-error mock meta
+            await converter("native_zone_remove").convertSet(device.getEndpoint(1), "native_zone_remove", 2, meta);
+            expect(zoneListReads(device)).toHaveLength(3);
+            commands.mockResolvedValue({status: 1});
+            // @ts-expect-error mock meta
+            await expect(converter("native_zone_remove").convertSet(device.getEndpoint(1), "native_zone_remove", 2, meta)).rejects.toThrow();
+            expect(zoneListReads(device)).toHaveLength(3);
+        });
+
+        it("still answers a zone change when the zone list cannot be read after it", async () => {
+            const device = sensor({
+                1: async (cluster, attributes) => {
+                    if (attributes.includes("zones")) throw new Error("Timeout");
+                    return await Promise.resolve({});
+                },
+            });
+            vi.mocked(device.getEndpoint(1).command).mockResolvedValue({status: 0});
+            const definition = await findByDevice(device);
+            const converter = definition.toZigbee.find((c) => c.key.includes("native_zone_remove"));
+            // @ts-expect-error mock meta
+            await expect(
+                converter.convertSet(device.getEndpoint(1), "native_zone_remove", 2, {device, message: {}, options: {}, state: {}}),
+            ).resolves.toBeUndefined();
+        });
+
+        it("reads the zone list on the first poll, and again once zones were created or removed", async () => {
+            vi.useFakeTimers();
+            let zones = [3];
+            const device = sensor({1: listing(() => zones)});
+            const stop = await start(device);
+            await vi.advanceTimersByTimeAsync(60000);
+            expect(zoneListReads(device)).toHaveLength(1);
+            await vi.advanceTimersByTimeAsync(60000);
+            expect(zoneListReads(device)).toHaveLength(1);
+            zones = [3, 4];
+            await vi.advanceTimersByTimeAsync(60000);
+            expect(zoneListReads(device)).toHaveLength(2);
+            await stop();
+        });
+
+        it("does not read the zone list again every minute when it cannot be read, as on Ember coordinators", async () => {
+            vi.useFakeTimers();
+            let zones = [3, 4];
+            const list = listing(() => zones);
+            const device = sensor({
+                1: async (cluster, attributes) => {
+                    if (attributes.includes("zones")) throw new Error("Timeout");
+                    return await list(cluster, attributes);
+                },
+            });
+            const stop = await start(device);
+            await vi.advanceTimersByTimeAsync(60000);
+            expect(zoneListReads(device)).toHaveLength(1);
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(zoneListReads(device)).toHaveLength(1);
+            // The rest of the poll goes on.
+            expect(occupancyReads(device, 3)).toBe(3);
+            zones = [3];
+            await vi.advanceTimersByTimeAsync(60000);
+            expect(zoneListReads(device)).toHaveLength(2);
+            await stop();
+        });
+
         it("leaves the zones to the poll when no binding to the coordinator is known", async () => {
             vi.useFakeTimers();
             const device = sensor({1: listing(() => [3])});
