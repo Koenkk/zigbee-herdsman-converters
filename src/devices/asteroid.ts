@@ -187,7 +187,11 @@ export const definitions: DefinitionWithExtend[] = [
                 const cls = payload.device_class ?? payload.dev_cla;
                 const pressure = cls === "pressure" || cls === "atmospheric_pressure" || tpl.includes("atmospheric_pressure");
                 if (cls !== "temperature" && !pressure) return;
-                if (pressure && "name" in payload) payload.name = "Pressure";
+                if (pressure) {
+                    payload.name = "Pressure";
+                    payload.device_class = "pressure";
+                    if ("dev_cla" in payload) payload.dev_cla = "pressure";
+                }
                 const topic = payload.state_topic ?? payload.stat_t;
                 if (!topic) return;
                 const status = {
