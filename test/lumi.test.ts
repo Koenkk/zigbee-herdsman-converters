@@ -122,6 +122,43 @@ describe("lib/lumi", () => {
         });
     });
 
+    describe("LLKZMK12LM energy", () => {
+        const convert = async (applicationVersion?: number, dateCode?: string) => {
+            const device = mockDevice({modelID: "lumi.switch.acn047", endpoints: [{ID: 1}, {ID: 2}], applicationVersion});
+            if (dateCode !== undefined) {
+                device.dateCode = dateCode;
+            }
+            const definition = await findByDevice(device);
+            return await numericAttributes2Payload(
+                // @ts-expect-error mock message
+                {data: {}, endpoint: device.getEndpoint(1), device},
+                {device} as Fz.Meta,
+                definition,
+                {},
+                {149: 10.6},
+            );
+        };
+
+        it("converts Wh to kWh on firmware 27", async () => {
+            const result = await convert(27, "20230606");
+            expect(result.energy).toBeCloseTo(0.0106, 6);
+            expect(result.consumption).toStrictEqual(result.energy);
+        });
+
+        it("keeps the kWh value on firmware 35", async () => {
+            expect(await convert(35, "20260105")).toStrictEqual({energy: 10.6, consumption: 10.6});
+        });
+
+        it("keeps the kWh value when only the date code was refreshed after an OTA update", async () => {
+            expect(await convert(27, "20260105")).toStrictEqual({energy: 10.6, consumption: 10.6});
+        });
+
+        it("converts Wh to kWh when the firmware is unknown", async () => {
+            const result = await convert();
+            expect(result.energy).toBeCloseTo(0.0106, 6);
+        });
+    });
+
     describe("FP310 presence reporting", () => {
         it("configures reporting for presence (0x0142)", async () => {
             const device = mockDevice(

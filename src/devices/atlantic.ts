@@ -87,9 +87,9 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const nirvanaExtend = (options: {horizontal: boolean}): ModernExtend[] => [
+const atlanticPlusRadiatorExtend = (options: {horizontal: boolean; light?: boolean}): ModernExtend[] => [
     m.deviceEndpoints({
-        endpoints: {"1": 1, "230": 230, "232": 232},
+        endpoints: {"1": 1, "230": 230, "232": 232, ...(options.light ? {"233": 233} : {})},
         multiEndpointSkip: [
             "local_temperature",
             "occupied_heating_setpoint",
@@ -131,6 +131,7 @@ const nirvanaExtend = (options: {horizontal: boolean}): ModernExtend[] => [
           ]
         : // instantaneousDemand is unsupported, currentSummDelivered is in Wh while some firmwares report multiplier=1000/divisor=1000
           [m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"}})]),
+    ...(options.light ? [m.light({endpointNames: ["233"]})] : []),
 ];
 
 export const definitions: DefinitionWithExtend[] = [
@@ -204,7 +205,17 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["100052992400", "100052992500", "100052992700"],
+        zigbeeModel: [
+            "100052992400",
+            "100052992500",
+            "100052992700",
+            "100050312600",
+            "100050312700",
+            "100050312800",
+            "100050312900",
+            "100050313000",
+            "100050313100",
+        ],
         model: "100052992400",
         vendor: "Atlantic Group",
         description: "Nirvana+ connected radiator horizontal 750W",
@@ -220,11 +231,42 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Nirvana+ connected radiator horizontal 1500W",
                 fingerprint: [{modelID: "100052992700"}, {modelID: "100052992700\u0000"}],
             },
+            // Agilia+ horizontal variants.
+            {
+                model: "100050312600",
+                description: "Agilia+ connected radiator horizontal 500W",
+                fingerprint: [{modelID: "100050312600"}, {modelID: "100050312600\u0000"}],
+            },
+            {
+                model: "100050312700",
+                description: "Agilia+ connected radiator horizontal 750W",
+                fingerprint: [{modelID: "100050312700"}, {modelID: "100050312700\u0000"}],
+            },
+            {
+                model: "100050312800",
+                description: "Agilia+ connected radiator horizontal 1000W",
+                fingerprint: [{modelID: "100050312800"}, {modelID: "100050312800\u0000"}],
+            },
+            {
+                model: "100050312900",
+                description: "Agilia+ connected radiator horizontal 1250W",
+                fingerprint: [{modelID: "100050312900"}, {modelID: "100050312900\u0000"}],
+            },
+            {
+                model: "100050313000",
+                description: "Agilia+ connected radiator horizontal 1500W",
+                fingerprint: [{modelID: "100050313000"}, {modelID: "100050313000\u0000"}],
+            },
+            {
+                model: "100050313100",
+                description: "Agilia+ connected radiator horizontal 2000W",
+                fingerprint: [{modelID: "100050313100"}, {modelID: "100050313100\u0000"}],
+            },
         ],
-        extend: nirvanaExtend({horizontal: true}),
+        extend: atlanticPlusRadiatorExtend({horizontal: true}),
     },
     {
-        zigbeeModel: ["100052994200", "100052994300"],
+        zigbeeModel: ["100052994200", "100052994300", "100051841900", "100051842100", "100051842200"],
         model: "100052994200",
         vendor: "Atlantic Group",
         description: "Nirvana+ connected radiator vertical 1500W",
@@ -234,8 +276,31 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Nirvana+ connected radiator vertical 2000W",
                 fingerprint: [{modelID: "100052994300"}, {modelID: "100052994300\u0000"}],
             },
+            // Agilia+ vertical variants.
+            {
+                model: "100051841900",
+                description: "Agilia+ connected radiator vertical 1000W",
+                fingerprint: [{modelID: "100051841900"}, {modelID: "100051841900\u0000"}],
+            },
+            {
+                model: "100051842100",
+                description: "Agilia+ connected radiator vertical 1500W",
+                fingerprint: [{modelID: "100051842100"}, {modelID: "100051842100\u0000"}],
+            },
+            {
+                model: "100051842200",
+                description: "Agilia+ connected radiator vertical 1800W",
+                fingerprint: [{modelID: "100051842200"}, {modelID: "100051842200\u0000"}],
+            },
         ],
-        extend: nirvanaExtend({horizontal: false}),
+        extend: atlanticPlusRadiatorExtend({horizontal: false}),
+    },
+    {
+        zigbeeModel: ["100050768800"],
+        model: "100050768800",
+        vendor: "Atlantic Group",
+        description: "Divali Neo connected radiator vertical with light",
+        extend: atlanticPlusRadiatorExtend({horizontal: false, light: true}),
     },
     {
         zigbeeModel: ["100050072300"],

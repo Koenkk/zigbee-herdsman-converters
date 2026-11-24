@@ -361,6 +361,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "EGLO", model: "900566"},
             {vendor: "EGLO", model: "901463"},
+            {vendor: "EGLO", model: "901466"},
         ],
     },
     {
