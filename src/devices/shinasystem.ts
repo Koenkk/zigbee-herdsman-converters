@@ -1295,6 +1295,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["CCM-300-WZ"],
+        model: "CCM-300-WZ",
+        vendor: "ShinaSystem",
+        description: "SiHAS smart plug",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({cluster: "metering"})],
+    },
+    {
         zigbeeModel: ["HPM-300-WZ"],
         model: "HPM-300-WZ",
         vendor: "ShinaSystem",
