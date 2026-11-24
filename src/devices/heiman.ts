@@ -4166,8 +4166,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["S1-TL"],
-        model: "S1-TL",
+        zigbeeModel: ["S1-TL", "S1-E"],
+        model: "S1-E",
         vendor: "Heiman",
         description: "Smart smoke alarm",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],

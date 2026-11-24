@@ -15,6 +15,7 @@ import {definitions as allesin} from "./allesin";
 import {definitions as amina} from "./amina";
 import {definitions as anchor} from "./anchor";
 import {definitions as ariston} from "./ariston";
+import {definitions as asteroid} from "./asteroid";
 import {definitions as atlantic} from "./atlantic";
 import {definitions as atsmart} from "./atsmart";
 import {definitions as auroraLighting} from "./aurora_lighting";
@@ -178,6 +179,7 @@ import {definitions as kami} from "./kami";
 import {definitions as keenHome} from "./keen_home";
 import {definitions as klikaanklikuit} from "./klikaanklikuit";
 import {definitions as kmpcil} from "./kmpcil";
+import {definitions as knockautx} from "./knockautx";
 import {definitions as konke} from "./konke";
 import {definitions as ksentry} from "./ksentry";
 import {definitions as kurvia} from "./kurvia";
@@ -426,6 +428,7 @@ const definitions: DefinitionWithExtend[] = [
     ...amina,
     ...anchor,
     ...ariston,
+    ...asteroid,
     ...atlantic,
     ...atsmart,
     ...auroraLighting,
@@ -819,6 +822,7 @@ const definitions: DefinitionWithExtend[] = [
     ...engo,
     ...vsmart,
     ...manhot,
+    ...knockautx,
 ];
 
 export default definitions;

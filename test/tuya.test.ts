@@ -1,12 +1,161 @@
-import {describe, expect, it, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
 import * as legacy from "../src/lib/legacy";
+import * as globalStore from "../src/lib/store";
 import * as tuya from "../src/lib/tuya";
-import type {Definition, Fz, KeyValueAny} from "../src/lib/types";
+import type {Definition, Fz, KeyValue, KeyValueAny, OnEvent} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
+    describe("tuyaBase data queries", () => {
+        const maxIntervalSeconds = 20 * 24 * 60 * 60;
+        const invalidIntervals = [maxIntervalSeconds + 0.001, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN];
+        beforeEach(() => vi.useFakeTimers());
+        afterEach(() => {
+            vi.clearAllTimers();
+            vi.useRealTimers();
+            globalStore.clear();
+        });
+        const setup = (args: Parameters<typeof tuya.modernExtend.tuyaBase>[0] = {dp: true, queryIntervalSeconds: 0}) => {
+            const extension = tuya.modernExtend.tuyaBase(args);
+            const device = mockDevice({modelID: "TS0601", endpoints: [{ID: 2}]});
+            const command = vi.mocked(device.endpoints[0].command);
+            const base = {device, state: {}, deviceExposesChanged: () => {}};
+            const emit = async (event: OnEvent.Event) => {
+                for (const handler of extension.onEvent) await handler(event);
+            };
+            return {
+                extension,
+                device,
+                command,
+                start: (options: KeyValue = {}) => emit({type: "start", data: {...base, options}}),
+                changeOptions: (from: KeyValue, to: KeyValue) => emit({type: "deviceOptionsChanged", data: {...base, options: to, from, to}}),
+                announce: () => emit({type: "deviceAnnounce", data: {...base, options: {}}}),
+            };
+        };
+
+        it("exposes query intervals with a disabled default for DP devices", async () => {
+            const {extension, command, start, changeOptions} = setup();
+            expect(extension.options.map((option) => option.name)).toEqual(["time_start", "data_query_interval"]);
+            const option = tuya.options.dataQueryInterval();
+            expect([option.unit, option.value_min, option.value_max]).toEqual(["s", undefined, maxIntervalSeconds]);
+            await start();
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(command).not.toHaveBeenCalled();
+            await changeOptions({}, {data_query_interval: 2.5});
+            await vi.advanceTimersByTimeAsync(2500);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        });
+
+        it.each([{}, {dp: true}] as const)("keeps undeclared query polling disabled (%j)", async (args) => {
+            const {extension, device, command, start, changeOptions} = setup(args);
+            expect(extension.options.map((option) => option.name)).toEqual(["time_start"]);
+            expect(extension.fromZigbee.includes(tuya.fz.datapoints)).toBe("dp" in args);
+            expect(extension.toZigbee.includes(tuya.tz.datapoints)).toBe("dp" in args);
+            const otherTimer = {};
+            globalStore.putValue(device.ieeeAddr, "query_interval", otherTimer);
+            await start({data_query_interval: 1});
+            await changeOptions({data_query_interval: 1}, {data_query_interval: 2});
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(command).not.toHaveBeenCalled();
+            expect(vi.getTimerCount()).toBe(0);
+            expect(globalStore.getValue(device.ieeeAddr, "query_interval")).toBe(otherTimer);
+        });
+
+        it("preserves explicitly configured fixed queries for non-DP devices without exposing an option", async () => {
+            const {extension, command, start} = setup({queryIntervalSeconds: 60});
+            expect(extension.options.map((option) => option.name)).toEqual(["time_start"]);
+            expect(extension.fromZigbee).not.toContain(tuya.fz.datapoints);
+            await start({data_query_interval: 0});
+            await vi.advanceTimersByTimeAsync(59999);
+            expect(command).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        });
+
+        it.each([0.1, maxIntervalSeconds])("accepts a valid interval of %s seconds", async (seconds) => {
+            const {command, start} = setup();
+            await start({data_query_interval: seconds});
+            await vi.advanceTimersByTimeAsync(seconds * 1000 - 1);
+            expect(command).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        });
+
+        it.each(invalidIntervals)("clears existing queries before rejecting interval %s", async (seconds) => {
+            const {command, start, changeOptions} = setup();
+            const enabled = {data_query_interval: 1};
+            const invalid = {data_query_interval: seconds};
+            await start(enabled);
+            await expect(changeOptions(enabled, invalid)).rejects.toThrow();
+            expect(vi.getTimerCount()).toBe(0);
+            await vi.advanceTimersByTimeAsync(5000);
+            expect(command).not.toHaveBeenCalled();
+
+            const pending = Promise.withResolvers<Record<string, never>>();
+            command.mockReturnValueOnce(pending.promise);
+            await start(enabled);
+            await vi.advanceTimersByTimeAsync(1000);
+            expect(command).toHaveBeenCalledTimes(1);
+            await expect(changeOptions(enabled, invalid)).rejects.toThrow();
+            pending.resolve({});
+            await vi.advanceTimersByTimeAsync(5000);
+            expect(command).toHaveBeenCalledTimes(1);
+            expect(vi.getTimerCount()).toBe(0);
+        });
+
+        it.each([
+            {seconds: 60, disabled: 0},
+            {seconds: 15, disabled: -1},
+        ])("uses a $seconds-second default, accepts changes and disables with $disabled", async ({seconds, disabled}) => {
+            const {command, start, changeOptions} = setup({dp: true, queryIntervalSeconds: seconds});
+            await start();
+            await vi.advanceTimersByTimeAsync(seconds * 1000 - 1);
+            expect(command).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+            await changeOptions({}, {data_query_interval: 2.5});
+            await vi.advanceTimersByTimeAsync(2499);
+            expect(command).toHaveBeenCalledTimes(1);
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledTimes(2);
+            await changeOptions({data_query_interval: 2.5}, {data_query_interval: disabled});
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(command).toHaveBeenCalledTimes(2);
+            await changeOptions({data_query_interval: disabled}, {});
+            await vi.advanceTimersByTimeAsync(seconds * 1000 - 1);
+            expect(command).toHaveBeenCalledTimes(2);
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledTimes(3);
+        });
+
+        it.each([0, -1])("keeps announce/configure support and cannot restart an in-flight query after disabling with %s", async (disabled) => {
+            const {extension, command, start, changeOptions, announce} = setup({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 3,
+            });
+            expect(extension.configure).toContain(tuya.configureQuery);
+            expect(extension.fromZigbee).toContain(tuya.fz.datapoints);
+            expect(extension.toZigbee).toContain(tuya.tz.datapoints);
+            await announce();
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+            command.mockClear();
+            const pending = Promise.withResolvers<Record<string, never>>();
+            command.mockReturnValueOnce(pending.promise);
+            await start();
+            await vi.advanceTimersByTimeAsync(3000);
+            expect(command).toHaveBeenCalledTimes(1);
+            await changeOptions({}, {data_query_interval: disabled});
+            pending.resolve({});
+            await vi.advanceTimersByTimeAsync(9000);
+            expect(command).toHaveBeenCalledTimes(1);
+            expect(vi.getTimerCount()).toBe(0);
+        });
+    });
+
     describe("tuyaWeatherForecast", () => {
         it("uses forecast fields 1 through 3 and includes their humidity in the payload", async () => {
             const {toZigbee} = tuya.modernExtend.tuyaWeatherForecast();
@@ -890,6 +1039,22 @@ describe("Tuya ME201WZ", () => {
         const me202wz = {liquid_depth: 1.19, liquid_level_percent: 94, installation_height: 0.17, liquid_depth_max: 1.26};
         expect(convert(reading(40, 32, 1), me202wz, {})).toStrictEqual({liquid_depth: 0.4, liquid_level_percent: 32, liquid_state: "low"});
         expect(convert(reading(-110, 0, 1), me202wz, {})).toStrictEqual({});
+    });
+
+    it("computes the percentage on the ME202WZ, which never reports DP 22", async () => {
+        const {convert} = await setup("_TZE284_mxujdmxo");
+        const me202wz = {liquid_depth: 1.19, liquid_level_percent: 94, liquid_depth_max: 1.26};
+        // The ME202WZ only reports the depth (DP 2)
+        expect(convert([tuya.dpValueFromNumberValue(2, 115)], me202wz, {})).toStrictEqual({liquid_depth: 1.15, liquid_level_percent: 91});
+        // A stale DP 22 is ignored
+        expect(convert([tuya.dpValueFromNumberValue(2, 40), tuya.dpValueFromNumberValue(22, 94)], me202wz, {})).toStrictEqual({
+            liquid_depth: 0.4,
+            liquid_level_percent: 32,
+        });
+        // Capped at 100 %
+        expect(convert([tuya.dpValueFromNumberValue(2, 127)], me202wz, {})).toStrictEqual({liquid_depth: 1.27, liquid_level_percent: 100});
+        // No percentage until liquid_depth_max is known
+        expect(convert([tuya.dpValueFromNumberValue(2, 115)], {}, {})).toStrictEqual({liquid_depth: 1.15});
     });
 
     it("accepts a sudden change once it has been read steadily for 12 hours", async () => {
