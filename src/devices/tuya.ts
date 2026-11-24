@@ -5370,7 +5370,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS011F_2_gang_power_qlmnxmac",
         vendor: "Tuya",
         description: "2 gang wall outlet with power monitoring",
-        icon: "device_icons/TS011F_2_gang_wall.png",
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
