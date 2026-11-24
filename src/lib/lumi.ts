@@ -2150,7 +2150,7 @@ export interface AqaraFp400Config {
     commandResponses: {appendZoneResponse: {status: number}; updateZoneResponse: {status: number}; removeZoneResponse: {status: number}};
 }
 export interface AqaraFp400Radar {
-    attributes: {zoneId: number; humanCount: number};
+    attributes: {childEndpointList: number[]; zoneId: number; humanCount: number};
     commands: never;
     commandResponses: never;
 }
@@ -2209,6 +2209,7 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         ID: 0xfc0b,
         manufacturerCode,
         attributes: {
+            childEndpointList: {name: "childEndpointList", ID: 0x0000, type: Zcl.DataType.ARRAY},
             zoneId: {name: "zoneId", ID: 0x0001, type: Zcl.DataType.UINT8},
             humanCount: {name: "humanCount", ID: 0x0002, type: Zcl.DataType.UINT16},
         },
@@ -2361,27 +2362,83 @@ function fp400RoomView(device: Zh.Device): Zh.Device {
     });
 }
 
+const FP400_ZONE_ENDPOINTS = [3, 4, 5, 6, 7, 8, 9, 10];
+
+const fp400OccupancyReporting = (maximumReportInterval: number) => [
+    {attribute: "occupancy" as const, minimumReportInterval: 0, maximumReportInterval, reportableChange: 0},
+];
 const fp400LightReporting = (maximumReportInterval: number) => [
     {attribute: "measuredValue" as const, minimumReportInterval: 10, maximumReportInterval, reportableChange: 5},
 ];
 
 /**
- * The sensor's reporting table holds five entries. Room presence takes the first (`m.occupancy` on endpoint 1) and the
- * light sensor the next; when it gets no entry, it is polled.
+ * The zone endpoints that carry a zone, as endpoint 1 lists them (0xFC0B childEndpointList); undefined when unknown. The
+ * other zone endpoints answer too, with a zone id of their own, so the zone id does not tell.
  */
-const fp400ConfigureReporting: Configure = async (device, coordinatorEndpoint) => {
-    const reported: number[] = [];
+async function fp400ReadZoneEndpoints(device: Zh.Device): Promise<number[] | undefined> {
     try {
-        const light = device.getEndpoint(2);
+        const {childEndpointList} = await device
+            .getEndpoint(1)
+            .read<"aqaraFp400Radar", AqaraFp400Radar>("aqaraFp400Radar", ["childEndpointList"], {manufacturerCode});
+        if (Array.isArray(childEndpointList)) return FP400_ZONE_ENDPOINTS.filter((id) => childEndpointList.includes(id));
+    } catch (error) {
+        logger.debug(`FP400 '${device.ieeeAddr}': reading which endpoints carry zones failed (${error})`, NS);
+    }
+    return undefined;
+}
+
+/**
+ * The sensor's reporting table holds five entries. Room presence takes the first (`m.occupancy` on endpoint 1), the light
+ * sensor the next and the zones on `zones` what is left; whatever gets no entry is polled. A zone endpoint that no longer
+ * carries a zone gives its entry back first: a maximum interval of 0xFFFF stops a report. With `zones` unknown, the zones'
+ * entries are left as they are.
+ */
+async function fp400ShareReporting(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, zones: number[] | undefined) {
+    const before: number[] = (device.meta?.fp400ReportedEndpoints ?? []).filter((id: number) => FP400_ZONE_ENDPOINTS.includes(id));
+    for (const id of zones ? before.filter((id) => !zones.includes(id)) : []) {
+        try {
+            await device.getEndpoint(id).configureReporting("msOccupancySensing", fp400OccupancyReporting(0xffff));
+        } catch (error) {
+            logger.debug(`FP400 '${device.ieeeAddr}': freeing the reporting entry of endpoint ${id} failed (${error})`, NS);
+        }
+    }
+    const reported = zones ? [] : [...before];
+    const report = async (id: number, configure: (endpoint: Zh.Endpoint) => Promise<void>) => {
+        try {
+            await configure(device.getEndpoint(id));
+            reported.push(id);
+        } catch (error) {
+            logger.debug(`FP400 '${device.ieeeAddr}': endpoint ${id} is polled instead of reported (${error})`, NS);
+        }
+    };
+    await report(2, async (light) => {
         await light.bind("msIlluminanceMeasurement", coordinatorEndpoint);
         await light.configureReporting("msIlluminanceMeasurement", fp400LightReporting(3600));
-        reported.push(2);
-    } catch (error) {
-        logger.debug(`FP400 '${device.ieeeAddr}': endpoint 2 is polled instead of reported (${error})`, NS);
+    });
+    for (const id of zones ?? []) {
+        await report(id, async (zone) => {
+            await zone.bind("msOccupancySensing", coordinatorEndpoint);
+            await zone.configureReporting("msOccupancySensing", fp400OccupancyReporting(3600));
+        });
     }
     device.meta.fp400ReportedEndpoints = reported;
+    if (zones) device.meta.fp400ReportingZones = zones;
     device.save();
+}
+
+const fp400ConfigureReporting: Configure = async (device, coordinatorEndpoint) => {
+    await fp400ShareReporting(device, coordinatorEndpoint, await fp400ReadZoneEndpoints(device));
 };
+
+/** The coordinator endpoint the sensor reports to: room presence is bound to it when the sensor is configured. */
+function fp400CoordinatorEndpoint(device: Zh.Device): Zh.Endpoint | undefined {
+    for (const endpoint of device.endpoints) {
+        for (const {target} of endpoint.binds) {
+            if ("getDevice" in target && target.getDevice()?.type === "Coordinator") return target;
+        }
+    }
+    return undefined;
+}
 
 /* ── The sensor's own settings ───────────────────────────────────────────────────────────────────────────────────── */
 
@@ -2825,8 +2882,9 @@ function fp400Areas(): ModernExtend[] {
 }
 
 /**
- * The sensor's own detection zones, on endpoints 3-10 (zone_id_N tells which zone an endpoint carries). Their values are
- * polled: the sensor's reporting table has no room for them. Configure reads are left out, endpoints without a zone time out.
+ * The sensor's own detection zones, on endpoints 3-10 (zone_id_N tells which zone an endpoint carries). The zones the
+ * sensor has report their occupancy in the reporting entries room presence and the light leave (fp400ShareReporting);
+ * everything else is polled, also on endpoints without a zone, which answer too. Configure reads are left out.
  */
 function fp400NativeZones(): ModernExtend[] {
     const endpointNames = ["3", "4", "5", "6", "7", "8", "9", "10"];
@@ -2934,12 +2992,21 @@ function fp400NativeZones(): ModernExtend[] {
             key: "fp400_zones",
             defaultIntervalSeconds: 60,
             poll: async (device) => {
+                // Zones created or removed since the reporting entries were shared out, here or in the Aqara app.
+                const zones = await fp400ReadZoneEndpoints(device);
+                if (zones && zones.join() !== device.meta?.fp400ReportingZones?.join()) {
+                    const coordinatorEndpoint = fp400CoordinatorEndpoint(device);
+                    if (coordinatorEndpoint) await fp400ShareReporting(device, coordinatorEndpoint, zones);
+                    else logger.debug(`FP400 '${device.ieeeAddr}': no binding to the coordinator, the zones are polled`, NS);
+                }
+                const reported: number[] = device.meta?.fp400ReportedEndpoints ?? [];
                 for (const name of endpointNames) {
                     const endpoint = device.getEndpoint(Number(name));
-                    await Promise.allSettled([
-                        endpoint.read("msOccupancySensing", ["occupancy"]),
+                    const reads: Promise<unknown>[] = [
                         endpoint.read<"aqaraFp400Radar", AqaraFp400Radar>("aqaraFp400Radar", ["zoneId", "humanCount"], {manufacturerCode}),
-                    ]);
+                    ];
+                    if (!reported.includes(endpoint.ID)) reads.push(endpoint.read("msOccupancySensing", ["occupancy"]));
+                    await Promise.allSettled(reads);
                 }
             },
         }),
