@@ -5,7 +5,6 @@ import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from
 import * as utils from "../lib/utils";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
-import * as globalStore from "./store";
 import type {TuyaClosuresWindowCovering} from "./tuya";
 
 const NS = "zhc:legrand";
@@ -434,59 +433,20 @@ export const tzLegrand = {
     // always drives `state` through `tz.light_onoff_brightness`, which uses `genLevelCtrl`, so
     // in that mode on/off no longer has any effect. This converter keeps the transition-aware
     // light converter for dimmer mode, and falls back to plain `tz.on_off` in relay mode.
-    //
-    // It owns the same keys as `tz.light_onoff_brightness`: Zigbee2MQTT uses a converter only once
-    // per message, so with a narrower key set `m.light()`'s converter would also run for the other
-    // keys of a combined message (e.g. `{state: "TOGGLE", on_time: 5}`) and send the command twice.
-    //
-    // In dimmer mode, after a plain genOnOff `On` (no brightness requested) the module restores its
-    // OnLevel but never reports `currentLevel`, so a level of 0 left by a wall-button OFF stays in
-    // the state. When the light was off, publish OnLevel straight away (read once from the device if
-    // it is not in the state yet; the read response is stored by `fz.level_config`), and read
-    // `currentLevel` back once the fade-in is over.
     light_state_device_mode_aware: {
+        // Same keys as the `m.light()` converter, otherwise both run for e.g. `{state: "ON", brightness: 100}`.
         key: tz.light_onoff_brightness.key,
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            const state = typeof meta.message.state === "string" ? meta.message.state.toLowerCase() : undefined;
-            if (meta.state.device_mode === "dimmer_off" && state !== undefined) {
+            if (meta.state.device_mode === "dimmer_off" && meta.message.state != null) {
                 return await tz.on_off.convertSet(entity, key, value, meta);
             }
-            const wasOn = meta.state.state === "ON";
             const result = (await tz.light_onoff_brightness.convertSet(entity, key, value, meta)) as KeyValueAny;
-            if (meta.state.device_mode === "dimmer_off") {
-                return result;
-            }
-
-            const targetState = state === "toggle" ? (wasOn ? "off" : "on") : state;
-            const brightnessRequested = meta.message.brightness != null || meta.message.brightness_percent != null;
-            if (targetState === "on" && !brightnessRequested && utils.isEndpoint(entity)) {
-                if (!wasOn && result?.state) {
-                    // `fz.level_config` stores 255 as "previous": the device restores its last level.
-                    let onLevel = utils.getObjectProperty(meta.state.level_config as KeyValueAny, "on_level", undefined);
-                    if (onLevel === undefined) {
-                        try {
-                            onLevel = (await entity.read("genLevelCtrl", ["onLevel"]))?.onLevel;
-                        } catch (error) {
-                            logger.debug(`Failed to read onLevel after 'on' (${(error as Error).message})`, NS);
-                        }
-                    }
-                    if (typeof onLevel === "number" && onLevel >= 1 && onLevel <= 254) {
-                        result.state.brightness = onLevel;
-                    }
-                }
-
-                // Restart the timer on repeated commands so only one read is done once the last fade-in is over.
-                clearTimeout(globalStore.getValue(entity, "current_level_read_timer"));
-                const transition = utils.getTransition(entity, "brightness", meta);
-                const delay = Math.max(1500, transition.time * 100 + 1000);
-                const timer = setTimeout(() => {
-                    globalStore.clearValue(entity, "current_level_read_timer");
-                    entity.read("genLevelCtrl", ["currentLevel"]).catch((error) => {
-                        logger.debug(`Failed to read currentLevel after 'on' (${(error as Error).message})`, NS);
-                    });
-                }, delay).unref();
-                globalStore.putValue(entity, "current_level_read_timer", timer);
+            // The device doesn't report `currentLevel` after a plain `on`, read it once the fade-in is over.
+            const {brightness, brightness_percent: brightnessPercent} = meta.message;
+            const plain = brightness == null && brightnessPercent == null && !utils.getTransition(entity, "brightness", meta).specified;
+            if (plain && result?.state?.state === "ON" && utils.isEndpoint(entity)) {
+                setTimeout(() => entity.read("genLevelCtrl", ["currentLevel"]).catch(() => {}), 1500).unref();
             }
             return result;
         },
