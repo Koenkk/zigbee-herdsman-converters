@@ -3889,13 +3889,9 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: {ambient: 2, floor: 3},
             }),
             m.temperature({
-                name: "xtemperature",
-                label: ["Ambient temperature", "Floor temperature"],
                 endpointNames: ["ambient", "floor"],
-                homeassistant: [
-                    {deviceClass: "temperature", name: "Ambient temperature"},
-                    {deviceClass: "temperature", name: "Floor temperature"},
-                ],
+                homeassistant: [{name: "Ambient temperature"}, {name: "Floor temperature"}],
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10},
             }),
             schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
