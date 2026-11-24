@@ -64,6 +64,18 @@ function heimanRawData(): ModernExtend {
     };
 }
 
+interface HeimanMo24TemperatureMeasurement {
+    attributes: {temperatureCalibration: number};
+    commands: never;
+    commandResponses: never;
+}
+
+interface HeimanMo24IasZone {
+    attributes: {hush: number; smokeChamber: number};
+    commands: never;
+    commandResponses: never;
+}
+
 interface RadarSensorHeimanZcl {
     attributes: {
         enableIndicator: number;
@@ -2458,6 +2470,125 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
+    },
+    {
+        zigbeeModel: ["MO24-001"],
+        model: "MO24-001",
+        vendor: "Heiman",
+        description: "Smart smoke alarm",
+        // High temperature alarm: reported via a generic Alarms command referencing the temperature cluster (0x0402), alarmcode 0x01 = active.
+        fromZigbee: [
+            {
+                cluster: "genAlarms",
+                type: ["commandAlarm"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.clusterid === 0x0402) {
+                        return {high_temperature: msg.data.alarmcode === 1};
+                    }
+                },
+            } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
+        ],
+        // Warning: mode/level/strobe have no effect on this device, only duration does.
+        toZigbee: [
+            {
+                key: ["warning"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value);
+                    const duration = value.mode === "stop" ? 0 : ((value.duration as number) ?? 10);
+                    await entity.command("ssIasWd", "startWarning", {
+                        startwarninginfo: duration > 0 ? 0x20 : 0x00,
+                        warningduration: duration,
+                        strobedutycycle: 0,
+                        strobelevel: 0,
+                    });
+                    return {state: {warning: value}};
+                },
+            } satisfies Tz.Converter,
+        ],
+        exposes: [
+            e.binary("high_temperature", ea.STATE, true, false).withDescription("Indicates whether the high temperature alarm is active"),
+            e
+                .composite("warning", "warning", ea.SET)
+                .withFeature(
+                    e
+                        .numeric("duration", ea.SET)
+                        .withUnit("s")
+                        .withValueMin(0)
+                        .withValueMax(0xffff)
+                        .withDescription("Duration in seconds of the alarm"),
+                )
+                .withDescription("Start (duration > 0) or stop (0) the audible warning sound"),
+        ],
+        extend: [
+            m.deviceAddCustomCluster("msTemperatureMeasurement", {
+                name: "msTemperatureMeasurement",
+                ID: Zcl.Clusters.msTemperatureMeasurement.ID,
+                attributes: {
+                    temperatureCalibration: {
+                        name: "temperatureCalibration",
+                        ID: 0xf006,
+                        type: Zcl.DataType.INT8,
+                        manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                        write: true,
+                        min: -100,
+                        max: 100,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("ssIasZone", {
+                name: "ssIasZone",
+                ID: Zcl.Clusters.ssIasZone.ID,
+                attributes: {
+                    hush: {name: "hush", ID: 0xf003, type: Zcl.DataType.UINT16, manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+                    smokeChamber: {
+                        name: "smokeChamber",
+                        ID: 0xf009,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low", "test"]}),
+            m.numeric<"msTemperatureMeasurement", HeimanMo24TemperatureMeasurement>({
+                name: "temperature_calibration",
+                cluster: "msTemperatureMeasurement",
+                attribute: "temperatureCalibration",
+                description: "Temperature calibration offset",
+                unit: "°C",
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 0.1,
+                scale: 10,
+                entityCategory: "config",
+            }),
+            m.binary<"ssIasZone", HeimanMo24IasZone>({
+                name: "smoke_chamber",
+                cluster: "ssIasZone",
+                attribute: "smokeChamber",
+                description: "Smoke detected in the optical chamber (pre-alarm)",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE_GET",
+                reporting: {min: 0, max: "1_HOUR", change: 1},
+            }),
+            m.binary<"ssIasZone", HeimanMo24IasZone>({
+                name: "hush",
+                cluster: "ssIasZone",
+                attribute: "hush",
+                description: "Alarm was manually silenced at the device",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE_GET",
+                reporting: {min: 0, max: "1_HOUR", change: 0},
+            }),
+        ],
     },
     {
         zigbeeModel: ["GASSensor-N", "GASSensor-N-3.0", "d90d7c61c44d468a8e906ca0841e0a0c"],
