@@ -2192,7 +2192,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}}), m.identify()],
     },
     {
-        zigbeeModel: ["4096730U9"],
+        zigbeeModel: ["4096730U9","929003053801"],
         model: "046677803087",
         vendor: "Philips",
         description: "Hue White ambiance Cher ceiling light",
