@@ -392,7 +392,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003853601",
         vendor: "Philips",
         description: "Hue white and color ambiance A67 1600lm E27",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, ota: false}), m.identify()],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
     },
     {
         zigbeeModel: ["LCA024"],
@@ -2569,6 +2569,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Signe table light",
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true}), m.identify()],
+    },
+    {
+        zigbeeModel: ["929003693901"],
+        model: "929003693901",
+        vendor: "Philips",
+        description: "Hue Signe table lamp",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["4080148U9"],
