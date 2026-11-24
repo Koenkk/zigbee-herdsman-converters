@@ -202,6 +202,7 @@ interface SonoffTrvzb {
         temporaryModeTime: number;
         temporaryModeTemp: number;
         smartTempControl: number;
+        screenDirection: number;
     };
     commands: never;
     commandResponses: never;
@@ -10230,6 +10231,7 @@ export const definitions: DefinitionWithExtend[] = [
                         max: 0xff,
                     },
                     smartTempControl: {name: "smartTempControl", ID: 0x6017, type: Zcl.DataType.BITMAP8, write: true},
+                    screenDirection: {name: "screenDirection", ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -10440,6 +10442,15 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 valueOn: [true, 0x02],
                 valueOff: [false, 0x00],
+            }),
+            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "screen_orientation",
+                label: "Screen orientation",
+                lookup: {standard: 2, flipped: 0},
+                cluster: "customSonoffTrvzb",
+                attribute: "screenDirection",
+                entityCategory: "config",
+                description: "Select the display orientation.",
             }),
         ],
         ota: true,
