@@ -5377,6 +5377,33 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_6ycqll7a"]),
+        model: "TS011F-GPO",
+        vendor: "EyZEE",
+        description: "Zigbee double power outlet",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["left", "right"],
+                powerOutageMemory: true,
+                indicatorMode: true,
+                childLock: true,
+            }),
+        ],
+        fromZigbee: [tuya.fz.datapoints],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_left", tuya.valueConverter.onOff],
+                [2, "state_right", tuya.valueConverter.onOff],
+            ],
+        },
+        endpoint: () => ({right: 1, left: 2}),
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            device.save();
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_z1kba38n"]),
         model: "SA-T2",
         vendor: "Nova Digital",
