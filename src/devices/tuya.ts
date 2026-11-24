@@ -27257,7 +27257,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q9xty0ad"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q9xty0ad", "_TZE284_q9xty0ad"]),
         model: "_TZE204_q9xty0ad",
         vendor: "Tuya",
         description: "Ayvolt Blinds",
