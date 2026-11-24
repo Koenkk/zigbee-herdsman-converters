@@ -810,7 +810,9 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outside temperature reported by OpenTherm heat source.",
                 access: "STATE_GET",
                 unit: "°C",
-                scale: 100,
+                // Firmware reads the OpenTherm f8.8 value as unsigned, so negative temperatures are reported 256 °C too high.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/33818
+                scale: (value) => (value > 12700 ? value - 25600 : value) / 100,
                 reporting: {min: "10_SECONDS", max: 870, change: 0.1},
             }),
             plugwiseExtend.outdoorTemperature(),
