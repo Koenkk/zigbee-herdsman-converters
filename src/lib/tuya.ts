@@ -1314,6 +1314,13 @@ const tuyaExposes = {
 export {tuyaExposes as exposes};
 
 const tuyaOptions = {
+    dataQueryInterval: (defaultSeconds = 0) =>
+        new exposes.Numeric("data_query_interval", ea.SET)
+            .withUnit("s")
+            .withValueMax(20 * 24 * 60 * 60)
+            .withDescription(
+                `Interval between Tuya datapoint queries (useful if your device does not automatically report data). Set to 0 or a negative value to disable polling. Default for this device: ${defaultSeconds}`,
+            ),
     timeStart: (defaultOption: string) =>
         e
             .enum("time_start", ea.SET, ["1970", "2000", "off"])
@@ -4636,7 +4643,7 @@ const tuyaModernExtend = {
             queryOnDeviceAnnounce = false,
             queryOnConfigure = false,
             bindBasicOnConfigure = false,
-            queryIntervalSeconds = undefined,
+            queryIntervalSeconds = 0,
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
@@ -4719,6 +4726,7 @@ const tuyaModernExtend = {
             fromZigbee: [fzConverter, tuyaFz.mcu_version],
             toZigbee: [],
             options: [tuyaOptions.timeStart(timeStart)],
+            onEvent: [],
         };
 
         if (queryOnConfigure) {
@@ -4731,41 +4739,19 @@ const tuyaModernExtend = {
             result.configure.push(configureBindBasic);
         }
 
-        if (queryOnDeviceAnnounce || queryIntervalSeconds !== undefined) {
-            result.onEvent = [
-                (event) => {
-                    // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-                    if (event.type === "deviceAnnounce") {
-                        const shouldQuery =
-                            typeof queryOnDeviceAnnounce === "function" ? queryOnDeviceAnnounce(event.data.device) : queryOnDeviceAnnounce;
-                        if (shouldQuery) {
-                            event.data.device.endpoints[0]
-                                .command("manuSpecificTuya", "dataQuery", {})
-                                .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
-                        }
+        if (queryOnDeviceAnnounce) {
+            result.onEvent.push((event) => {
+                // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
+                if (event.type === "deviceAnnounce") {
+                    const shouldQuery =
+                        typeof queryOnDeviceAnnounce === "function" ? queryOnDeviceAnnounce(event.data.device) : queryOnDeviceAnnounce;
+                    if (shouldQuery) {
+                        event.data.device.endpoints[0]
+                            .command("manuSpecificTuya", "dataQuery", {})
+                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
                     }
-
-                    if (queryIntervalSeconds !== undefined) {
-                        if (event.type === "stop") {
-                            clearTimeout(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
-                            globalStore.clearValue(event.data.ieeeAddr, "query_interval");
-                        } else if (event.type === "start") {
-                            const setTimer = () => {
-                                const timer = setTimeout(() => {
-                                    event.data.device.endpoints[0]
-                                        .command("manuSpecificTuya", "dataQuery", {})
-                                        .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
-                                    if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
-                                        setTimer();
-                                    }
-                                }, queryIntervalSeconds * 1000).unref();
-                                globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
-                            };
-                            setTimer();
-                        }
-                    }
-                },
-            ];
+                }
+            });
         }
 
         const tuyaGenBasic = tuyaClusters.addTuyaGenBasicCluster();
@@ -4792,6 +4778,18 @@ const tuyaModernExtend = {
             ...(customCluster3.configure ?? []),
             ...(result.configure ?? []),
         ];
+
+        if (args.queryIntervalSeconds !== undefined) {
+            const queryPoll = modernExtend.poll({
+                key: "data_query",
+                optionKey: "data_query_interval",
+                defaultIntervalSeconds: queryIntervalSeconds,
+                option: dp ? tuyaOptions.dataQueryInterval(queryIntervalSeconds) : undefined,
+                poll: async (device) => await device.endpoints[0].command("manuSpecificTuya", "dataQuery", {}),
+            });
+            result.options.push(...queryPoll.options);
+            result.onEvent.push(...queryPoll.onEvent);
+        }
 
         if (dp) {
             result.fromZigbee.push(tuyaFz.datapoints);
