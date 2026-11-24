@@ -890,6 +890,15 @@ describe("lib/tuya", () => {
             expect(endpoint.command).toHaveBeenCalledWith("lightingColorCtrl", "tuyaRgbMode", {enable: 0});
         });
 
+        it("restores the color when the effect stops", async () => {
+            const {endpoint, convertSet} = await setup();
+            await convertSet("effect", "stop", {effect: "rainbow", color_mode: "hs", color: {hue: 120, saturation: 100}, brightness: 200});
+            expect(endpoint.command).toHaveBeenNthCalledWith(1, "lightingColorCtrl", "tuyaRgbMode", {enable: 1});
+            expect(endpoint.command).toHaveBeenCalledTimes(3);
+            expect(vi.mocked(endpoint.command).mock.calls[1][1]).toStrictEqual("moveToHueAndSaturation");
+            expect(vi.mocked(endpoint.command).mock.calls[2][0]).toStrictEqual("genLevelCtrl");
+        });
+
         it("leaves the effect when a color is set", async () => {
             const {endpoint, convertSet} = await setup();
             const result = await convertSet("color", {hue: 120, saturation: 100}, {effect: "rainbow"});

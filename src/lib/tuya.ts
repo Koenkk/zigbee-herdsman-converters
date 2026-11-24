@@ -5283,9 +5283,23 @@ const tuyaModernExtend = {
                     key: ["effect"],
                     convertSet: async (entity, key, value, meta) => {
                         if (value === "stop") {
+                            const colorMode = isColorMode(meta.state);
                             await entity.command<"lightingColorCtrl", "tuyaRgbMode", TuyaLightingColorCtrl>("lightingColorCtrl", "tuyaRgbMode", {
-                                enable: isColorMode(meta.state) ? 1 : 0,
+                                enable: colorMode ? 1 : 0,
                             });
+                            // Some lights (e.g. Skydance WZS5) keep playing the scene after a bare mode switch,
+                            // re-sending the current color and brightness makes them leave it.
+                            const restoreKey = colorMode ? "color" : "color_temp";
+                            for (const restore of [restoreKey, "brightness"]) {
+                                const restoreValue = meta.state[restore];
+                                const converter = result.toZigbee.find((c) => c.key?.includes(restore));
+                                if (restoreValue === undefined || !converter) continue;
+                                await converter.convertSet(entity, restore, restoreValue, {
+                                    ...meta,
+                                    message: {[restore]: restoreValue, transition: 0},
+                                    state: {...meta.state, effect: value},
+                                });
+                            }
                             return {state: {effect: value}};
                         }
                         utils.assertString(value, key);
