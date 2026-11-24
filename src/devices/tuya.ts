@@ -5642,13 +5642,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Skydance",
         description: "Zigbee 3.0 RGB+CCT LED controller",
         whiteLabel: [{vendor: "Skydance", model: "WZ5_dim_2", description: "Zigbee & RF 5 in 1 LED controller (DIM mode)"}],
-        extend: [
-            tuya.modernExtend.tuyaLight({
-                colorTemp: {range: [153, 500]},
-                color: {modes: ["hs"], applyRedFix: true, enhancedHue: false},
-                effects: tuya.lightEffects.color,
-            }),
-        ],
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"]}})],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
@@ -8515,23 +8509,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0502B", ["_TZ3210_3fokyaq6"]),
-        model: "WZS2",
-        vendor: "Skydance",
-        description: "Zigbee 3.0 CCT LED controller",
-        extend: [
-            tuya.modernExtend.tuyaLight({
-                colorTemp: {range: [153, 500]},
-                configureReporting: true,
-                effects: tuya.lightEffects.white,
-            }),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 16});
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0503B", ["_TZB210_lmqquxus"]),
         zigbeeModel: ["TS0502B"],
         model: "TS0502B",
@@ -8564,6 +8541,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("LUUMR", "10010339", "Smart LED G9 2,5W CCT Clear", ["_TZ3210_tqwyiitv"]),
             tuya.whitelabel("ECODO", "ECD-SS12", "Sunset smart downlight 12 W, 1800-5700K", ["_TZ3210_rnj5wxxg"]),
             tuya.whitelabel("ECODO", "DR-MW-2436", "24-36W tunable white smart LED driver", ["_TZ3210_3632cjza"]),
+            tuya.whitelabel("Skydance", "WZS2", "Zigbee 3.0 CCT LED controller", ["_TZ3210_3fokyaq6"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
