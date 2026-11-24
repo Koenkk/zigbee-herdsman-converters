@@ -620,8 +620,18 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["RS 241 T"],
         model: "RS 241 T",
         vendor: "Innr",
-        description: "GU10 spot 420 lm, dimmable, white spectrum",
-        extend: [m.light({colorTemp: {range: [153, 455]}, turnsOffAtBrightness1: true})],
+        description: "GU10 spot 470 lm, dimmable, white spectrum",
+        extend: [
+            m.light({colorTemp: {range: [153, 455], startup: true}, turnsOffAtBrightness1: true}),
+            m.numeric({
+                name: "brightness_startup",
+                cluster: "genLevelCtrl",
+                attribute: "startUpCurrentLevel",
+                valueMin: 1,
+                valueMax: 255,
+                description: "Brightness after cold power on of this light (1-254, 255 = restore previous)",
+            }),
+        ],
         ota: true,
     },
     {
