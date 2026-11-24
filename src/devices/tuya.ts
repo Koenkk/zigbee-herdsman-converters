@@ -16941,6 +16941,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_sgpeacqp",
             "_TZE204_fwondbzy",
             "_TZE284_fwondbzy",
+            "_TZE28C1000000_fwondbzy",
             "_TZE284_xpq2rzhq",
         ]),
         model: "TS0601_smart_human_presence_sensor_1",
@@ -16950,7 +16951,12 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
         whiteLabel: [
             tuya.whitelabel("Tuya", "ZY-M100-L", "Ceiling human breathe sensor", ["_TZE204_ztc6ggyl"]),
-            tuya.whitelabel("Moes", "ZSS-QY-HP", "Human presence sensor", ["_TZE204_fwondbzy", "_TZE284_fwondbzy", "_TZE284_xpq2rzhq"]),
+            tuya.whitelabel("Moes", "ZSS-QY-HP", "Human presence sensor", [
+                "_TZE204_fwondbzy",
+                "_TZE284_fwondbzy",
+                "_TZE284_xpq2rzhq",
+                "_TZE28C1000000_fwondbzy",
+            ]),
         ],
         exposes: [
             e.illuminance(),
