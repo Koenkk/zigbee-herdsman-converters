@@ -14,6 +14,8 @@ import {isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const nodonTrvOptions = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};
+
 const nodonModernExtend = {
     calibrationVerticalRunTimeUp: (args?: Partial<m.NumericArgs<"closuresWindowCovering">>) =>
         m.numeric({
@@ -275,7 +277,9 @@ const nodonModernExtend = {
             name: "valve_position",
             cluster: "hvacThermostat",
             attribute: {ID: 0x4001, type: Zcl.DataType.UINT8},
-            description: "Valve opening, from 0 (closed) to 100 (fully open). Can be set when `trv_mode` is `valve_position_mode`.",
+            description:
+                "Directly control the radiator valve when `trv_mode` is set to `valve_position_mode`." +
+                "The values range from 0 (valve closed) to 100 (valve fully open) in %.",
             valueMin: 0,
             valueMax: 100,
             valueStep: 1,
@@ -285,6 +289,25 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
             ...args,
         }),
+    trvErrorStatus: () => {
+        // Bitmap, most severe first
+        const lookup = {valve_blocked: 0x20, valve_too_slow: 0x10, adaptation_failed: 0x08, battery_low: 0x01, ok: 0x00};
+        return m.enumLookup<"hvacThermostat", eurotronic.EurotronicHvacThermostat>({
+            name: "error_status",
+            lookup,
+            cluster: "hvacThermostat",
+            attribute: "errorStatus",
+            description: "Error reported by the valve: `adaptation_failed` (E1), `valve_too_slow` (E2), `valve_blocked` (E3)",
+            zigbeeCommandOptions: nodonTrvOptions,
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+            fzConvert: (model, msg, publish, options, meta) => {
+                const {errorStatus} = msg.data;
+                if (errorStatus === undefined) return;
+                return {error_status: Object.entries(lookup).find(([, bit]) => errorStatus & bit)?.[0] ?? "ok"};
+            },
+        });
+    },
 };
 
 interface NodonIrExtender {
@@ -324,22 +347,6 @@ const nodonIrbTz = {
     } satisfies Tz.Converter,
 };
 
-interface NodonTrvThermostat {
-    attributes: {errorStatus: number; hostFlags: number};
-    commands: never;
-    commandResponses: never;
-}
-
-const nodonTrvHostFlags = {mirrorDisplay: 0x02, childLock: 0x80};
-
-// Most severe error first
-const nodonTrvErrors: [number, string][] = [
-    [0x20, "valve_blocked"],
-    [0x10, "valve_too_slow"],
-    [0x08, "adaptation_failed"],
-    [0x01, "battery_low"],
-];
-
 const nodonTrvFz = {
     host_flags: {
         cluster: "hvacThermostat",
@@ -347,57 +354,33 @@ const nodonTrvFz = {
         convert: (model, msg, publish, options, meta) => {
             if (msg.data.hostFlags === undefined) return;
             return {
-                child_lock: msg.data.hostFlags & nodonTrvHostFlags.childLock ? "LOCK" : "UNLOCK",
-                mirror_display: msg.data.hostFlags & nodonTrvHostFlags.mirrorDisplay ? "ON" : "OFF",
+                child_lock: msg.data.hostFlags & 0x80 ? "LOCK" : "UNLOCK",
+                mirror_display: msg.data.hostFlags & 0x02 ? "ON" : "OFF",
             };
         },
-    } satisfies Fz.Converter<"hvacThermostat", NodonTrvThermostat, ["attributeReport", "readResponse"]>,
-    error_status: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data.errorStatus === undefined) return;
-            const error = nodonTrvErrors.find(([bit]) => msg.data.errorStatus & bit);
-            return {error_status: error ? error[1] : "ok"};
-        },
-    } satisfies Fz.Converter<"hvacThermostat", NodonTrvThermostat, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", eurotronic.EurotronicHvacThermostat, ["attributeReport", "readResponse"]>,
 };
 
-// Only change the requested bit of hostFlags, the other bits hold the operating mode (e.g. off, boost)
-const nodonTrvHostFlagTz = (key: string, bit: number, valueOn: string) =>
-    ({
-        key: [key],
+const nodonTrvTz = {
+    host_flags: {
+        key: ["child_lock", "mirror_display"],
         convertSet: async (entity, key, value, meta) => {
-            const result = await entity.read<"hvacThermostat", NodonTrvThermostat>("hvacThermostat", ["hostFlags"], {
-                manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS,
-            });
-            if (result.hostFlags === undefined) {
-                throw new Error(`Failed to read hostFlags before setting '${key}'`);
-            }
-            const hostFlags = value === valueOn ? result.hostFlags | bit : result.hostFlags & ~bit;
-            await entity.write<"hvacThermostat", NodonTrvThermostat>(
+            // Only change the requested bit, the other bits hold the operating mode (e.g. off, boost)
+            const bit = key === "child_lock" ? 0x80 : 0x02;
+            const {hostFlags} = await entity.read<"hvacThermostat", eurotronic.EurotronicHvacThermostat>(
                 "hvacThermostat",
-                {hostFlags},
-                {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
+                ["hostFlags"],
+                nodonTrvOptions,
+            );
+            await entity.write<"hvacThermostat", eurotronic.EurotronicHvacThermostat>(
+                "hvacThermostat",
+                {hostFlags: value === "LOCK" || value === "ON" ? hostFlags | bit : hostFlags & ~bit},
+                nodonTrvOptions,
             );
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", NodonTrvThermostat>("hvacThermostat", ["hostFlags"], {
-                manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS,
-            });
-        },
-    }) satisfies Tz.Converter;
-
-const nodonTrvTz = {
-    child_lock: nodonTrvHostFlagTz("child_lock", nodonTrvHostFlags.childLock, "LOCK"),
-    mirror_display: nodonTrvHostFlagTz("mirror_display", nodonTrvHostFlags.mirrorDisplay, "ON"),
-    error_status: {
-        key: ["error_status"],
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", NodonTrvThermostat>("hvacThermostat", ["errorStatus"], {
-                manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS,
-            });
+            await entity.read<"hvacThermostat", eurotronic.EurotronicHvacThermostat>("hvacThermostat", ["hostFlags"], nodonTrvOptions);
         },
     } satisfies Tz.Converter,
 };
@@ -869,9 +852,10 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             nodonModernExtend.trvMode(),
             nodonModernExtend.valvePosition(),
+            nodonModernExtend.trvErrorStatus(),
         ],
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
-        fromZigbee: [fz.thermostat, nodonTrvFz.host_flags, nodonTrvFz.error_status],
+        fromZigbee: [fz.thermostat, nodonTrvFz.host_flags],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_pi_heating_demand,
@@ -883,9 +867,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_setpoint_raise_lower,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
-            nodonTrvTz.error_status,
-            nodonTrvTz.child_lock,
-            nodonTrvTz.mirror_display,
+            nodonTrvTz.host_flags,
         ],
         exposes: [
             e.child_lock(),
@@ -900,12 +882,6 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("mirror_display", ea.ALL, "ON", "OFF")
                 .withDescription("Mirror display of the thermostat. Useful when it is mounted in a way where the display is presented upside down."),
-            e
-                .enum("error_status", ea.STATE_GET, ["ok", "battery_low", "adaptation_failed", "valve_too_slow", "valve_blocked"])
-                .withDescription(
-                    "Error reported by the valve: `adaptation_failed` (E1), `valve_too_slow` (E2), `valve_blocked` (E3). " +
-                        "Pressing a button on the device clears the error and restarts the adaptation.",
-                ),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
