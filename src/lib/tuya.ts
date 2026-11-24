@@ -3278,7 +3278,16 @@ const sceneWhite = (b: number, t: number, mode: 1 | 2, speed: number, duration =
 const whiteLightEffects: Record<string, TuyaLightSceneUnit[]> = {
     breathe_white: [sceneWhite(1000, 500, 2, 40), sceneWhite(30, 500, 2, 40)],
     warm_cold_fade: [sceneWhite(1000, 0, 2, 30), sceneWhite(1000, 1000, 2, 30)],
-    candle_flicker: [sceneWhite(700, 0, 2, 95, 90), sceneWhite(400, 0, 2, 95, 85), sceneWhite(850, 50, 2, 95, 90), sceneWhite(550, 0, 2, 95, 80)],
+    candle_flicker: [
+        sceneWhite(800, 0, 2, 100),
+        sceneWhite(450, 0, 2, 100),
+        sceneWhite(950, 60, 2, 100),
+        sceneWhite(350, 0, 2, 100),
+        sceneWhite(700, 30, 2, 100),
+        sceneWhite(500, 0, 2, 100),
+        sceneWhite(900, 0, 2, 100),
+        sceneWhite(400, 20, 2, 100),
+    ],
     flash_white: [sceneWhite(1000, 500, 1, 90), sceneWhite(10, 500, 1, 90)],
 };
 
@@ -3292,7 +3301,16 @@ export const lightEffects: {white: Record<string, TuyaLightSceneUnit[]>; color: 
         party: [0, 300, 60, 180, 30, 240, 120, 270].map((h) => sceneColor(h, 1, 95)),
         sunset: [sceneColor(30, 2, 25), sceneColor(10, 2, 25, 25, 700), sceneColor(345, 2, 25, 25, 500), sceneColor(280, 2, 25, 25, 300)],
         ocean: [sceneColor(200, 2, 25), sceneColor(225, 2, 25, 25, 600), sceneColor(180, 2, 25, 25, 900, 800)],
-        fireplace: [sceneColor(20, 2, 90, 85), sceneColor(30, 2, 90, 80, 700), sceneColor(12, 2, 90, 90, 900), sceneColor(35, 2, 90, 85, 500)],
+        fireplace: [
+            sceneColor(20, 2, 100, 100, 1000),
+            sceneColor(28, 2, 100, 100, 550),
+            sceneColor(15, 2, 100, 100, 900),
+            sceneColor(35, 2, 100, 100, 400),
+            sceneColor(22, 2, 100, 100, 1000),
+            sceneColor(12, 2, 100, 100, 650),
+            sceneColor(30, 2, 100, 100, 850),
+            sceneColor(18, 2, 100, 100, 450),
+        ],
         police: [sceneColor(0, 1, 100), sceneColor(240, 1, 100)],
         breathe_color: [sceneColor(0, 2, 40), sceneColor(0, 2, 40, 40, 30)],
     },
