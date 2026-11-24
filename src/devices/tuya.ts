@@ -23314,7 +23314,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas", "_TZE284_sdvbnmj5"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas", "_TZE284_sdvbnmj5", "_TZE2841000000_zm8zpwas"]),
         model: "ZPV-01",
         vendor: "Novato",
         description: "Battery powered smart valve",
