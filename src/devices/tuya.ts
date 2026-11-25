@@ -17809,23 +17809,30 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_cyuyd5az"]),
+        fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_zxbtub8r", "_TZ3210_cyuyd5az"]),
         model: "TS110E_1gang_1",
         vendor: "Tuya",
         description: "1 channel dimmer",
-        extend: [tuyaBase(), m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
-        fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E, fz.on_off],
-        toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
-        exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
-        configure: tuya.configureMagicPacket,
-    },
-    {
-        fingerprint: tuya.fingerprint("TS110E", ["_TZ3210_zxbtub8r"]),
-        model: "TS110E_1gang_3",
-        vendor: "Tuya",
-        description: "1 channel dimmer",
-        // This variant rejects standard currentLevel reporting with UNSUPPORTED_ATTRIBUTE.
-        extend: [tuyaBase(), m.light({powerOnBehavior: false, configureReporting: false, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
+        extend: [
+            tuyaBase(),
+            {
+                ...m.light({powerOnBehavior: false, configureReporting: false, effect: false}),
+                configure: [
+                    async (device, coordinatorEndpoint, definition) => {
+                        // This variant rejects standard currentLevel reporting with UNSUPPORTED_ATTRIBUTE.
+                        const light = m.light({
+                            powerOnBehavior: false,
+                            configureReporting: device.manufacturerName !== "_TZ3210_zxbtub8r",
+                            effect: false,
+                        });
+                        for (const configure of light.configure) {
+                            await configure(device, coordinatorEndpoint, definition);
+                        }
+                    },
+                ],
+            },
+            tuya.modernExtend.tuyaMagicPacket(),
+        ],
         fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E, fz.on_off],
         toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],

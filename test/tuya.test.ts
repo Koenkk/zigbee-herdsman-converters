@@ -24,6 +24,7 @@ describe("lib/tuya", () => {
                 vi.mocked(endpoint.configureReporting).mockRejectedValue(new Error("UNSUPPORTED_ATTRIBUTE"));
             }
             const definition = await findByDevice(device);
+            expect(definition.model).toBe("TS110E_1gang_1");
 
             await definition.configure?.(device, coordinator.getEndpoint(1), definition);
 
