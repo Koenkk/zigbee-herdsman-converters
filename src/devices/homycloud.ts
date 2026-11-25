@@ -33,7 +33,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(["off", "heat"], ea.STATE_SET)
                 .withEndpoint("floor"),
-            e.switch().withEndpoint("fresh_air"),
+            e.switch().withEndpoint("fresh_air").setAccess("state", ea.STATE_SET),
             e.enum("fresh_air_speed", ea.STATE_SET, ["low", "medium", "high"]).withDescription("Fresh air fan speed"),
             e.binary("master_power", ea.STATE_SET, "ON", "OFF").withDescription("Master power for all HVAC systems"),
             e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Low temperature frost protection"),
