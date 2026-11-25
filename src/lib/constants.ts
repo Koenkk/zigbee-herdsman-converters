@@ -32,6 +32,7 @@ export const thermostatProgrammingOperationModes = {
     1: "schedule",
     3: "schedule_with_preheat",
     4: "eco",
+    5: "schedule_with_eco",
 } as const satisfies KeyValueNumberString;
 
 export type ThermostatSetpointChangeSource = ValuesOf<typeof thermostatSetpointChangeSource>;
