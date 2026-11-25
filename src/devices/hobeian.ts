@@ -153,7 +153,7 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["ZG-IR01"],
+        zigbeeModel: ["ZG-IR01", "HS-IR01"],
         model: "ZG-IR01",
         vendor: "HOBEIAN",
         description: "Smart IR remote switch",
@@ -247,6 +247,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [131, "switch6_off", tuya.valueConverterBasic.lookup({study: tuya.enum(0), registered: tuya.enum(1), unregistered: tuya.enum(2)})],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS-IR01", "Smart IR remote switch", ["HS-IR01"])],
     },
     {
         zigbeeModel: ["ZG-308Z", "HS308Z"],
@@ -291,7 +292,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "battery", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS308Z", "Smart water valve", ["_TZD200_y0rvjm11"])],
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS308Z", "Smart water valve", ["_TZD200_y0rvjm11", "HS308Z"])],
     },
     {
         zigbeeModel: ["ZG-226Z"],
@@ -952,7 +953,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG-106Z"],
+        zigbeeModel: ["ZG-106Z", "HS106Z"],
         model: "ZG-106Z",
         vendor: "HOBEIAN",
         description: "Light intensity sensor",
@@ -961,6 +962,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery()],
         configure: tuya.configureMagicPacket,
         extend: [m.illuminance()],
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS106Z", "Light intensity sensor", ["HS106Z"])],
     },
     {
         zigbeeModel: ["ZG-301Z"],
@@ -1851,7 +1853,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-101ZD"],
+        zigbeeModel: ["ZG-101ZD", "HS101ZD", "HS101Z_D_1"],
         fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_abrsvsou", "_TZ3000_402vrq2i", "_TZ3000_gwkzibhs"]),
         model: "ZG-101ZD",
         vendor: "HOBEIAN",
@@ -1867,7 +1869,11 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.fz.operation_mode,
             fz.battery,
         ],
-        whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"])],
+        whiteLabel: [
+            tuya.whitelabel("HOBEIAN", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"]),
+            tuya.whitelabel("HYSYIOT", "HS101ZD", "Smart knob", ["HS101ZD"]),
+            tuya.whitelabel("HYSYIOT", "HS101Z_D_1", "Smart knob", ["HS101Z_D_1"]),
+        ],
         toZigbee: [tuya.tz.operation_mode],
         exposes: [
             e.action([
@@ -1943,11 +1949,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuyaBase(), m.battery(), tuya.modernExtend.tuyaMagicPacket()],
     },
     {
-        zigbeeModel: ["ZG-205ZL"],
+        zigbeeModel: ["ZG-205ZL", "HS205ZL"],
         fingerprint: [
             {modelID: "TS0225", manufacturerName: "_TZE200_hl0ss9oa"},
             {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZGAF-205L"},
             {modelID: "TS0225", manufacturerName: "_TZE200_y4mdop0b"},
+            {modelID: "HS205ZL"},
+            {modelID: "HS205ZL", manufacturerName: "HYSYIOT"},
         ],
         model: "ZG-205ZL",
         vendor: "HOBEIAN",
@@ -2055,11 +2063,17 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "light_mode", tuya.valueConverter.onOff],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS205ZL", "24Ghz/5.8GHz human presence sensor", ["HS205ZL"])],
     },
     {
+        zigbeeModel: ["ZG-205Z/A", "HS205Z", "HS205Z/A"],
         fingerprint: [
             ...tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk", "_TZE200_crq3r3la"]),
             ...tuya.fingerprint("CK-BL702-MWS-01(7016)", ["HOBEIAN", "_TZE200_crq3r3la"]),
+            {modelID: "HS205Z"},
+            {modelID: "HS205Z", manufacturerName: "HYSYIOT"},
+            {modelID: "HS205Z/A"},
+            {modelID: "HS205Z/A", manufacturerName: "HYSYIOT"},
         ],
         model: "ZG-205Z/A",
         vendor: "HOBEIAN",
@@ -2154,6 +2168,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "minimum_range", tuya.valueConverter.divideBy100],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS205Z", "5.8Ghz/24Ghz Human presence sensor", ["HS205Z", "HS205Z/A"])],
     },
     {
         zigbeeModel: ["ZG-222Z"],
