@@ -434,13 +434,21 @@ export const tzLegrand = {
     // in that mode on/off no longer has any effect. This converter keeps the transition-aware
     // light converter for dimmer mode, and falls back to plain `tz.on_off` in relay mode.
     light_state_device_mode_aware: {
-        key: ["state"],
+        // Same keys as the `m.light()` converter, otherwise both run for e.g. `{state: "ON", brightness: 100}`.
+        key: tz.light_onoff_brightness.key,
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
-            if (meta.state.device_mode === "dimmer_off") {
+            if (meta.state.device_mode === "dimmer_off" && meta.message.state != null) {
                 return await tz.on_off.convertSet(entity, key, value, meta);
             }
-            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            const result = (await tz.light_onoff_brightness.convertSet(entity, key, value, meta)) as KeyValueAny;
+            // The device doesn't report `currentLevel` after a plain `on`, read it once the fade-in is over.
+            const {brightness, brightness_percent: brightnessPercent} = meta.message;
+            const plain = brightness == null && brightnessPercent == null && !utils.getTransition(entity, "brightness", meta).specified;
+            if (plain && result?.state?.state === "ON" && utils.isEndpoint(entity)) {
+                setTimeout(() => entity.read("genLevelCtrl", ["currentLevel"]).catch(() => {}), 1500).unref();
+            }
+            return result;
         },
         convertGet: async (entity, key, meta) => {
             return await tz.light_onoff_brightness.convertGet(entity, key, meta);
