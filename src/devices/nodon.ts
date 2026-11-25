@@ -14,6 +14,8 @@ import {isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const nodonTrvOptions = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};
+
 const nodonModernExtend = {
     calibrationVerticalRunTimeUp: (args?: Partial<m.NumericArgs<"closuresWindowCovering">>) =>
         m.numeric({
@@ -264,10 +266,9 @@ const nodonModernExtend = {
             cluster: "hvacThermostat",
             attribute: {ID: 0x4000, type: Zcl.DataType.ENUM8},
             description:
-                "Select between direct control of the TRV via the `valve_position_mode` " +
-                "or automatic control of the TRV based on the `current_heating_setpoint`. " +
-                "When switched to manual mode the display shows a value from 0 (valve closed) to 100 (valve fully open) " +
-                "and the buttons on the device are disabled.",
+                "`manual` (default): the valve is regulated on the heating setpoint. " +
+                "`valve_position_mode`: the valve is directly controlled with `valve_position`, " +
+                "the display shows the valve opening and the buttons on the device are disabled.",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
             ...args,
         }),
@@ -283,10 +284,30 @@ const nodonModernExtend = {
             valueMax: 100,
             valueStep: 1,
             unit: "%",
-            scale: 1,
+            scale: 2.5,
+            precision: 0,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS},
             ...args,
         }),
+    trvErrorStatus: () => {
+        // Bitmap, most severe first
+        const lookup = {valve_blocked: 0x20, valve_too_slow: 0x10, adaptation_failed: 0x08, battery_low: 0x01, ok: 0x00};
+        return m.enumLookup<"hvacThermostat", eurotronic.EurotronicHvacThermostat>({
+            name: "error_status",
+            lookup,
+            cluster: "hvacThermostat",
+            attribute: "errorStatus",
+            description: "Error reported by the valve: `adaptation_failed` (E1), `valve_too_slow` (E2), `valve_blocked` (E3)",
+            zigbeeCommandOptions: nodonTrvOptions,
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+            fzConvert: (model, msg, publish, options, meta) => {
+                const {errorStatus} = msg.data;
+                if (errorStatus === undefined) return;
+                return {error_status: Object.entries(lookup).find(([, bit]) => errorStatus & bit)?.[0] ?? "ok"};
+            },
+        });
+    },
 };
 
 interface NodonIrExtender {
@@ -322,6 +343,44 @@ const nodonIrbTz = {
             await entity.read<"nodonIrExtender", NodonIrExtender>("nodonIrExtender", ["irbHolderTemperatureCalibration"], {
                 manufacturerCode: Zcl.ManufacturerCode.NODON,
             });
+        },
+    } satisfies Tz.Converter,
+};
+
+const nodonTrvFz = {
+    host_flags: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hostFlags === undefined) return;
+            return {
+                child_lock: msg.data.hostFlags & 0x80 ? "LOCK" : "UNLOCK",
+                mirror_display: msg.data.hostFlags & 0x02 ? "ON" : "OFF",
+            };
+        },
+    } satisfies Fz.Converter<"hvacThermostat", eurotronic.EurotronicHvacThermostat, ["attributeReport", "readResponse"]>,
+};
+
+const nodonTrvTz = {
+    host_flags: {
+        key: ["child_lock", "mirror_display"],
+        convertSet: async (entity, key, value, meta) => {
+            // Only change the requested bit, the other bits hold the operating mode (e.g. off, boost)
+            const bit = key === "child_lock" ? 0x80 : 0x02;
+            const {hostFlags} = await entity.read<"hvacThermostat", eurotronic.EurotronicHvacThermostat>(
+                "hvacThermostat",
+                ["hostFlags"],
+                nodonTrvOptions,
+            );
+            await entity.write<"hvacThermostat", eurotronic.EurotronicHvacThermostat>(
+                "hvacThermostat",
+                {hostFlags: value === "LOCK" || value === "ON" ? hostFlags | bit : hostFlags & ~bit},
+                nodonTrvOptions,
+            );
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"hvacThermostat", eurotronic.EurotronicHvacThermostat>("hvacThermostat", ["hostFlags"], nodonTrvOptions);
         },
     } satisfies Tz.Converter,
 };
@@ -788,8 +847,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV-4-1-00",
         vendor: "NodOn",
         description: "Thermostatic Radiateur Valve",
-        extend: [m.battery(), nodonModernExtend.trvMode(), nodonModernExtend.valvePosition()],
-        fromZigbee: [fz.thermostat],
+        extend: [
+            eurotronic.eurotronicExtend.addEurotronicHvacThermostatCluster(),
+            m.battery(),
+            nodonModernExtend.trvMode(),
+            nodonModernExtend.valvePosition(),
+            nodonModernExtend.trvErrorStatus(),
+        ],
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
+        fromZigbee: [fz.thermostat, nodonTrvFz.host_flags],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_pi_heating_demand,
@@ -801,9 +867,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_setpoint_raise_lower,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
-            eurotronic.tzLocal.eurotronic_error_status,
-            eurotronic.tzLocal.eurotronic_child_lock,
-            eurotronic.tzLocal.eurotronic_mirror_display,
+            nodonTrvTz.host_flags,
         ],
         exposes: [
             e.child_lock(),
