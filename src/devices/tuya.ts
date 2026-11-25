@@ -1885,8 +1885,32 @@ const fzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_humidity: {
         ...fz.humidity,
+        options: [
+            e
+                .enum("humidity_firmware_variant", ea.SET, ["tenths", "hundredths"])
+                .withDescription(
+                    "Only for _TZ3210_ncw88jfq: the firmware reports humidity in 0.1 % steps (tenths, default) or in 0.01 % steps " +
+                        "(hundredths). Set hundredths when the humidity is missing at normal values or wrong above 65.5 %.",
+                ),
+        ],
         convert: (model, msg, publish, options, meta) => {
-            if (
+            if (["_TZ3210_ncw88jfq"].includes(meta.device.manufacturerName) && options.humidity_firmware_variant === "hundredths") {
+                // The firmware calculates humidity × 1000 in 16 bits, so it overflows above 65.536 %:
+                // up to 65.5 % the value ends with 0, from 65.6 % it starts again at 6 and always ends with 6.
+                // Real value = value + 6554 (65536 / 10 rounded up), see https://github.com/zigpy/zha-device-handlers/issues/3097
+                // On fast changes the firmware also sends single reports in 0.1 % steps with disableDefaultResponse = false.
+                // In 0.01 % steps the last digit is always 0 or 6.
+                // The format of read responses is not known (the sleepy device does not answer reads), so ignore them.
+                if (msg.type !== "attributeReport") return;
+                const value = msg.data.measuredValue;
+                const digit = value % 10;
+                const tenthsReport = msg.meta.frameControl?.disableDefaultResponse === false;
+                if (tenthsReport || (digit !== 0 && digit !== 6)) {
+                    msg.data.measuredValue = value * 10;
+                } else if (digit === 6) {
+                    msg.data.measuredValue = value + 6554;
+                }
+            } else if (
                 ["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y", "_TZ3000_yupc0pb7", "_TZ3000_wol32olt"].includes(
                     meta.device.manufacturerName,
                 )

@@ -959,3 +959,76 @@ describe("thermostatScheduleDayMultiDP configurable temperatures", () => {
         expect(() => converter.to("06:00/31 10:30/68 13:30/100 17:30/104")).toThrow("Invalid hour, minute or temperature");
     });
 });
+
+describe("TS0201 _TZ3210_ncw88jfq humidity", () => {
+    const setup = async (manufacturerName = "_TZ3210_ncw88jfq") => {
+        const device = mockDevice({
+            modelID: "TS0201",
+            manufacturerName,
+            endpoints: [{ID: 1, inputClusters: ["msRelativeHumidity"]}],
+        });
+        const definition = await findByDevice(device);
+        const converter = definition.fromZigbee.find((c) => c.cluster === "msRelativeHumidity");
+        if (!converter) throw new Error("humidity converter not found");
+        return (
+            measuredValue: number,
+            options: KeyValueAny,
+            disableDefaultResponse = true,
+            type: "attributeReport" | "readResponse" = "attributeReport",
+        ) =>
+            converter.convert(
+                definition,
+                {
+                    data: {measuredValue},
+                    endpoint: device.getEndpoint(1),
+                    device,
+                    meta: {
+                        rawData: Buffer.alloc(0),
+                        frameControl: {frameType: 0, manufacturerSpecific: false, direction: 1, disableDefaultResponse, reservedBits: 0},
+                    },
+                    groupID: 0,
+                    type,
+                    cluster: "msRelativeHumidity",
+                    linkquality: 0,
+                },
+                () => {},
+                options,
+                {state: {}, device, deviceExposesChanged: () => {}},
+            );
+    };
+
+    it("uses 0.1 % steps by default", async () => {
+        const convert = await setup();
+        expect(convert(577, {})).toStrictEqual({humidity: 57.7});
+        expect(convert(576, {humidity_firmware_variant: "tenths"})).toStrictEqual({humidity: 57.6});
+    });
+
+    it("unfolds the rollover above 65.5 % with humidity_firmware_variant hundredths", async () => {
+        const convert = await setup();
+        const options = {humidity_firmware_variant: "hundredths"};
+        expect(convert(5770, options)).toStrictEqual({humidity: 57.7});
+        expect(convert(6550, options)).toStrictEqual({humidity: 65.5});
+        expect(convert(6, options)).toStrictEqual({humidity: 65.6});
+        expect(convert(346, options)).toStrictEqual({humidity: 69});
+        expect(convert(3446, options)).toStrictEqual({humidity: 100});
+    });
+
+    it("scales 0.1 % reports with humidity_firmware_variant hundredths", async () => {
+        const convert = await setup();
+        const options = {humidity_firmware_variant: "hundredths"};
+        expect(convert(620, options, false)).toStrictEqual({humidity: 62});
+        expect(convert(616, options, false)).toStrictEqual({humidity: 61.6});
+        expect(convert(623, options)).toStrictEqual({humidity: 62.3});
+    });
+
+    it("ignores read responses with humidity_firmware_variant hundredths", async () => {
+        const convert = await setup();
+        expect(convert(5770, {humidity_firmware_variant: "hundredths"}, true, "readResponse")).toBeUndefined();
+        expect(convert(577, {}, true, "readResponse")).toStrictEqual({humidity: 57.7});
+    });
+
+    it("does not use humidity_firmware_variant for other manufacturers", async () => {
+        const convert = await setup("_TZ3000_isw9u95y");
+        expect(convert(606, {humidity_firmware_variant: "hundredths"})).toStrictEqual({humidity: 60.6});
+    });
+});
