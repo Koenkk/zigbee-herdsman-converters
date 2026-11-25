@@ -2621,6 +2621,8 @@ const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Dev
     return result;
 };
 
+const me201wzComputedPercent = ["_TZE284_mxujdmxo"];
+
 // Shared by the liquid state, depth and percent datapoints, which are filtered together once per message.
 const me201wzFiltered = new WeakMap<object, KeyValue>();
 const me201wzLevel: Tuya.ValueConverterSingle = {
@@ -2632,7 +2634,15 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
             // Firmware ME201Z.x reports the depth on DP114 instead of DP2
             const depth = dp[2] ?? dp[114];
             if (depth !== undefined) result.liquid_depth = (depth as number) / 100;
-            if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
+            if (me201wzComputedPercent.includes(meta.device.manufacturerName)) {
+                // The ME202WZ never reports DP22, so compute the percentage from the depth, relative to liquid_depth_max (DP21)
+                const depthMax = meta.state.liquid_depth_max as number | undefined;
+                if (result.liquid_depth !== undefined && depthMax) {
+                    result.liquid_level_percent = Math.min(100, Math.max(0, Math.round(((result.liquid_depth as number) / depthMax) * 100)));
+                }
+            } else if (dp[22] !== undefined) {
+                result.liquid_level_percent = dp[22];
+            }
             me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps === true));
         }
         return me201wzFiltered.get(msg);
@@ -5365,6 +5375,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["power_on_behavior"]},
         configure: tuya.configureMagicPacket,
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_6ycqll7a"]),
+        model: "TS011F-GPO",
+        vendor: "EyZEE",
+        description: "Zigbee double power outlet",
+        extend: [
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["left", "right"],
+                powerOutageMemory: true,
+                indicatorMode: true,
+                childLock: true,
+            }),
+        ],
+        fromZigbee: [tuya.fz.datapoints],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_left", tuya.valueConverter.onOff],
+                [2, "state_right", tuya.valueConverter.onOff],
+            ],
+        },
+        endpoint: () => ({right: 1, left: 2}),
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            device.save();
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_z1kba38n"]),
@@ -13894,17 +13931,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [18, "current", tuya.valueConverter.divideBy1000],
                 [19, "power", tuya.valueConverter.divideBy10],
                 [20, "voltage", tuya.valueConverter.divideBy10],
-                [
-                    101,
-                    "energy",
-                    {
-                        // Device reports the energy of the last interval instead of a cumulative counter
-                        from: (v: number, meta: Fz.Meta) => {
-                            const energy = typeof meta.state.energy === "number" ? meta.state.energy : 0;
-                            return Math.round((energy + v / 1000) * 1000) / 1000;
-                        },
-                    },
-                ],
+                [101, "energy", tuya.valueConverter.divideBy1000],
             ],
         },
         whiteLabel: [tuya.whitelabel("Tuya", "PJ-1203-W", "Electricity energy monitor", ["_TZE284_cjbofhxw", "_TZE28C1000000_cjbofhxw"])],
@@ -16941,6 +16968,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_sgpeacqp",
             "_TZE204_fwondbzy",
             "_TZE284_fwondbzy",
+            "_TZE28C1000000_fwondbzy",
             "_TZE284_xpq2rzhq",
         ]),
         model: "TS0601_smart_human_presence_sensor_1",
@@ -16950,7 +16978,12 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [legacy.tz.tuya_smart_human_presense_sensor],
         whiteLabel: [
             tuya.whitelabel("Tuya", "ZY-M100-L", "Ceiling human breathe sensor", ["_TZE204_ztc6ggyl"]),
-            tuya.whitelabel("Moes", "ZSS-QY-HP", "Human presence sensor", ["_TZE204_fwondbzy", "_TZE284_fwondbzy", "_TZE284_xpq2rzhq"]),
+            tuya.whitelabel("Moes", "ZSS-QY-HP", "Human presence sensor", [
+                "_TZE204_fwondbzy",
+                "_TZE284_fwondbzy",
+                "_TZE284_xpq2rzhq",
+                "_TZE28C1000000_fwondbzy",
+            ]),
         ],
         exposes: [
             e.illuminance(),
@@ -23281,7 +23314,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas", "_TZE284_sdvbnmj5"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_dsagrkvg", "_TZE284_zm8zpwas", "_TZE284_sdvbnmj5", "_TZE2841000000_zm8zpwas"]),
         model: "ZPV-01",
         vendor: "Novato",
         description: "Battery powered smart valve",
@@ -27247,7 +27280,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q9xty0ad"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q9xty0ad", "_TZE284_q9xty0ad"]),
         model: "_TZE204_q9xty0ad",
         vendor: "Tuya",
         description: "Ayvolt Blinds",

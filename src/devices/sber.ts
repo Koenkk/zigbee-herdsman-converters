@@ -1269,14 +1269,14 @@ const sdevicesExtend = {
             unit: "mA",
             zigbeeCommandOptions: manufacturerOptions,
         }),
-    temperatureThreshold: () =>
+    temperatureThreshold: (minValue = -200, maxValue = 200) =>
         m.numeric<"manuSpecificSDevices", SberDevices>({
             name: "temperature_threshold",
             cluster: "manuSpecificSDevices",
             attribute: "upperTempThreshold",
             description: "Overtemperature threshold (use with caution)",
-            valueMin: -200,
-            valueMax: 200,
+            valueMin: minValue,
+            valueMax: maxValue,
             valueStep: 1,
             unit: "°C",
             zigbeeCommandOptions: manufacturerOptions,
@@ -2226,7 +2226,7 @@ export const definitions: DefinitionWithExtend[] = [
             sdevicesExtend.upperVoltageThreshold(),
             sdevicesExtend.lowerVoltageThreshold(),
             sdevicesExtend.upperCurrentThreshold(),
-            sdevicesExtend.temperatureThreshold(),
+            sdevicesExtend.temperatureThreshold(10, 100),
             sdevicesExtend.deviceInfo(),
             sdevicesExtend.deviceCustomDiagnostic(1, 1),
         ],
@@ -2380,7 +2380,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sdevicesExtend.electricityMeter(),
             sdevicesExtend.upperCurrentThreshold(),
-            sdevicesExtend.temperatureThreshold(),
+            sdevicesExtend.temperatureThreshold(10, 85),
             sdevicesExtend.thermostatSensorType(),
             m.enumLookup<"hvacThermostat", SberThermostat>({
                 name: "sensor_mode",

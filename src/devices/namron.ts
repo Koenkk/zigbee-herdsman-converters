@@ -1380,6 +1380,11 @@ export const definitions: DefinitionWithExtend[] = [
             try {
                 await reporting.humidity(endpoint, {min: 10, max: 300, change: 100});
             } catch (_) {}
+            // Energy is otherwise only reported while the device's own default reporting is active. A unit that had
+            // other electrical reporting configured stopped reporting energy until this was set.
+            try {
+                await reporting.currentSummDelivered(endpoint, {min: 10, max: 300, change: 1});
+            } catch (_) {}
 
             await edgeReadAll(endpoint);
 
