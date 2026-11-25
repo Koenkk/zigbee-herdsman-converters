@@ -467,6 +467,32 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
+
+const localModernExtend = {
+    // systemMode holds the preset, on/off is controlled with genOnOff.
+    simplifyThermostatSystemMode: (): ModernExtend => ({
+        fromZigbee: [
+            {
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.onOff !== undefined) return {system_mode: msg.data.onOff ? "heat" : "off"};
+                },
+            } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["system_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command("genOnOff", utils.getFromLookup(value, {off: "off", heat: "on"} as const), {});
+                    return {state: {system_mode: value}};
+                },
+                convertGet: tz.on_off.convertGet,
+            } satisfies Tz.Converter,
+        ],
+        isModernExtend: true,
+    }),
+};
 // Namron Simplify Dimmer (4512791) helpers + toZigbee converters
 type TzConvertSet = NonNullable<Tz.Converter["convertSet"]>;
 type TzEntity = Parameters<TzConvertSet>[0];
@@ -3426,36 +3452,11 @@ export const definitions: DefinitionWithExtend[] = [
                 localTemperatureCalibration: {values: {min: -10, max: 10, step: 0.5}},
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
                 runningState: {values: ["idle", "heat"], configure: {reporting: false}},
-                // systemMode is used for the preset, on/off is controlled with genOnOff.
+                // Converters are in localModernExtend.simplifyThermostatSystemMode
                 systemMode: {values: ["off", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
             }),
             m.onOff({powerOnBehavior: false}),
-            {
-                fromZigbee: [
-                    {
-                        cluster: "genOnOff",
-                        type: ["attributeReport", "readResponse"],
-                        convert: (model, msg, publish, options, meta) => {
-                            if (msg.data.onOff !== undefined) return {system_mode: msg.data.onOff === 1 ? "heat" : "off"};
-                        },
-                    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
-                ],
-                toZigbee: [
-                    {
-                        key: ["system_mode"],
-                        convertSet: async (entity, key, value, meta) => {
-                            utils.assertString(value, key);
-                            utils.validateValue(value, ["off", "heat"]);
-                            await entity.command("genOnOff", value === "heat" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
-                            return {state: {system_mode: value, state: value === "heat" ? "ON" : "OFF"}};
-                        },
-                        convertGet: async (entity, key, meta) => {
-                            await entity.read("genOnOff", ["onOff"]);
-                        },
-                    } satisfies Tz.Converter,
-                ],
-                isModernExtend: true,
-            },
+            localModernExtend.simplifyThermostatSystemMode(),
             m.identify(),
             m.humidity({reporting: false}),
             // Reporting configuration fails with INSUFFICIENT_SPACE, the device reports by itself.
