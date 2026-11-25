@@ -106,6 +106,15 @@ const attrDoorOffCmdOff = 0xf006;
 const attrSceneId = 0xf000;
 const attrGroupId = 0xf001;
 
+interface SlackyDiyThermostat {
+    attributes: {
+        sensorUsed: number;
+        extTempCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SlackyDiyScene {
     attributes: {
         customSceneId: number;
@@ -157,6 +166,36 @@ interface SlackyDiyLevel {
     commands: never;
     commandResponses: never;
 }
+
+const osrcthermAlarmNames: Record<number, string> = {
+    128: "unknown fault",
+    129: "internal sensor open",
+    130: "internal sensor short",
+    131: "external sensor open",
+    132: "external sensor short",
+    133: "internal sensor timeout",
+    134: "external sensor timeout",
+    144: "internal temperature too high",
+    145: "internal temperature too low",
+    146: "external temperature too high",
+    147: "external temperature too low",
+};
+
+const osrcthermAlarmOrder = [
+    "unknown fault",
+    "internal sensor open",
+    "internal sensor short",
+    "external sensor open",
+    "external sensor short",
+    "internal sensor timeout",
+    "external sensor timeout",
+    "internal temperature too high",
+    "internal temperature too low",
+    "external temperature too high",
+    "external temperature too low",
+];
+
+const osrcthermAlarmPending = new Map<string, Set<string>>();
 
 const fzLocal = {
     thermostat_custom_fw: {
@@ -295,6 +334,47 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
+    thermostat_programing_oper_mode: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data.programingOperMode;
+            if (value === undefined) return;
+            return {
+                programming_operation_mode: (value & 0x01) > 0 ? "schedule" : "setpoint",
+                eco: (value & 0x04) > 0 ? "ON" : "OFF",
+            };
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    thermostat_alarm: {
+        cluster: "genAlarms",
+        type: ["commandAlarm"],
+        convert: (model, msg, publish, options, meta) => {
+            const name = osrcthermAlarmNames[msg.data.alarmcode];
+            if (name === undefined) return;
+            const key = meta.device.ieeeAddr;
+            const pending = osrcthermAlarmPending.get(key) ?? new Set<string>();
+            pending.add(name);
+            osrcthermAlarmPending.set(key, pending);
+        },
+    } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
+    thermostat_alarm_count: {
+        cluster: "genAlarms",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const count = msg.data.alarmCount;
+            if (count === undefined) return;
+            const key = meta.device.ieeeAddr;
+            const pending = osrcthermAlarmPending.get(key);
+            osrcthermAlarmPending.delete(key);
+            if (count === 0) {
+                return {fault: "none"};
+            }
+            if (pending !== undefined && pending.size === count) {
+                return {fault: osrcthermAlarmOrder.filter((n) => pending.has(n)).join(", ")};
+            }
+        },
+    } satisfies Fz.Converter<"genAlarms", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -596,6 +676,26 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOffSwitchCfg", [attrDeviceModelNumber]);
+        },
+    } satisfies Tz.Converter,
+    thermostat_programing_oper_mode: {
+        key: ["programming_operation_mode", "eco"],
+        convertSet: async (entity, key, value, meta) => {
+            const current = await entity.read("hvacThermostat", ["programingOperMode"]);
+            const mode = Number(current.programingOperMode ?? 0);
+            if (key === "programming_operation_mode") {
+                utils.validateValue(value, ["setpoint", "schedule"]);
+                const updated = value === "schedule" ? mode | 0x01 : mode & ~0x01;
+                await entity.write("hvacThermostat", {programingOperMode: updated});
+                return {state: {programming_operation_mode: value}};
+            }
+            const ecoOn = value === "ON" || value === "on" || value === true;
+            const updated = ecoOn ? mode | 0x04 : mode & ~0x04;
+            await entity.write("hvacThermostat", {programingOperMode: updated});
+            return {state: {eco: ecoOn ? "ON" : "OFF"}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", ["programingOperMode"]);
         },
     } satisfies Tz.Converter,
 };
@@ -1369,6 +1469,101 @@ const air_extend = {
     },
 };
 
+const osrcthermBrightnessOnly = ({
+    endpoints,
+    min = 0,
+    max = 8,
+}: {
+    endpoints: {name: string; description: string}[];
+    min?: number;
+    max?: number;
+}): ModernExtend => ({
+    exposes: endpoints.map(({name, description}) =>
+        e.numeric("brightness", ea.ALL).withValueMin(min).withValueMax(max).withDescription(description).withEndpoint(name),
+    ),
+    fromZigbee: [fz.brightness],
+    toZigbee: [{...tz.light_onoff_brightness, endpoints: endpoints.map((c) => c.name)}],
+    configure: [
+        async (device, coordinatorEndpoint, definition) => {
+            const map = definition.endpoint(device);
+            for (const {name} of endpoints) {
+                const endpoint = device.getEndpoint(map[name]);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genLevelCtrl"]);
+                await endpoint.configureReporting("genLevelCtrl", [
+                    {attribute: "currentLevel", minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1},
+                ]);
+                await endpoint.read("genLevelCtrl", ["currentLevel"]);
+            }
+        },
+    ],
+    isModernExtend: true,
+});
+
+const DAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+const osrcthermScheduleText = (args: {days?: string[]; fetch?: boolean} = {}): ModernExtend => {
+    const days = args.days ?? ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    const fetchSchedule = args.fetch ?? false;
+
+    const exposes = days.map((day) =>
+        e.text(`schedule_${day}`, ea.STATE).withDescription(`${day.charAt(0).toUpperCase() + day.slice(1)}'s schedule`),
+    );
+
+    const fromZigbee: Fz.Converter<"hvacThermostat", undefined, ["commandSetWeeklySchedule", "commandGetWeeklyScheduleRsp"]>[] = [
+        {
+            cluster: "hvacThermostat",
+            type: ["commandSetWeeklySchedule", "commandGetWeeklyScheduleRsp"],
+            convert: (model, msg) => {
+                const {data} = msg;
+                const dayNums = [...Array.from(Array(7).keys()).filter((x) => (2 ** x) & data.dayofweek)];
+                const schedule = data.transitions
+                    .map((t) => {
+                        const temp = t.heatSetpoint ?? t.coolSetpoint;
+                        const hh = String(Math.floor(t.transitionTime / 60)).padStart(2, "0");
+                        const mm = String(t.transitionTime % 60).padStart(2, "0");
+                        return `${hh}:${mm}/${temp / 100.0}°C`;
+                    })
+                    .join(" ");
+                return Object.fromEntries(dayNums.map((d) => [`schedule_${DAYS[d]}`, schedule]));
+            },
+        },
+    ];
+
+    const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
+
+    if (fetchSchedule) {
+        result.configure = [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                await endpoint.command("hvacThermostat", "getWeeklySchedule", {daystoreturn: 0xff, modetoreturn: 1});
+            },
+        ];
+    }
+
+    return result;
+};
+
+const osrcthermEcoMode = (): ModernExtend => ({
+    exposes: [e.binary("eco", ea.ALL, "ON", "OFF").withDescription("Eco mode, works in both setpoint and schedule modes")],
+    fromZigbee: [fzLocal.thermostat_programing_oper_mode],
+    toZigbee: [tzLocal.thermostat_programing_oper_mode],
+    configure: [
+        async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.configureReporting("hvacThermostat", [
+                {attribute: "programingOperMode" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
+            ]);
+        },
+    ],
+    isModernExtend: true,
+});
+
+const osrcthermAlarms = (): ModernExtend => ({
+    exposes: [e.text("fault", ea.STATE).withDescription("Active thermostat faults (sensor errors or temperature range)")],
+    fromZigbee: [fzLocal.thermostat_alarm, fzLocal.thermostat_alarm_count],
+    isModernExtend: true,
+});
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Tuya_CO2Sensor_r01"],
@@ -1404,7 +1599,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: ppmReporting,
                 unit: "ppm",
                 scale: 0.000001,
-                precision: 3,
+                precision: 2,
                 description: "Measured VOC value",
             }),
             m.temperature(),
@@ -3164,7 +3359,6 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["AirQ_Monitor_S01"],
         model: "AirQ_Monitor_S01",
-        version: "0.0.1",
         vendor: "Slacky-DIY",
         description: "Air quality monitor",
         configure: async (device, coordinatorEndpoint, logger) => {
@@ -7338,6 +7532,449 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 20,
                 description: "Night level in %",
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        fingerprint: [
+            {modelID: "OS_Thermostat_r01", manufacturerName: "Slacky-DIY"},
+            {modelID: "OS_Thermostat_r02", manufacturerName: "Slacky-DIY"},
+            {modelID: "OS_Thermostat_r03", manufacturerName: "Slacky-DIY"},
+            {modelID: "OS_Thermostat_r05", manufacturerName: "Slacky-DIY"},
+        ],
+        model: "OS_Thermostat_r01",
+        vendor: "Slacky-DIY",
+        description: "Open Source Thermostat on base Tuya",
+        whiteLabel: [
+            {model: "OS_Thermostat_r02", fingerprint: [{modelID: "OS_Thermostat_r02"}]},
+            {model: "OS_Thermostat_r03", fingerprint: [{modelID: "OS_Thermostat_r03"}]},
+            {model: "OS_Thermostat_r05", fingerprint: [{modelID: "OS_Thermostat_r05"}]},
+        ],
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    sensorUsed: {
+                        name: "sensorUsed",
+                        ID: attrThermSensorUser,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    extTempCalibration: {
+                        name: "extTempCalibration",
+                        ID: attrThermExtTemperatureCalibration,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2},
+                multiEndpointSkip: [
+                    "local_temperature",
+                    "occupied_heating_setpoint",
+                    "system_mode",
+                    "running_state",
+                    "keypad_lockout",
+                    "temperature_display_mode",
+                    "programming_operation_mode",
+                    "local_temperature_calibration",
+                    "min_heat_setpoint_limit",
+                    "max_heat_setpoint_limit",
+                ],
+            }),
+            m.enumLookup({
+                name: "keypad_lockout",
+                access: "ALL",
+                lookup: {unlock: 0, "lock ex on/off": 1, "lock full": 2},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Keypad lockout mode",
+            }),
+            m.enumLookup<"hvacThermostat", SlackyDiyThermostat>({
+                name: "sensor_used",
+                access: "ALL",
+                lookup: {IN: 0, OUT: 1, ALL: 2},
+                cluster: "hvacThermostat",
+                attribute: "sensorUsed",
+                reporting: {min: 0, max: 3600, change: 1},
+                description: "Select temperature sensor to use",
+            }),
+            m.numeric<"hvacThermostat">({
+                name: "dead_band",
+                access: "ALL",
+                cluster: "hvacThermostat",
+                attribute: "minSetpointDeadBand",
+                unit: "°C",
+                scale: 10,
+                valueMin: 0.5,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                description: "The delta between temperature to trigger activity",
+            }),
+            m.numeric<"hvacThermostat", SlackyDiyThermostat>({
+                name: "external_temperature_calibration",
+                access: "ALL",
+                cluster: "hvacThermostat",
+                attribute: "extTempCalibration",
+                unit: "°C",
+                scale: 10,
+                valueMin: -9,
+                valueMax: 9,
+                valueStep: 0.1,
+                description: "Offset to add/subtract to the external temperature",
+            }),
+            m.numeric({
+                name: "temperature",
+                access: "STATE_GET",
+                cluster: "hvacThermostat",
+                attribute: "outdoorTemp",
+                reporting: {min: 0, max: 3600, change: 10},
+                unit: "°C",
+                scale: 100,
+                precision: 2,
+                description: "Current temperature measured from the floor outer sensor",
+            }),
+            m.thermostat({
+                localTemperature: {},
+                localTemperatureCalibration: {values: {min: -9, max: 9, step: 0.1}},
+                setpointsLimit: {
+                    minHeatSetpointLimit: {min: 5, max: 15, step: 0.1},
+                    maxHeatSetpointLimit: {min: 20, max: 45, step: 0.1},
+                },
+                runningState: {values: ["idle", "heat"]},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 45, step: 0.1}}},
+                systemMode: {values: ["off", "heat"]},
+                programmingOperationMode: {values: ["setpoint", "schedule"], toZigbee: {skip: true}},
+                weeklySchedule: {values: ["heat"]},
+            }),
+            osrcthermEcoMode(),
+            osrcthermAlarms(),
+            m.numeric<"genAlarms">({
+                name: "alarm_count",
+                access: "STATE_GET",
+                cluster: "genAlarms",
+                attribute: "alarmCount",
+                description: "Number of active thermostat alarms",
+            }),
+            osrcthermScheduleText({fetch: true}),
+            osrcthermBrightnessOnly({
+                endpoints: [
+                    {name: "1", description: "Brightness level 6:00-22:00 (day)"},
+                    {name: "2", description: "Brightness level 22:00-6:00 (night)"},
+                ],
+                min: 0,
+                max: 8,
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["OS_Thermostat_rK1"],
+        model: "OS_Thermostat_rK1",
+        vendor: "Slacky-DIY",
+        description: "Open Source Thermostat on base Tuya",
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    sensorUsed: {
+                        name: "sensorUsed",
+                        ID: attrThermSensorUser,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    extTempCalibration: {
+                        name: "extTempCalibration",
+                        ID: attrThermExtTemperatureCalibration,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2},
+                multiEndpointSkip: [
+                    "local_temperature",
+                    "occupied_heating_setpoint",
+                    "system_mode",
+                    "running_state",
+                    "keypad_lockout",
+                    "temperature_display_mode",
+                    "programming_operation_mode",
+                    "local_temperature_calibration",
+                    "min_heat_setpoint_limit",
+                    "max_heat_setpoint_limit",
+                ],
+            }),
+            m.onOff({
+                powerOnBehavior: false,
+                endpointNames: ["2"],
+                description: "Configuration by external relay control",
+            }),
+            m.onOff({
+                powerOnBehavior: false,
+                endpointNames: ["1"],
+                description: "External relay control",
+            }),
+            m.enumLookup({
+                name: "keypad_lockout",
+                access: "ALL",
+                lookup: {unlock: 0, "lock ex on/off": 1, "lock full": 2},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Keypad lockout mode",
+            }),
+            m.enumLookup<"hvacThermostat", SlackyDiyThermostat>({
+                name: "sensor_used",
+                access: "ALL",
+                lookup: {IN: 0, OUT: 1, ALL: 2},
+                cluster: "hvacThermostat",
+                attribute: "sensorUsed",
+                reporting: {min: 0, max: 3600, change: 1},
+                description: "Select temperature sensor to use",
+            }),
+            m.numeric<"hvacThermostat">({
+                name: "dead_band",
+                access: "ALL",
+                cluster: "hvacThermostat",
+                attribute: "minSetpointDeadBand",
+                unit: "°C",
+                scale: 10,
+                valueMin: 0.5,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                description: "The delta between temperature to trigger activity",
+            }),
+            m.numeric<"hvacThermostat", SlackyDiyThermostat>({
+                name: "external_temperature_calibration",
+                access: "ALL",
+                cluster: "hvacThermostat",
+                attribute: "extTempCalibration",
+                unit: "°C",
+                scale: 10,
+                valueMin: -9,
+                valueMax: 9,
+                valueStep: 0.1,
+                description: "Offset to add/subtract to the external temperature",
+            }),
+            m.numeric({
+                name: "temperature",
+                access: "STATE_GET",
+                cluster: "hvacThermostat",
+                attribute: "outdoorTemp",
+                reporting: {min: 0, max: 3600, change: 10},
+                unit: "°C",
+                scale: 100,
+                precision: 2,
+                description: "Current temperature measured from the floor outer sensor",
+            }),
+            m.thermostat({
+                localTemperature: {},
+                localTemperatureCalibration: {values: {min: -9, max: 9, step: 0.1}},
+                setpointsLimit: {
+                    minHeatSetpointLimit: {min: 5, max: 15, step: 0.1},
+                    maxHeatSetpointLimit: {min: 20, max: 45, step: 0.1},
+                },
+                runningState: {values: ["idle", "heat"]},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 45, step: 0.1}}},
+                systemMode: {values: ["off", "heat"]},
+                programmingOperationMode: {values: ["setpoint", "schedule"], toZigbee: {skip: true}},
+                weeklySchedule: {values: ["heat"]},
+            }),
+            osrcthermEcoMode(),
+            osrcthermAlarms(),
+            m.numeric<"genAlarms">({
+                name: "alarm_count",
+                access: "STATE_GET",
+                cluster: "genAlarms",
+                attribute: "alarmCount",
+                description: "Number of active thermostat alarms",
+            }),
+            osrcthermScheduleText({fetch: true}),
+            osrcthermBrightnessOnly({
+                endpoints: [
+                    {name: "1", description: "Brightness level 6:00-22:00 (day)"},
+                    {name: "2", description: "Brightness level 22:00-6:00 (night)"},
+                ],
+                min: 0,
+                max: 8,
+            }),
+        ],
+        meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["OS_Thermostat_r0b"],
+        model: "OS_Thermostat_r0b",
+        vendor: "Slacky-DIY",
+        description: "Open Source Thermostat on base Tuya",
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: 0x0201,
+                attributes: {
+                    localTemperatureCalibration: {
+                        name: "localTemperatureCalibration",
+                        ID: 0x0010,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    minSetpointDeadBand: {
+                        name: "minSetpointDeadBand",
+                        ID: 0x0019,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                    sensorUsed: {
+                        name: "sensorUsed",
+                        ID: attrThermSensorUser,
+                        type: 0x30,
+                        write: true,
+                        max: 0xff,
+                    },
+                    extTempCalibration: {
+                        name: "extTempCalibration",
+                        ID: attrThermExtTemperatureCalibration,
+                        type: 0x28,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2},
+                multiEndpointSkip: [
+                    "local_temperature",
+                    "occupied_heating_setpoint",
+                    "system_mode",
+                    "running_state",
+                    "keypad_lockout",
+                    "temperature_display_mode",
+                    "programming_operation_mode",
+                    "local_temperature_calibration",
+                    "min_heat_setpoint_limit",
+                    "max_heat_setpoint_limit",
+                ],
+            }),
+            m.enumLookup({
+                name: "keypad_lockout",
+                access: "ALL",
+                lookup: {unlock: 0, "lock ex on/off": 1, "lock full": 2},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                description: "Keypad lockout mode",
+            }),
+            m.enumLookup<"hvacThermostat", SlackyDiyThermostat>({
+                name: "sensor_used",
+                access: "ALL",
+                lookup: {IN: 0, OUT: 1, ALL: 2},
+                cluster: "hvacThermostat",
+                attribute: "sensorUsed",
+                reporting: {min: 0, max: 3600, change: 1},
+                description: "Select temperature sensor to use",
+            }),
+            m.numeric<"hvacThermostat">({
+                name: "dead_band",
+                access: "ALL",
+                cluster: "hvacThermostat",
+                attribute: "minSetpointDeadBand",
+                unit: "°C",
+                scale: 10,
+                valueMin: 0.5,
+                valueMax: 2.5,
+                valueStep: 0.1,
+                description: "The delta between temperature to trigger activity",
+            }),
+            m.numeric<"hvacThermostat", SlackyDiyThermostat>({
+                name: "external_temperature_calibration",
+                access: "ALL",
+                cluster: "hvacThermostat",
+                attribute: "extTempCalibration",
+                unit: "°C",
+                scale: 10,
+                valueMin: -9,
+                valueMax: 9,
+                valueStep: 0.1,
+                description: "Offset to add/subtract to the external temperature",
+            }),
+            m.numeric({
+                name: "temperature",
+                access: "STATE_GET",
+                cluster: "hvacThermostat",
+                attribute: "outdoorTemp",
+                reporting: {min: 0, max: 3600, change: 10},
+                unit: "°C",
+                scale: 100,
+                precision: 2,
+                description: "Current temperature measured from the floor outer sensor",
+            }),
+            m.thermostat({
+                localTemperature: {},
+                localTemperatureCalibration: {values: {min: -9, max: 9, step: 0.1}},
+                setpointsLimit: {
+                    minHeatSetpointLimit: {min: 5, max: 15, step: 0.1},
+                    maxHeatSetpointLimit: {min: 20, max: 45, step: 0.1},
+                },
+                runningState: {values: ["idle", "heat"]},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 45, step: 0.1}}},
+                systemMode: {values: ["off", "heat"]},
+                programmingOperationMode: {values: ["setpoint", "schedule"]},
+                weeklySchedule: {values: ["heat"]},
+            }),
+            osrcthermScheduleText({fetch: true}),
+            osrcthermBrightnessOnly({
+                endpoints: [
+                    {name: "1", description: "Brightness level 6:00-22:00 (day)"},
+                    {name: "2", description: "Brightness level 22:00-6:00 (night)"},
+                ],
+                min: 0,
+                max: 8,
             }),
         ],
         meta: {},
