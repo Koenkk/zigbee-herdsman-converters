@@ -2525,7 +2525,7 @@ const thermosphereScheduleDatapoints: Tuya.MetaTuyaDataPoints = [
                     if (!(v[0] & (1 << i))) continue;
                     const key = `schedule_${day}`;
                     const transitions = ((meta.state[key] as string) ?? Array(4).fill("00:00/16.0").join(" ")).split(" ");
-                    for (let o = 1; o + 4 < v.length; o += 5) {
+                    for (let o = 1; o + 4 < v.length && v[o] < 4; o += 5) {
                         const time = `${String(v[o + 1]).padStart(2, "0")}:${String(v[o + 2]).padStart(2, "0")}`;
                         transitions[v[o]] = `${time}/${(v.readUInt16BE(o + 3) / 10).toFixed(1)}`;
                     }
