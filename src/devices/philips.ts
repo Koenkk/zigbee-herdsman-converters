@@ -2333,6 +2333,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
     },
     {
+        zigbeeModel: ["929003736801_01", "929003736801_02"],
+        model: "929003736801",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance Datura Ceiling Light Rectangle",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
+    },
+    {
         zigbeeModel: ["929003054401"],
         model: "929003054401",
         vendor: "Philips",
