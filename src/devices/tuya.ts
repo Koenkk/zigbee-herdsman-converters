@@ -13384,6 +13384,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3008_xvfd3nkp",
                 "_TZ3008_qziabvzj",
             ]),
+            tuya.whitelabel("EMOS", "IP-3010S", "Outdoor smart plug (with power monitoring)", ["_TZ3000_npg02xft"]),
         ],
         ota: true,
         extend: [

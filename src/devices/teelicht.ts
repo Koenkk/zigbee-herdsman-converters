@@ -8,6 +8,7 @@ interface TeelichtFlicker {
         flickerSpeed: number;
         flickerEffect: number;
         powerState: number;
+        radioPower: number;
     };
     commands: never;
     commandResponses: never;
@@ -19,6 +20,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "teelicht",
         vendor: "teelicht pro",
         description: "Rechargeable smart tealight",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("teelichtFlicker", {
                 name: "teelichtFlicker",
@@ -28,6 +30,7 @@ export const definitions: DefinitionWithExtend[] = [
                     flickerSpeed: {name: "flickerSpeed", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, min: 3, max: 40},
                     flickerEffect: {name: "flickerEffect", ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 1},
                     powerState: {name: "powerState", ID: 0x0003, type: Zcl.DataType.ENUM8, max: 3},
+                    radioPower: {name: "radioPower", ID: 0x0004, type: Zcl.DataType.ENUM8, write: true, max: 2},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -90,6 +93,18 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "flickerEffect",
                 description: "Candle flicker or a steady light.",
                 lookup: {candle: 0, steady: 1},
+                access: "ALL",
+                reporting: false,
+                entityCategory: "config",
+            }),
+            // Rev H from firmware 0.5.0. Last in the list: older firmware has no such attribute, and Zigbee2MQTT
+            // stops its configure at the first step that fails.
+            m.enumLookup<"teelichtFlicker", TeelichtFlicker>({
+                name: "radio_power",
+                cluster: "teelichtFlicker",
+                attribute: "radioPower",
+                description: "Transmit power: eco (0 dBm) for the longest standby, normal (+4 dBm), boost (+8 dBm) for a candle far from its router.",
+                lookup: {eco: 0, normal: 1, boost: 2},
                 access: "ALL",
                 reporting: false,
                 entityCategory: "config",
