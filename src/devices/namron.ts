@@ -556,7 +556,6 @@ const fzSimplifyThermostat = {
         if (msg.data.localTemp !== undefined) result.local_temperature = utils.precisionRound(msg.data.localTemp / 100, 2);
         if (msg.data.localTemperatureCalibration !== undefined) result.local_temperature_calibration = msg.data.localTemperatureCalibration / 10;
         if (msg.data.occupiedHeatingSetpoint !== undefined) result.occupied_heating_setpoint = msg.data.occupiedHeatingSetpoint / 100;
-        if (msg.data.pIHeatingDemand !== undefined) result.pi_heating_demand = msg.data.pIHeatingDemand;
         if (msg.data.runningState !== undefined) result.running_state = msg.data.runningState === 0 ? "heat" : "idle";
         // The device requests the time by setting 0x800a, answer it by writing the time to 0x800b and clearing the flag.
         if ((msg.data as KeyValue)[0x800a] === 1) {
@@ -3427,9 +3426,36 @@ export const definitions: DefinitionWithExtend[] = [
                 localTemperatureCalibration: {values: {min: -10, max: 10, step: 0.5}},
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
                 runningState: {values: ["idle", "heat"], configure: {reporting: false}},
-                piHeatingDemand: {values: true},
+                // systemMode is used for the preset, on/off is controlled with genOnOff.
+                systemMode: {values: ["off", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
             }),
             m.onOff({powerOnBehavior: false}),
+            {
+                fromZigbee: [
+                    {
+                        cluster: "genOnOff",
+                        type: ["attributeReport", "readResponse"],
+                        convert: (model, msg, publish, options, meta) => {
+                            if (msg.data.onOff !== undefined) return {system_mode: msg.data.onOff === 1 ? "heat" : "off"};
+                        },
+                    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+                ],
+                toZigbee: [
+                    {
+                        key: ["system_mode"],
+                        convertSet: async (entity, key, value, meta) => {
+                            utils.assertString(value, key);
+                            utils.validateValue(value, ["off", "heat"]);
+                            await entity.command("genOnOff", value === "heat" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
+                            return {state: {system_mode: value, state: value === "heat" ? "ON" : "OFF"}};
+                        },
+                        convertGet: async (entity, key, meta) => {
+                            await entity.read("genOnOff", ["onOff"]);
+                        },
+                    } satisfies Tz.Converter,
+                ],
+                isModernExtend: true,
+            },
             m.identify(),
             m.humidity({reporting: false}),
             // Reporting configuration fails with INSUFFICIENT_SPACE, the device reports by itself.
