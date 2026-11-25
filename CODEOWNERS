@@ -5,7 +5,7 @@
 # Syntax follows GitHub CODEOWNERS (glob patterns, @-prefixed GitHub handles).
 # See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-src/devices/vesternet.ts    @martyn-vesternet
+src/devices/vesternet.ts    @david-vesternet
 src/devices/candeo.ts       @candeodevelopment @dhc25
 src/devices/inovelli.ts     @InovelliUSA @rohankapoorcom
 src/lib/inovelli.ts         @InovelliUSA @rohankapoorcom

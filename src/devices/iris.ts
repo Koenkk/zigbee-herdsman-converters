@@ -3,7 +3,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 
 const e = exposes.presets;
 
@@ -13,8 +13,8 @@ const fzLocal = {
         type: "commandOn",
         convert: (model, msg, publish, options, meta) => {
             const newMsg = {...msg, type: "commandCheckin" as const, data: {}};
-            const payload1 = fz.checkin_presence.convert(model, newMsg, publish, options, meta);
-            const payload2 = fz.command_on.convert(model, msg, publish, options, meta);
+            const payload1 = fz.checkin_presence.convert(model, newMsg, publish, options, meta) as KeyValue;
+            const payload2 = fz.command_on.convert(model, msg, publish, options, meta) as KeyValue;
             return {...payload1, ...payload2};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, "commandOn">,

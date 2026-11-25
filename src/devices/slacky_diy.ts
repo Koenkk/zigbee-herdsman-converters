@@ -1404,7 +1404,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: ppmReporting,
                 unit: "ppm",
                 scale: 0.000001,
-                precision: 2,
+                precision: 3,
                 description: "Measured VOC value",
             }),
             m.temperature(),
@@ -3164,6 +3164,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["AirQ_Monitor_S01"],
         model: "AirQ_Monitor_S01",
+        version: "0.0.1",
         vendor: "Slacky-DIY",
         description: "Air quality monitor",
         configure: async (device, coordinatorEndpoint, logger) => {

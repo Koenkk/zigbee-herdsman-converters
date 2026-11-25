@@ -54,6 +54,7 @@ interface DanfossHvacThermostat {
         danfossPreheatStatus?: number;
         danfossPreheatTime?: number;
         danfossWindowOpenFeatureEnable?: number;
+        danfossHeatingSystemMode?: number;
         danfossRoomStatusCode?: number;
         danfossOutputStatus?: number;
         danfossRoomFloorSensorMode?: number;
@@ -269,6 +270,14 @@ const danfossExtend = {
                     type: Zcl.DataType.BOOLEAN,
                     manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
                     write: true,
+                },
+                danfossHeatingSystemMode: {
+                    name: "danfossHeatingSystemMode",
+                    ID: 0x4059,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
+                    write: true,
+                    max: 0xff,
                 },
                 danfossRoomStatusCode: {
                     name: "danfossRoomStatusCode",
@@ -993,6 +1002,64 @@ const danfossExtend = {
             },
         ],
     }),
+    danfossWeeklySchedule: (): ModernExtend => {
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const dayBit = (key: string) => 1 << days.indexOf(key.replace("schedule_", ""));
+        const pad = (n: number) => n.toString().padStart(2, "0");
+        // The TRV sends one getWeeklyScheduleRsp per requested day, so don't wait for a response
+        const read = (entity: Zh.Endpoint | Zh.Group, daystoreturn: number) =>
+            entity.command("hvacThermostat", "getWeeklySchedule", {daystoreturn, modetoreturn: 1}, {disableResponse: true});
+        return {
+            exposes: days.map((day) =>
+                e.text(`schedule_${day}`, ea.ALL).withDescription(`Schedule for ${day}, up to 6 transitions, e.g. "06:00/21 22:00/17"`),
+            ),
+            fromZigbee: [
+                {
+                    cluster: "hvacThermostat",
+                    type: ["commandGetWeeklyScheduleRsp"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const schedule = msg.data.transitions
+                            .map((t) => `${pad(Math.floor(t.transitionTime / 60))}:${pad(t.transitionTime % 60)}/${t.heatSetpoint / 100}`)
+                            .join(" ");
+                        return Object.fromEntries(days.filter((d, i) => msg.data.dayofweek & (1 << i)).map((d) => [`schedule_${d}`, schedule]));
+                    },
+                } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
+            ],
+            toZigbee: [
+                {
+                    key: days.map((day) => `schedule_${day}`),
+                    convertSet: async (entity, key, value, meta) => {
+                        utils.assertString(value, key);
+                        const transitions = value
+                            .split(" ")
+                            .filter((t) => t)
+                            .map((t) => {
+                                const match = t.match(/^(\d{1,2}):(\d{2})\/(\d+(\.\d+)?)$/);
+                                if (!match) throw new Error(`Invalid transition '${t}', expected format HH:MM/temperature`);
+                                return {transitionTime: Number(match[1]) * 60 + Number(match[2]), heatSetpoint: Math.round(Number(match[3]) * 100)};
+                            });
+                        await entity.command(
+                            "hvacThermostat",
+                            "setWeeklySchedule",
+                            {dayofweek: dayBit(key), numoftrans: transitions.length, mode: 1, transitions},
+                            // Queue for sleepy TRV, can be removed after https://github.com/Koenkk/zigbee-herdsman/pull/1948
+                            {...utils.getOptions(meta.mapped, entity), sendPolicy: "keep-payload"},
+                        );
+                        return {state: {[key]: value}};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await read(entity, dayBit(key));
+                    },
+                },
+            ],
+            configure: [
+                async (device) => {
+                    await read(device.getEndpoint(1), 0x7f);
+                },
+            ],
+            isModernExtend: true,
+        };
+    },
 };
 
 const tzLocal = {
@@ -1456,10 +1523,30 @@ export const definitions: DefinitionWithExtend[] = [
                 // Danfoss|014G2461|expose.name=heatSetpoint
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
+                    minHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
                 },
             }),
             danfossExtend.absMaxHeatSetpointLimit({
                 description: "Absolute Maximum Heating Setpoint Limit for the device. Adjust the 'Max heat setpoint limit' accordingly.",
+            }),
+            m.numeric<"hvacThermostat", undefined>({
+                name: "abs_min_heat_setpoint_limit",
+                cluster: "hvacThermostat",
+                attribute: "absMinHeatSetpointLimit",
+                description: "Absolute Minimum Heating Setpoint Limit for the device. Adjust the 'Min heat setpoint limit' accordingly.",
+                unit: "°C",
+                scale: 100,
+                entityCategory: "diagnostic",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"hvacThermostat", DanfossHvacThermostat>({
+                name: "heating_system_mode",
+                cluster: "hvacThermostat",
+                attribute: "danfossHeatingSystemMode",
+                description: "Heating system type, use `boiler_heating` to improve regulation in boiler setups",
+                lookup: {auto_system: 0, boiler_heating: 1, default_heating: 2},
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             }),
             m.battery(),
             danfossExtend.keypadLockout(),
@@ -1488,6 +1575,7 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
             danfossExtend.danfossTimeSyncOnAnnounce(),
+            danfossExtend.danfossWeeklySchedule(),
             m.poll({
                 key: "danfossTime",
                 defaultIntervalSeconds: 60 * 60 * 24,
@@ -1836,7 +1924,30 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Danfoss",
         description: "Icon2 Main Controller, Room Thermostat or Sensor",
         ota: true,
-        extend: [danfossExtend.addDanfossHvacThermostatCluster(), danfossExtend.addDanfossHaDiagnosticCluster()],
+        extend: [
+            danfossExtend.addDanfossHvacThermostatCluster(),
+            danfossExtend.addDanfossHaDiagnosticCluster(),
+            m.deviceEndpoints({
+                endpoints: {
+                    "1": 1,
+                    "2": 2,
+                    "3": 3,
+                    "4": 4,
+                    "5": 5,
+                    "6": 6,
+                    "7": 7,
+                    "8": 8,
+                    "9": 9,
+                    "10": 10,
+                    "11": 11,
+                    "12": 12,
+                    "13": 13,
+                    "14": 14,
+                    "15": 15,
+                    "232": 232,
+                },
+            }),
+        ],
         fromZigbee: [
             fzLocal.danfoss_icon_battery,
             fz.thermostat,

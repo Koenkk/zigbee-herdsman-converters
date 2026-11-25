@@ -5,9 +5,10 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, KeyValue, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -19,6 +20,20 @@ const thermostatPositions: KeyValue = {
     three_quarters_open: 3,
     fully_open: 4,
 };
+
+interface ThermorHvacThermostat {
+    attributes: {
+        connectedLoad: number;
+        windowDetection: number;
+        windowOpen: number;
+        effectiveHeatingSetpoint: number;
+        heatingDemand: number;
+        powerBoardTemperature: number;
+        internalTemperature: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const tzLocal = {
     quiet_fan: {
@@ -71,6 +86,53 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
+
+const atlanticPlusRadiatorExtend = (options: {horizontal: boolean; light?: boolean}): ModernExtend[] => [
+    m.deviceEndpoints({
+        endpoints: {"1": 1, "230": 230, "232": 232, ...(options.light ? {"233": 233} : {})},
+        multiEndpointSkip: [
+            "local_temperature",
+            "occupied_heating_setpoint",
+            "system_mode",
+            "running_mode",
+            "control_sequence_of_operation",
+            "abs_min_heat_setpoint_limit",
+            "abs_max_heat_setpoint_limit",
+            "min_heat_setpoint_limit",
+            "max_heat_setpoint_limit",
+            "temperature_setpoint_hold",
+            "temperature_setpoint_hold_duration",
+            "programming_operation_mode",
+            "keypad_lockout",
+            "temperature_display_mode",
+            "occupancy",
+            "power",
+            "energy",
+        ],
+    }),
+    m.identify(),
+    // runningState and pIHeatingDemand are unsupported
+    m.thermostat({
+        localTemperature: {},
+        setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}}},
+        systemMode: {values: ["off", "heat"]},
+    }),
+    m.occupancy(),
+    ...(options.horizontal
+        ? [
+              // acPowerMultiplier/acPowerDivisor, rmsVoltage and rmsCurrent are unsupported
+              m.electricityMeter({
+                  power: {cluster: "electrical", multiplier: 1, divisor: 1},
+                  energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"},
+                  voltage: false,
+                  current: false,
+              }),
+              m.thermostatUi({endpointNames: ["230"]}),
+          ]
+        : // instantaneousDemand is unsupported, currentSummDelivered is in Wh while some firmwares report multiplier=1000/divisor=1000
+          [m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"}})]),
+    ...(options.light ? [m.light({endpointNames: ["233"]})] : []),
+];
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -141,5 +203,369 @@ export const definitions: DefinitionWithExtend[] = [
             // The device reports seMetering multiplier=1000/divisor=1000 while currentSummDelivered is in Wh
             endpoint.saveClusterAttributeKeyValue("seMetering", {multiplier: 1, divisor: 1000});
         },
+    },
+    {
+        zigbeeModel: [
+            "100052992400",
+            "100052992500",
+            "100052992700",
+            "100050312600",
+            "100050312700",
+            "100050312800",
+            "100050312900",
+            "100050313000",
+            "100050313100",
+        ],
+        model: "100052992400",
+        vendor: "Atlantic Group",
+        description: "Nirvana+ connected radiator horizontal 750W",
+        // Firmware appends a NUL character to the modelID, so both variants are needed in the fingerprint
+        whiteLabel: [
+            {
+                model: "100052992500",
+                description: "Nirvana+ connected radiator horizontal 1000W",
+                fingerprint: [{modelID: "100052992500"}, {modelID: "100052992500\u0000"}],
+            },
+            {
+                model: "100052992700",
+                description: "Nirvana+ connected radiator horizontal 1500W",
+                fingerprint: [{modelID: "100052992700"}, {modelID: "100052992700\u0000"}],
+            },
+            // Agilia+ horizontal variants.
+            {
+                model: "100050312600",
+                description: "Agilia+ connected radiator horizontal 500W",
+                fingerprint: [{modelID: "100050312600"}, {modelID: "100050312600\u0000"}],
+            },
+            {
+                model: "100050312700",
+                description: "Agilia+ connected radiator horizontal 750W",
+                fingerprint: [{modelID: "100050312700"}, {modelID: "100050312700\u0000"}],
+            },
+            {
+                model: "100050312800",
+                description: "Agilia+ connected radiator horizontal 1000W",
+                fingerprint: [{modelID: "100050312800"}, {modelID: "100050312800\u0000"}],
+            },
+            {
+                model: "100050312900",
+                description: "Agilia+ connected radiator horizontal 1250W",
+                fingerprint: [{modelID: "100050312900"}, {modelID: "100050312900\u0000"}],
+            },
+            {
+                model: "100050313000",
+                description: "Agilia+ connected radiator horizontal 1500W",
+                fingerprint: [{modelID: "100050313000"}, {modelID: "100050313000\u0000"}],
+            },
+            {
+                model: "100050313100",
+                description: "Agilia+ connected radiator horizontal 2000W",
+                fingerprint: [{modelID: "100050313100"}, {modelID: "100050313100\u0000"}],
+            },
+        ],
+        extend: atlanticPlusRadiatorExtend({horizontal: true}),
+    },
+    {
+        zigbeeModel: ["100052994200", "100052994300", "100051841900", "100051842100", "100051842200"],
+        model: "100052994200",
+        vendor: "Atlantic Group",
+        description: "Nirvana+ connected radiator vertical 1500W",
+        whiteLabel: [
+            {
+                model: "100052994300",
+                description: "Nirvana+ connected radiator vertical 2000W",
+                fingerprint: [{modelID: "100052994300"}, {modelID: "100052994300\u0000"}],
+            },
+            // Agilia+ vertical variants.
+            {
+                model: "100051841900",
+                description: "Agilia+ connected radiator vertical 1000W",
+                fingerprint: [{modelID: "100051841900"}, {modelID: "100051841900\u0000"}],
+            },
+            {
+                model: "100051842100",
+                description: "Agilia+ connected radiator vertical 1500W",
+                fingerprint: [{modelID: "100051842100"}, {modelID: "100051842100\u0000"}],
+            },
+            {
+                model: "100051842200",
+                description: "Agilia+ connected radiator vertical 1800W",
+                fingerprint: [{modelID: "100051842200"}, {modelID: "100051842200\u0000"}],
+            },
+        ],
+        extend: atlanticPlusRadiatorExtend({horizontal: false}),
+    },
+    {
+        zigbeeModel: ["100050768800"],
+        model: "100050768800",
+        vendor: "Atlantic Group",
+        description: "Divali Neo connected radiator vertical with light",
+        extend: atlanticPlusRadiatorExtend({horizontal: false, light: true}),
+    },
+    {
+        zigbeeModel: ["100050072300"],
+        model: "100050072300",
+        vendor: "Atlantic Group",
+        description: "Sauter Kartala connected radiator horizontal 1000W",
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.heatingDemand !== undefined) {
+                        return {running_state: msg.data.heatingDemand > 0 ? "heat" : "idle"};
+                    }
+                },
+            } satisfies Fz.Converter<"hvacThermostat", ThermorHvacThermostat, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["running_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"hvacThermostat", ThermorHvacThermostat>("hvacThermostat", ["heatingDemand"]);
+                },
+            } satisfies Tz.Converter,
+        ],
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    windowDetection: {
+                        name: "windowDetection",
+                        ID: 0x428a,
+                        type: Zcl.DataType.BOOLEAN,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                        write: true,
+                    },
+                    windowOpen: {name: "windowOpen", ID: 0x4298, type: Zcl.DataType.BOOLEAN, manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP},
+                    effectiveHeatingSetpoint: {
+                        name: "effectiveHeatingSetpoint",
+                        ID: 0x42ab,
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                    heatingDemand: {
+                        name: "heatingDemand",
+                        ID: 0x42ac,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                    internalTemperature: {
+                        name: "internalTemperature",
+                        ID: 0x42b4,
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.identify(),
+            // runningState is unsupported and heatingState is only set while heating at full power, running_state is mapped from heatingDemand instead
+            m.thermostat({
+                localTemperature: {},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
+                systemMode: {values: ["off", "heat"]},
+                runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
+            }),
+            m.occupancy(),
+            m.electricityMeter({
+                power: {cluster: "electrical", multiplier: 1, divisor: 1},
+                energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"},
+                voltage: false,
+                current: false,
+            }),
+            m.binary<"hvacThermostat", ThermorHvacThermostat>({
+                name: "window_detection",
+                cluster: "hvacThermostat",
+                attribute: "windowDetection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                reporting: false,
+                entityCategory: "config",
+                description: "Stops heating when an open window is detected",
+            }),
+            m.binary<"hvacThermostat", ThermorHvacThermostat>({
+                name: "window_open",
+                cluster: "hvacThermostat",
+                attribute: "windowOpen",
+                access: "STATE",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                description: "Open window detected",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "pi_heating_demand",
+                cluster: "hvacThermostat",
+                attribute: "heatingDemand",
+                access: "STATE",
+                unit: "%",
+                description: "Heating duty cycle",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "effective_heating_setpoint",
+                cluster: "hvacThermostat",
+                attribute: "effectiveHeatingSetpoint",
+                access: "STATE",
+                unit: "°C",
+                scale: 100,
+                description: "Setpoint actually applied by the radiator (7 °C while a window is open)",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "internal_temperature",
+                cluster: "hvacThermostat",
+                attribute: "internalTemperature",
+                access: "STATE",
+                unit: "°C",
+                scale: 100,
+                entityCategory: "diagnostic",
+                description: "Internal temperature of the radiator",
+            }),
+            m.enumLookup({
+                name: "keypad_lockout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                lookup: {unlocked: 0, partial: 1, settings_locked: 2, full: 5},
+                description:
+                    "Restricted access, can only be changed over Zigbee: partial = some settings disabled, settings_locked = only temperature adjustable, full = everything locked",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["100042838900", "100042838900 "],
+        model: "100042838900",
+        vendor: "Atlantic Group",
+        description: "Thermor Equateur 5 electric radiator",
+        fromZigbee: [fz.thermostat, fz.occupancy, fz.metering],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.currentsummdelivered],
+        exposes: [
+            e.climate().withLocalTemperature().withSetpoint("occupied_heating_setpoint", 7, 28, 0.5).withSystemMode(["off", "heat"]),
+            e.occupancy(),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "msOccupancySensing", "seMetering"]);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.occupancy(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            // The device reports seMetering multiplier=1000/divisor=1000 while currentSummDelivered is in Wh
+            endpoint.saveClusterAttributeKeyValue("seMetering", {multiplier: 1, divisor: 1000});
+        },
+    },
+    {
+        zigbeeModel: ["100040070400"],
+        model: "100040070400",
+        vendor: "Atlantic Group",
+        description: "Thermor 400704 thermostat for electric underfloor heating",
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    // heatingState (17049) stays at heating while the mat is off, the duty cycle follows the actual heating
+                    if (msg.data.heatingDemand !== undefined) {
+                        return {running_state: msg.data.heatingDemand > 0 ? "heat" : "idle"};
+                    }
+                },
+            } satisfies Fz.Converter<"hvacThermostat", ThermorHvacThermostat, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["running_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"hvacThermostat", ThermorHvacThermostat>("hvacThermostat", ["heatingDemand"]);
+                },
+            } satisfies Tz.Converter,
+        ],
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    connectedLoad: {
+                        name: "connectedLoad",
+                        ID: 17030,
+                        type: Zcl.DataType.UINT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                    windowDetection: {
+                        name: "windowDetection",
+                        ID: 17034,
+                        type: Zcl.DataType.BOOLEAN,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                        write: true,
+                    },
+                    heatingDemand: {
+                        name: "heatingDemand",
+                        ID: 17068,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                    powerBoardTemperature: {
+                        name: "powerBoardTemperature",
+                        ID: 17075,
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.identify(),
+            // runningState and pIHeatingDemand are unsupported, running_state is mapped from heatingDemand instead
+            m.thermostat({
+                localTemperature: {},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
+                systemMode: {values: ["off", "heat"]},
+                runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
+            }),
+            // currentSummDelivered is in Wh while the device reports multiplier=1000/divisor=1000
+            m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000}}),
+            // Manufacturer specific attributes are not reportable
+            m.binary<"hvacThermostat", ThermorHvacThermostat>({
+                name: "window_detection",
+                cluster: "hvacThermostat",
+                attribute: "windowDetection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                reporting: false,
+                entityCategory: "config",
+                description: "Stops heating when an open window is detected",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "pi_heating_demand",
+                cluster: "hvacThermostat",
+                attribute: "heatingDemand",
+                access: "STATE_GET",
+                reporting: false,
+                unit: "%",
+                description: "Heating duty cycle",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "connected_load",
+                cluster: "hvacThermostat",
+                attribute: "connectedLoad",
+                access: "STATE_GET",
+                reporting: false,
+                unit: "W",
+                entityCategory: "diagnostic",
+                description: "Power of the heating mat set at commissioning",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "device_temperature",
+                cluster: "hvacThermostat",
+                attribute: "powerBoardTemperature",
+                access: "STATE_GET",
+                reporting: false,
+                unit: "°C",
+                scale: 100,
+                entityCategory: "diagnostic",
+                description: "Temperature of the power board",
+            }),
+        ],
     },
 ];

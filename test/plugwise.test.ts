@@ -28,6 +28,17 @@ describe("Plugwise 170-01 (Emma)", () => {
             {property: "external_heat_demand_timeout", attribute: "plugwiseExternalHeatDemandTimeout", input: 600, raw: 600},
             {property: "max_dhw_setpoint", attribute: "plugwiseMaxDhwSetpoint", input: 65, raw: 6500},
             {property: "max_boiler_setpoint", attribute: "plugwiseMaxBoilerSetpoint", input: 75, raw: 7500},
+            {property: "override_outdoor_temperature", attribute: "plugwiseOutdoorTemp", input: -5.5, raw: -550},
+            {property: "home_heating_setpoint", attribute: "plugwisePresetHomeHeatingSetpoint", input: 21.5, raw: 2150},
+            {property: "home_cooling_setpoint", attribute: "plugwisePresetHomeCoolingSetpoint", input: 23, raw: 2300},
+            {property: "asleep_heating_setpoint", attribute: "plugwisePresetAsleepHeatingSetpoint", input: 17, raw: 1700},
+            {property: "asleep_cooling_setpoint", attribute: "plugwisePresetAsleepCoolingSetpoint", input: 24.5, raw: 2450},
+            {property: "away_heating_setpoint", attribute: "plugwisePresetAwayHeatingSetpoint", input: 15, raw: 1500},
+            {property: "away_cooling_setpoint", attribute: "plugwisePresetAwayCoolingSetpoint", input: 26, raw: 2600},
+            {property: "vacation_heating_setpoint", attribute: "plugwisePresetVacationHeatingSetpoint", input: 14.5, raw: 1450},
+            {property: "vacation_cooling_setpoint", attribute: "plugwisePresetVacationCoolingSetpoint", input: 28, raw: 2800},
+            {property: "no_frost_heating_setpoint", attribute: "plugwisePresetNoFrostHeatingSetpoint", input: 6, raw: 600},
+            {property: "no_frost_cooling_setpoint", attribute: "plugwisePresetNoFrostCoolingSetpoint", input: 30, raw: 3000},
         ];
 
         beforeEach(() => {
@@ -38,24 +49,22 @@ describe("Plugwise 170-01 (Emma)", () => {
             meta = {endpoint_name: null} as unknown as Tz.Meta;
         });
 
-        it.each(cases)("$property convertSet writes the scaled value with the Plugwise manufacturer code", async ({
-            property,
-            attribute,
-            input,
-            raw,
-        }) => {
-            // Arrange
-            const converter = emma.toZigbee?.find((c) => c.key.includes(property));
-            if (!converter?.convertSet) throw new Error(`No toZigbee convertSet for '${property}'`);
+        it.each(cases)(
+            "$property convertSet writes the scaled value with the Plugwise manufacturer code",
+            async ({property, attribute, input, raw}) => {
+                // Arrange
+                const converter = emma.toZigbee?.find((c) => c.key.includes(property));
+                if (!converter?.convertSet) throw new Error(`No toZigbee convertSet for '${property}'`);
 
-            // Act
-            const result = await converter.convertSet(endpoint, property, input, meta);
+                // Act
+                const result = await converter.convertSet(endpoint, property, input, meta);
 
-            // Assert
-            expect(writeFn).toHaveBeenCalledTimes(1);
-            expect(writeFn).toHaveBeenCalledWith("hvacThermostat", {[attribute]: raw}, PLUGWISE_MFG);
-            expect(result).toStrictEqual({state: {[property]: input}});
-        });
+                // Assert
+                expect(writeFn).toHaveBeenCalledTimes(1);
+                expect(writeFn).toHaveBeenCalledWith("hvacThermostat", {[attribute]: raw}, PLUGWISE_MFG);
+                expect(result).toStrictEqual({state: {[property]: input}});
+            },
+        );
 
         it.each(cases)("$property convertGet reads the attribute with the Plugwise manufacturer code", async ({property, attribute}) => {
             // Arrange
@@ -98,6 +107,72 @@ describe("Plugwise 170-01 (Emma)", () => {
                 // Assert
                 expect(readFn).toHaveBeenCalledTimes(1);
                 expect(readFn).toHaveBeenCalledWith("genPowerCfg", ["plugwiseBatteryType"], PLUGWISE_MFG);
+            });
+        });
+
+        describe("weather_icon (Plugwise hvacThermostat mfg attribute)", () => {
+            it.each([
+                ["clear_day", 0x00],
+                ["rain_day", 0x09],
+                ["shower_rain", 0x10],
+                ["snow", 0x11],
+            ])("convertSet '%s' writes value %i to hvacThermostat with the Plugwise manufacturer code", async (value, raw) => {
+                // Arrange
+                const converter = emma.toZigbee?.find((c) => c.key.includes("weather_icon"));
+                if (!converter?.convertSet) throw new Error("No toZigbee convertSet for 'weather_icon'");
+
+                // Act
+                await converter.convertSet(endpoint, "weather_icon", value, meta);
+
+                // Assert
+                expect(writeFn).toHaveBeenCalledTimes(1);
+                expect(writeFn).toHaveBeenCalledWith("hvacThermostat", {plugwiseWeatherIcon: raw}, PLUGWISE_MFG);
+            });
+
+            it("convertGet reads weather_icon with the Plugwise manufacturer code", async () => {
+                // Arrange
+                const converter = emma.toZigbee?.find((c) => c.key.includes("weather_icon"));
+                if (!converter?.convertGet) throw new Error("No toZigbee convertGet for 'weather_icon'");
+
+                // Act
+                await converter.convertGet(endpoint, "weather_icon", meta);
+
+                // Assert
+                expect(readFn).toHaveBeenCalledTimes(1);
+                expect(readFn).toHaveBeenCalledWith("hvacThermostat", ["plugwiseWeatherIcon"], PLUGWISE_MFG);
+            });
+        });
+
+        describe("preset (Plugwise hvacThermostat mfg attribute)", () => {
+            it.each([
+                ["home", 0x00],
+                ["asleep", 0x01],
+                ["away", 0x02],
+                ["vacation", 0x03],
+                ["no_frost", 0x04],
+            ])("convertSet '%s' writes value %i to hvacThermostat with the Plugwise manufacturer code", async (value, raw) => {
+                // Arrange
+                const converter = emma.toZigbee?.find((c) => c.key.includes("preset"));
+                if (!converter?.convertSet) throw new Error("No toZigbee convertSet for 'preset'");
+
+                // Act
+                await converter.convertSet(endpoint, "preset", value, meta);
+
+                // Assert
+                expect(writeFn).toHaveBeenCalledTimes(1);
+                expect(writeFn).toHaveBeenCalledWith("hvacThermostat", {plugwisePreset: raw}, PLUGWISE_MFG);
+            });
+
+            it("fromZigbee maps a reported preset value to its name", () => {
+                // Arrange
+                const msg = {data: {plugwisePreset: 0x02}} as never;
+                const converters = emma.fromZigbee?.filter((c) => c.cluster === "hvacThermostat") ?? [];
+
+                // Act
+                const results = converters.map((c) => c.convert(emma, msg, () => {}, {}, {} as never));
+
+                // Assert
+                expect(results).toContainEqual({preset: "away"});
             });
         });
     });

@@ -1,7 +1,10 @@
 import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
@@ -113,13 +116,54 @@ export const fzLocal = {
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["raw"]>,
 };
 
+const tzLocal = {
+    light_onoff_brightness: {
+        ...tz.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            // OFF with a transition ends at level 1 and the light stays on, so dim to 1 first and turn off afterwards.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/31956
+            const transition = utils.getTransition(entity, "brightness", meta);
+            const state = String(meta.message.state).toLowerCase();
+            if ((state === "off" || state === "toggle") && transition.time > 0 && meta.state.state === "ON") {
+                const payload = {level: 1, transtime: transition.time, optionsMask: 0, optionsOverride: 0};
+                await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
+                await utils.sleep(transition.time * 100);
+                // The level stays at 1 after OFF, let the next ON restore the previous brightness.
+                globalStore.putValue(entity, "brightness", meta.state.brightness);
+                globalStore.putValue(entity, "turnedOffWithTransition", true);
+                return await tz.on_off.convertSet(entity, "state", "off", {...meta, message: {...meta.message, state: "off"}});
+            }
+            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["ESMLFzm_w6_Dimm"],
+        fingerprint: [
+            {
+                // Factory firmware: identifies as the Telink SDK default model until the AwoX app updates it over BLE
+                type: "Router",
+                manufacturerName: "AwoX",
+                modelID: "TLSR82xx",
+                hardwareVersion: 0,
+                softwareBuildID: "0122052017",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599, 10], outputClusters: [6]},
+                    {ID: 3, profileID: 4751, deviceID: 257, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
+        ],
         model: "12226",
         vendor: "AwoX",
         description: "Dimmable filament lamp",
-        extend: [m.light()],
+        extend: [m.light({levelConfig: {features: ["current_level_startup"]}})],
+        whiteLabel: [
+            {vendor: "EGLO", model: "12226"},
+            {vendor: "EGLO", model: "12224", description: "G95 globe dimmable filament bulb, 2200K"},
+        ],
     },
     {
         fingerprint: [
@@ -338,10 +382,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EBF_RGB_Zm",
         vendor: "AwoX",
         description: "LED with adjustable color temp on main ring; extra RGB strip for full colors.",
+        toZigbee: [tzLocal.light_onoff_brightness],
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}}), m.commandsOnOff()],
         whiteLabel: [
             {vendor: "EGLO", model: "900566"},
             {vendor: "EGLO", model: "901463"},
+            {vendor: "EGLO", model: "901466"},
         ],
     },
     {

@@ -300,8 +300,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.windowCovering({controls: ["lift"]})],
     },
     {
-        zigbeeModel: ["Ysia 5 HP Zigbee"],
+        zigbeeModel: ["Ysia 5 HP Zigbee", "Ysia 5 Zigbee Europe"],
         model: "1871154",
+        whiteLabel: [
+            {vendor: "Somfy", model: "1871158", description: "Ysia 5 channel blinds remote", fingerprint: [{modelID: "Ysia 5 Zigbee Europe"}]},
+        ],
         vendor: "Somfy",
         description: "Ysia 5 channel blinds remote",
         extend: [
@@ -357,6 +360,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Somfy",
         description: "Glydea Curtain motor Zigbee module",
         extend: [glydeaWindowCovering],
+    },
+    {
+        zigbeeModel: ["Glydea 2 Ultra WF Curtain"],
+        model: "1246595",
+        vendor: "Somfy",
+        description: "Glydea2 Ultra 50 WF Zigbee curtain motor",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
         zigbeeModel: ["Tilt & Lift 25 WF Roller"],

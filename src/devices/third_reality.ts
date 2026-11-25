@@ -199,6 +199,7 @@ interface ThirdPlugGen3 {
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
+        overloadProtection: number;
     };
     commands: never;
     commandResponses: never;
@@ -316,6 +317,8 @@ export const fzLocal = {
         cluster: "genMultistateInput",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
+            // No presentValue means no button press; otherwise the lookup below would fall through to "many"
+            if (msg.data.presentValue === undefined) return;
             const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
             const clicks = msg.data.presentValue;
             const action = lookup[clicks] ? lookup[clicks] : "many";
@@ -1009,6 +1012,14 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["3RRE0194Z"],
+        model: "3RRE0194Z",
+        vendor: "Third Reality, Inc",
+        description: "Smart Outdoor Repeater",
+        extend: [m.onOff(), m.battery()],
+        ota: true,
+    },
+    {
         zigbeeModel: ["3RTHS0324Z"],
         model: "3RTHS0324Z",
         vendor: "Third Reality",
@@ -1352,6 +1363,7 @@ export const definitions: DefinitionWithExtend[] = [
                     powerRiseThreshold: {name: "powerRiseThreshold", ID: 0x0040, type: Zcl.DataType.UINT16, write: true, min: 0x01, max: 0xc80},
                     powerDropThreshold: {name: "powerDropThreshold", ID: 0x0041, type: Zcl.DataType.UINT16, write: true, min: 0x01, max: 0xc80},
                     meteringOnlyMode: {name: "meteringOnlyMode", ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    overloadProtection: {name: "overloadProtection", ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1390,6 +1402,15 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rPlugGen3Specialcluster",
                 attribute: "meteringOnlyMode",
                 description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
+                access: "ALL",
+            }),
+            m.binary<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
+                name: "overload_protection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rPlugGen3Specialcluster",
+                attribute: "overloadProtection",
+                description: "When enabled, the device will automatically turn off the relay if the power consumption exceeds the threshold.",
                 access: "ALL",
             }),
             m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
@@ -1652,13 +1673,14 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        zigbeeModel: ["3RCB01057Z", "3RCB02070Z", "3RCB1095Z"],
+        zigbeeModel: ["3RCB01057Z", "3RCB02070Z", "3RCB1095Z", "3RCB1097Z"],
         model: "3RCB01057Z",
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
         whiteLabel: [
             {vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]},
             {vendor: "Third Reality", model: "3RCB1095Z", description: "Smart Color Bulb ZL2", fingerprint: [{modelID: "3RCB1095Z"}]},
+            {vendor: "Third Reality", model: "3RCB1097Z", description: "Smart Color Bulb LZ12", fingerprint: [{modelID: "3RCB1097Z"}]},
         ],
         ota: true,
         extend: [
@@ -1770,6 +1792,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["3RAP0149BZ"],
         model: "3RAP0149BZ",
+        version: "0.0.1",
         vendor: "Third Reality",
         description: "Smart Filter Sensor",
         extend: [

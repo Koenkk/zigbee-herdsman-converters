@@ -1,4 +1,5 @@
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -35,7 +36,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-1Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 1 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.numeric("countdown_1", ea.STATE_SET).withValueMin(0).withValueMax(43200).withUnit("s").withDescription("Timer for switch 1"),
@@ -107,7 +108,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-2Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 2 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -205,7 +206,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-3Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 3 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -317,7 +318,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-4Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 4 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -437,7 +438,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-6Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 6 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -589,7 +590,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-8Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 8 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
