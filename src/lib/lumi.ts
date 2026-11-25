@@ -4,6 +4,7 @@ import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as libColor from "./color";
+import type {ThermostatFanMode, ThermostatSystemMode} from "./constants";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
@@ -13,12 +14,15 @@ import type {
     BatteryNonLinearVoltage,
     Configure,
     Definition,
+    DefinitionExposesFunction,
+    DummyDevice,
     Expose,
     Fz,
     KeyValue,
     KeyValueAny,
     KeyValueNumberString,
     ModernExtend,
+    OnEvent,
     Range,
     Tz,
     Zh,
@@ -34,6 +38,7 @@ import {
     getKey,
     getOptions,
     hasAlreadyProcessedMessage,
+    isDummyDevice,
     isObject,
     isString,
     noOccupancySince,
@@ -339,7 +344,7 @@ export const numericAttributes2Payload = async (
             case "13":
                 if (["ZNXDD01LM"].includes(model.model)) {
                     // We don't know what the value means for these devices.
-                } else if (["ZNCLBL01LM", "PS-S04D"].includes(model.model)) {
+                } else if (["ZNCLBL01LM", "PS-S04D", "TH-S04D"].includes(model.model)) {
                     // Overwrite version advertised by `genBasic` and `genOta` with correct version:
                     // https://github.com/Koenkk/zigbee2mqtt/issues/15745
                     assertNumber(value);
@@ -403,6 +408,8 @@ export const numericAttributes2Payload = async (
                     // https://github.com/Koenkk/zigbee2mqtt/issues/33001
                 } else if (["RTCGQ15LM"].includes(model.model)) {
                     payload.occupancy = value;
+                } else if (["TH-S04D"].includes(model.model)) {
+                    // Temperature x 100, already reported by msTemperatureMeasurement.
                 } else if (["PS-S04D"].includes(model.model)) {
                     // Not the live presence: it stays 0 while the device reports presence via 0x0142, which would
                     // overwrite it whenever the 0x00F7 struct is read (fp300BatteryPoll). Presence comes from 0x0142.
@@ -2817,6 +2824,159 @@ export const fp400 = {
 };
 
 export const lumiModernExtend = {
+    /**
+     * Aqara W100 thermostat: climate expose and protocol selection (legacy PMTSD or HA attributes 0x0174/0x0175),
+     * the converters are `w100_specific`, `w100_pmtsd` and `w100_mode`.
+     */
+    w100Thermostat: (): ModernExtend => {
+        const exposes: DefinitionExposesFunction = (device, options) => {
+            const ha = w100.getProtocol(device, options) === "ha";
+            // Follow the min/max_target_temp options so that HA does not offer setpoints the converter refuses.
+            const [min, max] = w100SetpointRange(options, ha ? w100HaSetpointRange : [w100Defaults.min_target_temp, w100Defaults.max_target_temp]);
+            let climate = e
+                .climate()
+                .withSystemMode(w100.getSystemModes(options))
+                .withSetpoint("occupied_heating_setpoint", min, max, ha ? w100.getSetpointStep(options) : 1)
+                .withLocalTemperature()
+                .withDescription(
+                    "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
+                );
+            const fanModes = w100.getFanModes(options);
+            if (fanModes.length) climate = climate.withFanMode(fanModes);
+            const result: Expose[] = [climate];
+            if (!ha) {
+                result.push(
+                    e
+                        .text("PMTSD_from_W100_Data", ea.STATE)
+                        .withDescription(
+                            'Latest PMTSD values sent by the W100 when manually changed, formatted as "YYYY-MM-DD HH:mm:ss_Px_Mx_Tx_Sx_Dx"',
+                        ),
+                );
+            }
+            return result;
+        };
+        const options = [
+            e
+                .enum("thermostat_protocol", ea.SET, ["auto", "legacy", "ha"])
+                .withDescription(
+                    "Protocol used to synchronize the thermostat with the W100. auto (default): detected from the firmware. " +
+                        "legacy: PMTSD frames (older firmware). ha: dedicated thermostat attributes (newer firmware).",
+                ),
+            e
+                .numeric("setpoint_step", ea.SET)
+                .withValueMin(0.1)
+                .withValueMax(1)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription(
+                    `Target temperature step (default: ${w100DefaultSetpointStep}°C). Only supported by firmware using the ha protocol.`,
+                ),
+            e
+                .list("system_modes", ea.SET, e.enum("system_mode", ea.SET, w100SystemModes))
+                .withLengthMin(1)
+                .withDescription(
+                    "Modes offered by the thermostat (default: all). Firmware without the allowed modes setting still offers them on the W100, they are then reverted to the previous mode.",
+                ),
+            e
+                .list("fan_modes", ea.SET, e.enum("fan_mode", ea.SET, [...w100FanModes, "none"]))
+                .withLengthMin(1)
+                .withDescription(
+                    "Fan modes offered by the thermostat (default: all), 'none' for no fan. Firmware without the allowed fan modes setting still offers them on the W100, they are then reverted to the previous fan mode.",
+                ),
+        ];
+        const onEvent: OnEvent.Handler = async (event) => {
+            if (event.type === "deviceAnnounce" || event.type === "deviceJoined" || event.type === "deviceNetworkAddressChanged") {
+                // After a rejoin or a reboot the W100 forgets its bindings, its reporting configuration and, after a
+                // reboot, the thermostat subscription and the setpoint step: write them again.
+                const {device, options, state, deviceExposesChanged} = event.data;
+                // No probe when the protocol is forced by the user.
+                if (event.type === "deviceAnnounce" && !["legacy", "ha"].includes(options?.thermostat_protocol as string)) {
+                    await w100.probeProtocol(device, deviceExposesChanged);
+                }
+                await w100.restore(device, options, state);
+            } else if (event.type === "deviceInterview" && event.data.status === "successful") {
+                // Z2M drops the messages received during an interview (e.g. the re-interview after an OTA update), including
+                // the 0x0172 read of configure: read the thermostat mode again.
+                try {
+                    await event.data.device
+                        .getEndpoint(1)
+                        .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0172], {manufacturerCode});
+                } catch (error) {
+                    logger.debug(
+                        `Aqara W100: failed to read the thermostat mode of '${event.data.device.ieeeAddr}' (${(error as Error).message})`,
+                        NS,
+                    );
+                }
+            } else if (event.type === "deviceOptionsChanged") {
+                const {device, from, to, state, deviceExposesChanged} = event.data;
+                const changed = (key: string) => JSON.stringify(from?.[key]) !== JSON.stringify(to?.[key]);
+                if (["thermostat_protocol", "setpoint_step", "min_target_temp", "max_target_temp", "system_modes", "fan_modes"].some(changed)) {
+                    deviceExposesChanged();
+                }
+                if (w100.getProtocol(device, to) !== "ha") return;
+                const endpoint = device.getEndpoint(1);
+                try {
+                    if (changed("setpoint_step")) await w100.writeSetpointStep(endpoint, to);
+                    // Writing 0x0174 subscribes the W100, only send the new limits and modes when the thermostat mode is on.
+                    if (["min_target_temp", "max_target_temp", "system_modes", "fan_modes"].some(changed) && state.thermostat_mode === "ON") {
+                        await w100.writeHaState(endpoint, {...w100Defaults, ...state} as W100State, to, true);
+                    }
+                } catch (error) {
+                    logger.warning(`Aqara W100: failed to apply the options of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
+                }
+            }
+        };
+        // After a reset (e.g. 3 presses on the reset button) the W100 reconnects without a device announce: it only sends
+        // a genBasic modelId report, then reports its default thermostat state. Restore it as after a device announce.
+        const reconnect = {
+            cluster: "genBasic",
+            type: ["attributeReport"],
+            convert: async (model, msg, publish, options, meta) => {
+                if (msg.data.modelId === undefined) return;
+                await w100.restore(msg.device, options, meta.state);
+            },
+        } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport"]>;
+        // The W100 is a sleepy end device: a temperature or humidity report means it is awake, send what needs it
+        // (see w100OnWake). Not on manuSpecificLumi reports, to stay out of the PMTSD and 0x0174 exchanges.
+        const wake = (["msTemperatureMeasurement", "msRelativeHumidity"] as const).map(
+            (cluster) =>
+                ({
+                    cluster,
+                    type: ["attributeReport"],
+                    convert: (model, msg, publish, options, meta) => {
+                        w100MarkReport(msg.device);
+                        w100OnWake(msg.endpoint, meta.state).catch((error) =>
+                            logger.debug(`Aqara W100: wake-up requests of '${msg.device.ieeeAddr}' failed (${(error as Error).message})`, NS),
+                        );
+                    },
+                }) satisfies Fz.Converter<typeof cluster, undefined, ["attributeReport"]>,
+        );
+        // A W100 can rejoin without any event visible to Z2M (seen: only a link key request), it then loses its bindings
+        // and reporting configuration and reports nothing on its own. When it stays silent, send them again.
+        const watchdog = modernExtend.poll({
+            key: "w100_watchdog",
+            defaultIntervalSeconds: 30 * 60,
+            poll: async (device) => {
+                const now = Date.now();
+                const lastReport = globalStore.getValue(device, w100LastReportKey) as number | undefined;
+                if (lastReport === undefined) return w100MarkReport(device);
+                if (now - lastReport < w100SilenceMs) return;
+                logger.warning(
+                    `Aqara W100: '${device.ieeeAddr}' reported nothing for 2 hours, sending its bindings and reporting configuration again`,
+                    NS,
+                );
+                w100MarkReport(device); // At most once per silence period.
+                await w100.restoreConfiguration(device);
+            },
+        });
+        return {
+            exposes: [exposes],
+            options,
+            onEvent: [onEvent, ...(watchdog.onEvent ?? [])],
+            fromZigbee: [reconnect, ...wake],
+            isModernExtend: true,
+        };
+    },
     addManuSpecificLumiCluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificLumi", {
             name: "manuSpecificLumi",
@@ -4703,16 +4863,12 @@ export const lumiModernExtend = {
                 {
                     key: ["sensor", "external_temperature", "external_humidity"],
                     convertSet: async (entity, key, value, meta) => {
-                        const lumiHeader = (counter: number, length: number, action: number) => {
-                            const header = [0xaa, 0x71, length + 3, 0x44, counter];
-                            const integrity = 512 - header.reduce((sum, elem) => sum + elem, 0);
-                            return [...header, integrity, action, 0x41, length];
-                        };
-                        const fictiveSensor = Buffer.from("00158d00019d1b98", "hex");
+                        assertEndpoint(entity);
+                        // The W100 expects an incrementing frame counter, like for the PMTSD frames.
+                        const frame = (action: number, params: number[]) => [...w100Frame(0x44, w100NextCounter(entity.getDevice()), action, params)];
 
                         switch (key) {
                             case "sensor": {
-                                assertEndpoint(entity);
                                 const device = Buffer.from(entity.deviceIeeeAddress.substring(2), "hex");
                                 const timestamp = Buffer.alloc(4);
                                 timestamp.writeUInt32BE(Date.now() / 1000);
@@ -4722,7 +4878,7 @@ export const lumiModernExtend = {
                                         ...timestamp,
                                         0x15,
                                         ...device,
-                                        ...fictiveSensor,
+                                        ...w100FictiveSensor,
                                         0x00,
                                         0x02,
                                         0x00,
@@ -4754,7 +4910,7 @@ export const lumiModernExtend = {
                                         ...timestamp,
                                         0x14,
                                         ...device,
-                                        ...fictiveSensor,
+                                        ...w100FictiveSensor,
                                         0x00,
                                         0x01,
                                         0x00,
@@ -4783,8 +4939,8 @@ export const lumiModernExtend = {
                                         0x63,
                                     ];
 
-                                    const val1 = [...lumiHeader(0x12, params1.length, 0x02), ...params1];
-                                    const val2 = [...lumiHeader(0x13, params2.length, 0x02), ...params2];
+                                    const val1 = frame(0x02, params1);
+                                    const val2 = frame(0x02, params2);
 
                                     await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
                                         "manuSpecificLumi",
@@ -4832,8 +4988,8 @@ export const lumiModernExtend = {
                                         0x00,
                                     ];
 
-                                    const val1 = [...lumiHeader(0x12, params1.length, 0x04), ...params1];
-                                    const val2 = [...lumiHeader(0x13, params2.length, 0x04), ...params2];
+                                    const val1 = frame(0x04, params1);
+                                    const val2 = frame(0x04, params2);
 
                                     await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
                                         "manuSpecificLumi",
@@ -4853,37 +5009,10 @@ export const lumiModernExtend = {
                                 break;
                             }
                             case "external_temperature":
-                                if (meta.state.sensor === "external") {
-                                    const temperatureBuf = Buffer.alloc(4);
-                                    const number = toNumber(value);
-                                    temperatureBuf.writeFloatBE(Math.round(number * 100));
-
-                                    const params = [...fictiveSensor, 0x00, 0x01, 0x00, 0x55, ...temperatureBuf];
-                                    const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
-
-                                    await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
-                                        "manuSpecificLumi",
-                                        {65522: {value: data, type: 0x41}},
-                                        {manufacturerCode: manufacturerCode},
-                                    );
-                                    return {state: {external_temperature: value}};
-                                }
-                                break;
                             case "external_humidity":
                                 if (meta.state.sensor === "external") {
-                                    const humidityBuf = Buffer.alloc(4);
-                                    const number = toNumber(value);
-                                    humidityBuf.writeFloatBE(Math.round(number * 100));
-
-                                    const params = [...fictiveSensor, 0x00, 0x02, 0x00, 0x55, ...humidityBuf];
-                                    const data = [...lumiHeader(0x12, params.length, 0x05), ...params];
-
-                                    await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
-                                        "manuSpecificLumi",
-                                        {65522: {value: data, type: 0x41}},
-                                        {manufacturerCode: manufacturerCode},
-                                    );
-                                    return {state: {external_humidity: value}};
+                                    await w100WriteExternalValue(entity, key, toNumber(value));
+                                    return {state: {[key]: value}};
                                 }
                                 break;
                             default: // Unknown key
@@ -4904,7 +5033,9 @@ export const lumiModernExtend = {
                         Object.entries(msg.data).forEach(([key, value]) => {
                             switch (Number.parseInt(key, 10)) {
                                 case 0x0172:
+                                    // Bit field: bit 0 = thermostat mode, bit 1 = external sensor (verified on the W100).
                                     result.sensor = getFromLookup(value, {2: "external", 0: "internal", 1: "internal", 3: "external"});
+                                    result.thermostat_mode = (value as number) & 1 ? "ON" : "OFF";
                                     break;
                                 case 0xfff2:
                                     logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:externalSensor");
@@ -7718,54 +7849,510 @@ export function w100EnsureDefaults(meta: Fz.Meta | Tz.Meta): W100State {
     return normalized;
 }
 
-async function w100SendPMTSD(entity: Zh.Endpoint | Zh.Group, pmtsd: W100Pmtsd, meta: Fz.Meta | Tz.Meta) {
-    const {p, m, t, s, d} = pmtsd;
-    const pmtsdStr = `P${p}_M${m}_T${t}_S${s}_D${d}`;
-    const pmtsdBytes = Array.from(pmtsdStr).map((c) => c.charCodeAt(0));
-    const pmtsdLen = pmtsdBytes.length;
+const w100HubMac = [0x54, 0xef, 0x44, 0x80, 0x71, 0x1a];
+const w100PmtsdMarker = [0x08, 0x00, 0x08, 0x44];
+const w100PmtsdModes = ["cool", "heat", "auto"];
+const w100PmtsdFanModes = ["auto", "low", "medium", "high"];
 
-    const fixedHeader = [
-        0xaa,
-        0x71,
-        0x1f,
-        0x44,
-        0x00,
-        0x00,
-        0x05,
-        0x41,
-        0x1c,
-        0x00,
-        0x00,
-        0x54,
-        0xef,
-        0x44,
-        0x80,
-        0x71,
-        0x1a,
-        0x08,
-        0x00,
-        0x08,
-        0x44,
-        pmtsdLen,
-    ];
+/**
+ * Builds a Lumi 0xFFF2 frame: `aa 71 <length + 3> <type> <counter> <checksum> <action> 41 <length> <payload>`.
+ * The checksum makes the first 6 bytes sum to 0 (mod 256), the W100 rejects frames with wrong lengths.
+ */
+function w100Frame(type: number, counter: number, action: number, payload: number[]): Buffer {
+    const header = [0xaa, 0x71, payload.length + 3, type, counter & 0xff];
+    const checksum = (256 - (header.reduce((sum, b) => sum + b, 0) & 0xff)) & 0xff;
+    return Buffer.from([...header, checksum, action, 0x41, payload.length, ...payload]);
+}
 
-    const counter = Math.floor(Math.random() * 256);
-    fixedHeader[4] = counter;
+/** The W100 expects an incrementing frame counter. */
+function w100NextCounter(device: Zh.Device): number {
+    const counter = ((globalStore.getValue(device, "w100_counter", Math.floor(Math.random() * 256)) as number) + 1) & 0xff;
+    globalStore.putValue(device, "w100_counter", counter);
+    return counter;
+}
 
-    const fullPayload = [...fixedHeader, ...pmtsdBytes];
+async function w100WriteFrame(entity: Zh.Endpoint | Zh.Group, frame: Buffer) {
+    await entity.write(64704, {65522: {value: frame, type: 0x41}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+}
 
-    const checksum = fullPayload.reduce((sum, b) => sum + b, 0) & 0xff;
-    fixedHeader[5] = checksum;
+/** IEEE address of the virtual sensor whose values are sent to the W100 when `sensor` is external. */
+const w100FictiveSensor = Buffer.from("00158d00019d1b98", "hex");
+type W100ExternalKey = "external_temperature" | "external_humidity";
+const w100ExternalValueIds: Record<W100ExternalKey, number> = {external_temperature: 0x01, external_humidity: 0x02};
+const w100PendingExternalKey = "w100_pending_external";
 
-    await entity.write(64704, {65522: {value: Buffer.from(fullPayload), type: 65}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+/**
+ * Sends an external temperature or humidity to the W100. When it sleeps the write fails: only the last value of each
+ * key is kept and sent when it wakes up (see w100OnWake).
+ */
+async function w100WriteExternalValue(entity: Zh.Endpoint | Zh.Group, key: W100ExternalKey, value: number) {
+    assertEndpoint(entity);
+    const device = entity.getDevice();
+    const pending = globalStore.getValue(device, w100PendingExternalKey, {}) as Partial<Record<W100ExternalKey, number>>;
+    const valueBuf = Buffer.alloc(4);
+    valueBuf.writeFloatBE(Math.round(value * 100));
+    const params = [...w100FictiveSensor, 0x00, w100ExternalValueIds[key], 0x00, 0x55, ...valueBuf];
+    try {
+        await w100WriteFrame(entity, w100Frame(0x44, w100NextCounter(device), 0x05, params));
+        delete pending[key];
+    } catch (error) {
+        pending[key] = value;
+        logger.debug(`Aqara W100: ${key} will be sent when '${device.ieeeAddr}' wakes up (${(error as Error).message})`, NS);
+    }
+    globalStore.putValue(device, w100PendingExternalKey, pending);
+}
 
-    logger.info(`Aqara W100: PMTSD frame sent: ${pmtsdStr}`, NS);
+/** The battery is read from 0x00F7, which some W100 never send by themselves: read it when not received for 4 hours. */
+const w100StructMaxAgeMs = 4 * 60 * 60 * 1000;
+const w100StructRetryMs = 60 * 60 * 1000;
+const w100StructReceivedKey = "w100_struct_received";
 
-    if (meta.device) {
-        if (!meta.device.meta) meta.device.meta = {};
-        meta.device.meta.lastPMTSDSend = Date.now();
+const w100LastReportKey = "w100_last_report";
+/** Without any report for this long, the W100 is considered to have lost its bindings and reporting configuration. */
+const w100SilenceMs = 2 * 60 * 60 * 1000;
+
+function w100MarkReport(device: Zh.Device) {
+    globalStore.putValue(device, w100LastReportKey, Date.now());
+}
+
+/**
+ * Runs the requests that need the W100 awake. It is a sleepy end device: they are sent when it reports something.
+ */
+async function w100OnWake(endpoint: Zh.Endpoint, state: KeyValue) {
+    const device = endpoint.getDevice();
+    const pending = globalStore.getValue(device, w100PendingExternalKey, {}) as Partial<Record<W100ExternalKey, number>>;
+    for (const [key, value] of Object.entries(pending) as [W100ExternalKey, number][]) {
+        if (state.sensor === "external") {
+            await w100WriteExternalValue(endpoint, key, value);
+        } else {
+            delete pending[key];
+        }
+    }
+
+    const now = Date.now();
+    if (now - (globalStore.getValue(device, w100StructReceivedKey, 0) as number) >= w100StructMaxAgeMs) {
+        // Retry in an hour if there is no answer, the read response updates the timestamp.
+        globalStore.putValue(device, w100StructReceivedKey, now - w100StructMaxAgeMs + w100StructRetryMs);
+        await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00f7], {manufacturerCode});
     }
 }
+
+/** PMTSD protocol: subscribes the W100 to the hub thermostat (label "空调功能": air conditioner function) or unsubscribes it. */
+function w100LegacyModeFrame(device: Zh.Device, on: boolean): Buffer {
+    const ieee = [...Buffer.from(device.ieeeAddr.replace(/^0x/, ""), "hex")];
+    const messageId = [Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)];
+    const prefix = [0x68, 0x91, ...messageId, 0x18, ...ieee];
+    const tail = Buffer.from("08000844150a0109e7a9bae8b083e58a9f000000000001012a40", "hex");
+    return on
+        ? w100Frame(0x44, w100NextCounter(device), 0x02, [...prefix, 0x00, 0x00, ...w100HubMac, ...tail])
+        : w100Frame(0x44, w100NextCounter(device), 0x04, [...prefix, ...new Array(12).fill(0)]);
+}
+
+/** Acknowledges a frame sent by the W100 (type 0x84), without it the W100 blocks and shows E01/E02. */
+async function w100SendAck(entity: Zh.Endpoint | Zh.Group, counter: number) {
+    await w100WriteFrame(entity, w100Frame(0x24, counter, 0x05, [0x00, 0x00, 0x00, ...w100HubMac, 0x00]));
+}
+
+/**
+ * Returns the last PMTSD values sent to or received from the W100. They are kept in the device meta because
+ * a frame always contains every field: building it from the state would resend stale values when two
+ * commands arrive before the state is updated.
+ */
+function w100GetPmtsd(meta: Fz.Meta | Tz.Meta): W100Pmtsd {
+    const stored = meta.device?.meta?.w100Pmtsd as W100Pmtsd | undefined;
+    if (stored) return {...stored};
+    const base = w100EnsureDefaults(meta);
+    const off = base.system_mode === "off";
+    return {
+        p: off ? 1 : 0,
+        m: off ? ((meta.device?.meta?.lastActiveMode as number) ?? 0) : Math.max(0, w100PmtsdModes.indexOf(base.system_mode)),
+        t: Number(base.occupied_heating_setpoint),
+        s: Math.max(0, w100PmtsdFanModes.indexOf(base.fan_mode)),
+        d: Number(base.unused) || 0,
+    };
+}
+
+function w100SetPmtsd(device: Zh.Device, pmtsd: W100Pmtsd) {
+    if (!device.meta) device.meta = {};
+    device.meta.w100Pmtsd = {...pmtsd};
+    if (pmtsd.p === 0) device.meta.lastActiveMode = pmtsd.m;
+}
+
+function w100PmtsdToState(pmtsd: W100Pmtsd) {
+    return {
+        system_mode: pmtsd.p === 1 ? "off" : (w100PmtsdModes[pmtsd.m] ?? "cool"),
+        occupied_heating_setpoint: pmtsd.t,
+        fan_mode: w100PmtsdFanModes[pmtsd.s] ?? "auto",
+        unused: String(pmtsd.d),
+    };
+}
+
+async function w100SendPMTSD(entity: Zh.Endpoint | Zh.Group, pmtsd: W100Pmtsd, meta: Fz.Meta | Tz.Meta) {
+    // The W100 only handles whole degrees with the PMTSD protocol.
+    const values = {...pmtsd, t: Math.round(pmtsd.t)};
+    const pmtsdStr = `P${values.p}_M${values.m}_T${values.t}_S${values.s}_D${values.d}`;
+    const ascii = Array.from(pmtsdStr, (c) => c.charCodeAt(0));
+    w100SetPmtsd(meta.device, values);
+
+    const payload = [0x00, 0x00, ...w100HubMac, ...w100PmtsdMarker, ascii.length, ...ascii];
+    await w100WriteFrame(entity, w100Frame(0x44, w100NextCounter(meta.device), 0x05, payload));
+
+    logger.info(`Aqara W100: PMTSD frame sent: ${pmtsdStr}`, NS);
+    meta.device.meta.lastPMTSDSend = Date.now();
+}
+
+/** Setpoint range from the min/max_target_temp options, or the given default range. */
+function w100SetpointRange(options: KeyValue | undefined, defaultRange: Range): Range {
+    return [
+        options?.min_target_temp !== undefined ? Number(options.min_target_temp) : defaultRange[0],
+        options?.max_target_temp !== undefined ? Number(options.max_target_temp) : defaultRange[1],
+    ];
+}
+
+function w100CheckSetpointRange(
+    temp: number,
+    options: KeyValue | undefined,
+    defaultRange: Range = [w100Defaults.min_target_temp, w100Defaults.max_target_temp],
+) {
+    const [minTarget, maxTarget] = w100SetpointRange(options, defaultRange);
+    if (Number.isNaN(temp) || temp < minTarget || temp > maxTarget) {
+        throw new Error(`occupied_heating_setpoint must be between ${minTarget} and ${maxTarget}`);
+    }
+}
+
+/**
+ * Aqara W100 "HA" protocol, available on firmware exposing 0xFCC0/0x0174 and 0xFCC0/0x0175.
+ *
+ * - 0x0174 (octet string): thermostat state as TLV `[tag][ZCL data type][value LE]`, tags: 0x01 mode (enum8),
+ *   0x02 setpoint (int16, °C x 100, 4.5-37°C), 0x03 fan (enum8). Writing it subscribes the W100 to the thermostat;
+ *   the W100 reports it after every user action. Example (cool, 26.5°C, fan auto): 01 30 03 02 29 5a 0a 03 30 05
+ *   Tags 0x04-0x07 (int16, °C x 100): min/max heat and cool setpoint, sent once and again after a reboot.
+ *   Unknown tags are ignored; writing data without any valid tag (e.g. only tag 0x00 bool 0) unsubscribes the W100.
+ * - 0x0175 (uint16): setpoint step in °C x 100 (e.g. 10 = 0.1°C). Not persisted by the device, it has to be
+ *   written again after every reboot.
+ *
+ * Older firmware only supports the PMTSD protocol (0xFFF2 frames). The protocol is detected by reading 0x0175:
+ * unsupported attribute means legacy firmware.
+ */
+export type W100Protocol = "legacy" | "ha";
+
+export interface W100HaState {
+    mode?: number;
+    setpoint?: number;
+    fan?: number;
+    /** Allowed modes, bit n = mode n (tag 0x08). */
+    modes?: number;
+    /** Allowed fan modes, bit n = fan mode n (tag 0x09), 0 = no fan. */
+    fans?: number;
+}
+
+const w100HaAttribute = {thermostatState: 0x0174, setpointStep: 0x0175};
+const w100HaTag = {mode: 0x01, setpoint: 0x02, fan: 0x03, minHeat: 0x04, maxHeat: 0x05, minCool: 0x06, maxCool: 0x07, modes: 0x08, fans: 0x09};
+// The W100 reports auto (1) without a setpoint.
+const w100HaModeLookup: Record<string, number> = {off: 0, auto: 1, cool: 3, heat: 4};
+const w100HaFanLookup: Record<string, number> = {low: 1, medium: 2, high: 3, auto: 5};
+const w100HaSetpointRange: Range = [4.5, 37];
+/** Keys published by the PMTSD protocol, or wrongly from 0x00F7 tag 100 ('state'), that the HA protocol never updates. */
+const w100StaleKeys = ["PW", "MW", "TW", "SW", "DW", "PMTSD_from_W100_Data", "state"];
+const w100SystemModes: ThermostatSystemMode[] = ["off", "heat", "cool", "auto"];
+const w100FanModes: ThermostatFanMode[] = ["auto", "low", "medium", "high"];
+const w100HaUnsubscribe = Buffer.from([0x00, Zcl.DataType.BOOLEAN, 0x00]);
+const w100DefaultSetpointStep = 0.5;
+
+export const w100 = {
+    decodeHaState: (buffer: Buffer): W100HaState => {
+        const result: W100HaState = {};
+        let i = 0;
+        while (i + 2 <= buffer.length) {
+            const tag = buffer[i];
+            const type = buffer[i + 1];
+            let size: number;
+            switch (type) {
+                case Zcl.DataType.BOOLEAN:
+                case Zcl.DataType.BITMAP8:
+                case Zcl.DataType.UINT8:
+                case Zcl.DataType.INT8:
+                case Zcl.DataType.ENUM8:
+                    size = 1;
+                    break;
+                case Zcl.DataType.UINT16:
+                case Zcl.DataType.INT16:
+                    size = 2;
+                    break;
+                default:
+                    // Unknown length, cannot continue parsing.
+                    logger.debug(`Aqara W100: unsupported TLV type 0x${type.toString(16)} for tag 0x${tag.toString(16)}`, NS);
+                    return result;
+            }
+            if (i + 2 + size > buffer.length) break;
+            let value: number;
+            if (type === Zcl.DataType.INT8) value = buffer.readInt8(i + 2);
+            else if (type === Zcl.DataType.INT16) value = buffer.readInt16LE(i + 2);
+            else if (size === 2) value = buffer.readUInt16LE(i + 2);
+            else value = buffer.readUInt8(i + 2);
+            i += 2 + size;
+
+            if (tag === w100HaTag.mode) result.mode = value;
+            else if (tag === w100HaTag.setpoint) result.setpoint = value / 100;
+            else if (tag === w100HaTag.fan) result.fan = value;
+            else if (tag >= w100HaTag.minHeat && tag <= w100HaTag.fans) {
+                // Setpoint limits and allowed (fan) modes, echoed back by the W100 after we wrote them.
+            } else logger.debug(`Aqara W100: unknown TLV tag 0x${tag.toString(16)} = ${value}`, NS);
+        }
+        return result;
+    },
+    /**
+     * Encodes 0x0174, `limits` (min/max setpoint, tags 0x04-0x07), `modes` and `fans` (tags 0x08-0x09) only have to be
+     * sent once and after a reboot. Firmware without tags 0x08-0x09 ignores them.
+     */
+    encodeHaState: (state: W100HaState, limits?: Range): Buffer => {
+        const enum8 = (tag: number, value: number) => [tag, Zcl.DataType.ENUM8, value];
+        const int16 = (tag: number, value: number) => {
+            const buffer = Buffer.alloc(2);
+            buffer.writeInt16LE(Math.round(value * 100));
+            return [tag, Zcl.DataType.INT16, ...buffer];
+        };
+        const tlv: number[] = [];
+        if (state.mode !== undefined) tlv.push(...enum8(w100HaTag.mode, state.mode));
+        if (state.setpoint !== undefined) tlv.push(...int16(w100HaTag.setpoint, state.setpoint));
+        if (state.fan !== undefined) tlv.push(...enum8(w100HaTag.fan, state.fan));
+        if (state.modes !== undefined) tlv.push(w100HaTag.modes, Zcl.DataType.BITMAP8, state.modes);
+        if (state.fans !== undefined) tlv.push(w100HaTag.fans, Zcl.DataType.BITMAP8, state.fans);
+        if (limits) {
+            const [min, max] = limits;
+            tlv.push(...int16(w100HaTag.minHeat, min), ...int16(w100HaTag.maxHeat, max));
+            tlv.push(...int16(w100HaTag.minCool, min), ...int16(w100HaTag.maxCool, max));
+        }
+        return Buffer.from(tlv);
+    },
+    /** Setpoint limits sent to the W100, so that its +/- buttons follow the min/max_target_temp options. */
+    getSetpointLimits: (options: KeyValue | undefined): Range => w100SetpointRange(options, w100HaSetpointRange),
+    /** Modes allowed by the system_modes option, all of them when it is not set. */
+    getSystemModes: (options: KeyValue | undefined): ThermostatSystemMode[] => {
+        const selected = options?.system_modes;
+        const modes = Array.isArray(selected) ? w100SystemModes.filter((mode) => selected.includes(mode)) : [];
+        return modes.length ? modes : w100SystemModes;
+    },
+    /** Allowed modes for tag 0x08: bit n is set when the mode of value n is allowed (off 0, auto 1, cool 3, heat 4). */
+    getModesBitmap: (options: KeyValue | undefined): number =>
+        w100.getSystemModes(options).reduce((bitmap, mode) => bitmap | (1 << w100HaModeLookup[mode]), 0),
+    /** Fan modes allowed by the fan_modes option: all of them when it is not set, none with 'none'. */
+    getFanModes: (options: KeyValue | undefined): ThermostatFanMode[] => {
+        const selected = options?.fan_modes;
+        if (!Array.isArray(selected)) return w100FanModes;
+        if (selected.includes("none")) return [];
+        const modes = w100FanModes.filter((mode) => selected.includes(mode));
+        return modes.length ? modes : w100FanModes;
+    },
+    /** Allowed fan modes for tag 0x09: bit n is set when the fan mode of value n is allowed, 0 for no fan. */
+    getFansBitmap: (options: KeyValue | undefined): number =>
+        w100.getFanModes(options).reduce((bitmap, mode) => bitmap | (1 << w100HaFanLookup[mode]), 0),
+    /** The value to go back to when the W100 selects one that is not allowed: the previous one if allowed. */
+    getFallback: (allowed: readonly string[], previous: unknown): string =>
+        allowed.includes(previous as string) ? (previous as string) : allowed[0],
+    /** Converts a decoded 0x0174 value to Z2M state, unknown values are skipped. */
+    haStateToPayload: (state: W100HaState): KeyValue => {
+        const payload: KeyValue = {};
+        if (state.mode !== undefined) {
+            const systemMode = getKey(w100HaModeLookup, state.mode);
+            if (systemMode !== undefined) payload.system_mode = systemMode;
+            else logger.warning(`Aqara W100: unknown thermostat mode ${state.mode}`, NS);
+        }
+        if (state.setpoint !== undefined) payload.occupied_heating_setpoint = state.setpoint;
+        if (state.fan !== undefined) {
+            const fanMode = getKey(w100HaFanLookup, state.fan);
+            if (fanMode !== undefined) payload.fan_mode = fanMode;
+            else logger.warning(`Aqara W100: unknown fan mode ${state.fan}`, NS);
+        }
+        return payload;
+    },
+    getSetpointStep: (options: KeyValue | undefined): number => {
+        const step = precisionRound(Number(options?.setpoint_step), 1);
+        return step >= 0.1 && step <= 1 ? step : w100DefaultSetpointStep;
+    },
+    roundToStep: (value: number, step: number): number => precisionRound(Math.round(value / step) * step, 2),
+    getProtocol: (device: Zh.Device | DummyDevice, options: KeyValue | undefined): W100Protocol => {
+        const forced = options?.thermostat_protocol;
+        if (forced === "legacy" || forced === "ha") return forced;
+        if (isDummyDevice(device)) return "legacy";
+        return device.meta?.w100Protocol === "ha" ? "ha" : "legacy";
+    },
+    /** Returns true when the stored protocol changed. */
+    setProtocol: (device: Zh.Device, protocol: W100Protocol): boolean => {
+        if (device.meta?.w100Protocol === protocol) return false;
+        logger.info(`Aqara W100: '${device.ieeeAddr}' uses the ${protocol} thermostat protocol`, NS);
+        device.meta.w100Protocol = protocol;
+        device.save();
+        return true;
+    },
+    /**
+     * Reads 0x0175 to find out which protocol the firmware supports.
+     * Returns undefined when the device did not answer (e.g. sleeping), in that case nothing is changed.
+     */
+    probeProtocol: async (device: Zh.Device, deviceExposesChanged?: () => void): Promise<W100Protocol | undefined> => {
+        logger.info(`Aqara W100: probing thermostat protocol of '${device.ieeeAddr}'`, NS);
+        let protocol: W100Protocol;
+        try {
+            await device
+                .getEndpoint(1)
+                .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [w100HaAttribute.setpointStep], {manufacturerCode});
+            protocol = "ha";
+        } catch (error) {
+            if (!(error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                logger.debug(`Aqara W100: protocol probe of '${device.ieeeAddr}' failed (${(error as Error).message})`, NS);
+                return undefined;
+            }
+            protocol = "legacy";
+        }
+        if (w100.setProtocol(device, protocol)) deviceExposesChanged?.();
+        return protocol;
+    },
+    writeSetpointStep: async (entity: Zh.Endpoint | Zh.Group, options: KeyValue | undefined) => {
+        const value = Math.round(w100.getSetpointStep(options) * 100);
+        await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+            "manuSpecificLumi",
+            {[w100HaAttribute.setpointStep]: {value, type: Zcl.DataType.UINT16}},
+            {manufacturerCode},
+        );
+    },
+    /** Writes 0x0174, the W100 considers itself subscribed to the thermostat afterwards. */
+    writeHaState: async (
+        entity: Zh.Endpoint | Zh.Group,
+        state: Pick<W100State, "system_mode" | "occupied_heating_setpoint" | "fan_mode">,
+        options: KeyValue | undefined,
+        withLimits = false,
+    ) => {
+        const value = w100.encodeHaState(
+            {
+                mode: getFromLookup(state.system_mode, w100HaModeLookup),
+                setpoint: w100.roundToStep(Number(state.occupied_heating_setpoint), w100.getSetpointStep(options)),
+                fan: getFromLookup(state.fan_mode, w100HaFanLookup),
+                modes: withLimits ? w100.getModesBitmap(options) : undefined,
+                fans: withLimits ? w100.getFansBitmap(options) : undefined,
+            },
+            withLimits ? w100.getSetpointLimits(options) : undefined,
+        );
+        await w100.writeHaValues(entity, value);
+    },
+    writeHaValues: async (entity: Zh.Endpoint | Zh.Group, value: Buffer) => {
+        await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+            "manuSpecificLumi",
+            {[w100HaAttribute.thermostatState]: {value, type: Zcl.DataType.OCTET_STR}},
+            {manufacturerCode},
+        );
+        logger.info(`Aqara W100: thermostat state written: ${value.toString("hex")}`, NS);
+    },
+    /**
+     * Writes the bindings and reporting configuration known by Z2M again. After a leave/rejoin the W100 loses them and
+     * its stack then blocks every report (temperature, 0x00F7, 0x0174), while it still answers reads and writes.
+     */
+    restoreConfiguration: async (device: Zh.Device) => {
+        for (const endpoint of device.endpoints) {
+            for (const b of endpoint.binds) {
+                try {
+                    await endpoint.bind(b.cluster.name, b.target);
+                } catch (error) {
+                    logger.debug(`Aqara W100: failed to bind ${b.cluster.name} of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
+                }
+            }
+            for (const r of endpoint.configuredReportings) {
+                const {minimumReportInterval, maximumReportInterval, reportableChange} = r;
+                try {
+                    await endpoint.configureReporting(
+                        r.cluster.ID,
+                        [{attribute: {ID: r.attribute.ID, type: r.attribute.type}, minimumReportInterval, maximumReportInterval, reportableChange}],
+                        r.attribute.manufacturerCode === undefined ? undefined : {manufacturerCode: r.attribute.manufacturerCode},
+                    );
+                } catch (error) {
+                    logger.debug(
+                        `Aqara W100: failed to configure reporting of ${r.cluster.name}.${r.attribute.name} of '${device.ieeeAddr}' (${(error as Error).message})`,
+                        NS,
+                    );
+                }
+            }
+        }
+    },
+    /**
+     * After a rejoin or a reboot the W100 forgets its bindings and reporting configuration, and with the HA protocol the
+     * subscription, the setpoint step and the limits: write them again.
+     * Runs at most once every 10 seconds, a reconnection can trigger it several times.
+     */
+    restore: async (device: Zh.Device, options: KeyValue, state: KeyValue) => {
+        if (Date.now() - (globalStore.getValue(device, "w100_last_restore", 0) as number) < 10000) return;
+        globalStore.putValue(device, "w100_last_restore", Date.now());
+        await w100.restoreConfiguration(device);
+        if (w100.getProtocol(device, options) !== "ha") return;
+        logger.info(`Aqara W100: restoring thermostat state of '${device.ieeeAddr}'`, NS);
+        const endpoint = device.getEndpoint(1);
+        try {
+            await w100.writeSetpointStep(endpoint, options);
+            // After a reboot the W100 can report 0x0172 (thermostat mode off) before this runs: use the mode set by the user.
+            if ((device.meta?.w100ThermostatMode ?? state.thermostat_mode) === "ON") {
+                await w100.clearLegacySubscriptionOnce(endpoint, device);
+                await w100.writeHaState(endpoint, {...w100Defaults, ...state} as W100State, options, true);
+            }
+            // Publish the resulting thermostat mode (0x0172 bit 0).
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0172], {manufacturerCode});
+        } catch (error) {
+            logger.warning(`Aqara W100: failed to restore thermostat state of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
+        }
+    },
+    /**
+     * A W100 subscribed with PMTSD keeps that subscription after a firmware update, next to the 0x0174 one: send the
+     * PMTSD unsubscribe frame once, before the first 0x0174 subscription.
+     */
+    clearLegacySubscriptionOnce: async (entity: Zh.Endpoint | Zh.Group, device: Zh.Device) => {
+        if (device.meta.w100PmtsdCleared) return;
+        try {
+            await w100WriteFrame(entity, w100LegacyModeFrame(device, false));
+            device.meta.w100PmtsdCleared = true;
+            device.save();
+            logger.info(`Aqara W100: PMTSD subscription of '${device.ieeeAddr}' cleared`, NS);
+        } catch (error) {
+            logger.debug(`Aqara W100: failed to clear the PMTSD subscription of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
+        }
+    },
+    /** Writes a 0x0174 value without any valid tag, the W100 leaves the thermostat mode. */
+    unsubscribe: async (entity: Zh.Endpoint | Zh.Group) => {
+        await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+            "manuSpecificLumi",
+            {[w100HaAttribute.thermostatState]: {value: w100HaUnsubscribe, type: Zcl.DataType.OCTET_STR}},
+            {manufacturerCode},
+        );
+    },
+};
+
+async function w100HaConvertSet(entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) {
+    if (!["system_mode", "occupied_heating_setpoint", "fan_mode"].includes(key)) {
+        throw new Error(`Aqara W100: '${key}' is not supported by this firmware, use system_mode, occupied_heating_setpoint and fan_mode`);
+    }
+    if (meta.state?.thermostat_mode !== "ON") {
+        logger.warning(`Aqara W100: Ignoring ${key} command - thermostat_mode is not ON`, NS);
+        return {state: {}};
+    }
+    // Only the changed field is written: the W100 keeps a setpoint per mode (e.g. 26 °C in cool) and reports the
+    // resulting state, sending the current setpoint with a mode change would overwrite the setpoint of the new mode.
+    let values: W100HaState;
+    let state: KeyValue;
+    if (key === "system_mode") {
+        assertString(value, key);
+        values = {mode: getFromLookup(value, w100HaModeLookup)};
+        state = {system_mode: value.toLowerCase()};
+    } else if (key === "fan_mode") {
+        assertString(value, key);
+        values = {fan: getFromLookup(value, w100HaFanLookup)};
+        state = {fan_mode: value.toLowerCase()};
+    } else {
+        const requested = Number.parseFloat(value as string);
+        w100CheckSetpointRange(requested, meta.options, w100HaSetpointRange);
+        const setpoint = w100.roundToStep(requested, w100.getSetpointStep(meta.options));
+        values = {setpoint};
+        state = {occupied_heating_setpoint: setpoint};
+    }
+    await w100.writeHaValues(entity, w100.encodeHaState(values));
+    return {state};
+}
+
 export const fromZigbee = {
     // lumi generic
     lumi_basic: {
@@ -9098,6 +9685,52 @@ export const fromZigbee = {
         type: ["attributeReport", "readResponse"],
         convert: async (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
+            if (msg.type === "attributeReport") w100MarkReport(meta.device);
+            if (msg.data[0x00f7] !== undefined) {
+                globalStore.putValue(meta.device, w100StructReceivedKey, Date.now());
+                // Older versions published a bogus 'state' from tag 100 of this struct, clear it.
+                if (meta.state?.state != null) result.state = null;
+            }
+            // The W100 reports its firmware version (0x00EE) when it powers on: it forgot the thermostat state, restore it.
+            if (msg.type === "attributeReport" && msg.data[0x00ee] !== undefined) await w100.restore(meta.device, options, meta.state);
+            const haState = msg.data[0x0174];
+            if (Buffer.isBuffer(haState) || msg.data[0x0175] !== undefined) {
+                // Only firmware supporting the HA protocol has these attributes.
+                if (w100.setProtocol(meta.device, "ha")) meta.deviceExposesChanged();
+                if (Buffer.isBuffer(haState) && haState.length) {
+                    logger.debug(`Aqara W100: thermostat state received: ${haState.toString("hex")}`, NS);
+                    const payload = w100.haStateToPayload(w100.decodeHaState(haState));
+                    // Firmware without tags 0x08-0x09 still offers every (fan) mode: revert the ones that are not allowed.
+                    const revert: W100HaState = {};
+                    const modes = w100.getSystemModes(options);
+                    if (payload.system_mode !== undefined && !modes.includes(payload.system_mode as ThermostatSystemMode)) {
+                        // The W100 then reports the setpoint of the previous mode, the one reported here belongs to the refused mode.
+                        const fallback = w100.getFallback(modes, meta.state?.system_mode);
+                        logger.info(`Aqara W100: system_mode '${payload.system_mode}' is not allowed, reverting to '${fallback}'`, NS);
+                        revert.mode = w100HaModeLookup[fallback];
+                        payload.system_mode = fallback;
+                        delete payload.occupied_heating_setpoint;
+                    }
+                    const fanModes = w100.getFanModes(options);
+                    if (payload.fan_mode !== undefined && !fanModes.includes(payload.fan_mode as ThermostatFanMode)) {
+                        if (fanModes.length) {
+                            const fallback = w100.getFallback(fanModes, meta.state?.fan_mode);
+                            logger.info(`Aqara W100: fan_mode '${payload.fan_mode}' is not allowed, reverting to '${fallback}'`, NS);
+                            revert.fan = w100HaFanLookup[fallback];
+                            payload.fan_mode = fallback;
+                        } else {
+                            delete payload.fan_mode;
+                        }
+                    }
+                    if (Object.keys(revert).length) await w100.writeHaValues(msg.endpoint, w100.encodeHaState(revert));
+                    Object.assign(result, payload);
+                }
+                // Z2M keeps the PMTSD keys of the previous firmware (and the bogus 'state' from 0x00F7 tag 100) in its
+                // state cache with their last value: clear them once, so automations don't read stale values.
+                for (const key of w100StaleKeys) {
+                    if (meta.state?.[key] != null) result[key] = null;
+                }
+            }
             if (msg.data[65522]) {
                 const base = w100EnsureDefaults(meta);
                 Object.assign(result, base);
@@ -9107,54 +9740,33 @@ export const fromZigbee = {
                     // defaults assigned
                 } else {
                     const endsWith = Buffer.from([0x08, 0x00, 0x08, 0x44]);
-                    const endsWithData = Buffer.from([0x08, 0x44]);
+
+                    const endpoint = meta.device.getEndpoint(1);
+                    if (attr.length > 4 && attr[3] === 0x84) {
+                        // Frame sent by the W100, acknowledge it.
+                        try {
+                            await w100SendAck(endpoint, attr[4]);
+                        } catch (error) {
+                            logger.warning(`Aqara W100: Failed to send acknowledgement: ${(error as Error).message}`, NS);
+                        }
+                    }
 
                     if (attr.length >= 4 && attr.slice(-4).equals(endsWith)) {
                         logger.info(`Aqara W100: PMTSD request detected from device ${meta.device.ieeeAddr}`, NS);
-                        let modeValue = 0;
-                        if (base.system_mode === "off") {
-                            modeValue = (meta.device.meta.lastActiveMode as number) ?? 0;
-                        } else {
-                            const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
-                            modeValue = (modeMap[base.system_mode] as number) ?? 0;
-                        }
-
-                        const convertToNumber = (key: string, value: unknown) => {
-                            if (typeof value !== "string") return value;
-                            if (key === "fan_mode") {
-                                const speedMap: KeyValue = {auto: 0, low: 1, medium: 2, high: 3};
-                                return (speedMap[value.toLowerCase()] as number) ?? 0;
-                            }
-                            if (key === "unused") return Number.parseInt(value, 10);
-                            return value;
-                        };
-
-                        const pmtsdValues: W100Pmtsd = {
-                            p: base.system_mode === "off" ? 1 : 0,
-                            m: modeValue,
-                            t:
-                                typeof base.occupied_heating_setpoint === "string"
-                                    ? Number.parseFloat(base.occupied_heating_setpoint)
-                                    : base.occupied_heating_setpoint,
-                            s: (convertToNumber("fan_mode", base.fan_mode) as number) ?? 0,
-                            d: (convertToNumber("unused", base.unused) as number) ?? 0,
-                        };
-
                         try {
-                            const endpoint = meta.device.getEndpoint(1);
-                            await w100SendPMTSD(endpoint, pmtsdValues, meta);
+                            await w100SendPMTSD(endpoint, w100GetPmtsd(meta), meta);
                         } catch (error) {
                             logger.error(`Aqara W100: Failed to send PMTSD frame: ${(error as Error).message}`, NS);
                         }
                         result.action = "W100_PMTSD_request";
                     } else {
-                        const idx = attr.indexOf(endsWithData);
-                        if (idx !== -1 && idx + 2 < attr.length) {
-                            const payloadLen = attr[idx + 2];
-                            const payloadStart = idx + 3;
+                        const idx = attr.indexOf(endsWith);
+                        if (idx !== -1 && idx + 4 < attr.length) {
+                            const payloadLen = attr[idx + 4];
+                            const payloadStart = idx + 5;
                             const payloadEnd = payloadStart + payloadLen;
 
-                            if (payloadEnd <= attr.length) {
+                            if (payloadLen > 0 && payloadEnd <= attr.length) {
                                 const payloadBytes = attr.slice(payloadStart, payloadEnd);
                                 let payloadAscii: string;
                                 try {
@@ -9163,84 +9775,49 @@ export const fromZigbee = {
                                     return;
                                 }
 
-                                const stateUpdate: KeyValue = {};
                                 const partsForCombined: string[] = [];
-                                const pairs = payloadAscii.split("_");
-                                const pmtsd: KeyValueAny = {
-                                    p: base.system_mode === "off" ? 1 : 0,
-                                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                                    m: (meta.device.meta as any)?.lastActiveMode ?? 0,
-                                    t: 15,
-                                    s: 0,
-                                    d: 0,
-                                };
-                                if (base.system_mode !== "off") {
-                                    const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
-                                    pmtsd.m = (modeMap[base.system_mode] as number) ?? 0;
+                                const pairs = payloadAscii.replace(/\0+$/, "").split("_");
+                                // The W100 only sends the fields that changed.
+                                const pmtsd = w100GetPmtsd(meta);
+                                const {system_mode: previousMode, fan_mode: previousFanMode} = w100PmtsdToState(pmtsd);
+
+                                for (const pair of pairs) {
+                                    if (pair.length < 2) continue;
+                                    const key = pair[0].toLowerCase();
+                                    const value = pair.slice(1);
+                                    if (key === "t") pmtsd.t = Number.parseFloat(value);
+                                    else if (key === "p" || key === "m" || key === "s" || key === "d") pmtsd[key] = Number.parseInt(value, 10);
+                                    const name = `${key.toUpperCase()}W`;
+                                    result[name] = value;
+                                    partsForCombined.push(`${name}${value}`);
                                 }
-
-                                pairs.forEach((pair) => {
-                                    if (pair.length >= 2) {
-                                        const key = pair[0].toLowerCase();
-                                        const value = pair.slice(1);
-                                        let newKey: string;
-                                        let stateKey: string | undefined;
-                                        let displayValue: string | number = value;
-                                        let processedValue: string | number = value;
-
-                                        switch (key) {
-                                            case "p":
-                                                newKey = "PW";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.p = processedValue;
-                                                break;
-                                            case "m":
-                                                newKey = "MW";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.m = processedValue;
-                                                break;
-                                            case "t":
-                                                newKey = "TW";
-                                                stateKey = "occupied_heating_setpoint";
-                                                processedValue = Number.parseFloat(value);
-                                                pmtsd.t = processedValue;
-                                                displayValue = processedValue;
-                                                break;
-                                            case "s":
-                                                newKey = "SW";
-                                                stateKey = "fan_mode";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.s = processedValue;
-                                                displayValue = ["auto", "low", "medium", "high"][processedValue];
-                                                break;
-                                            case "d":
-                                                newKey = "DW";
-                                                stateKey = "unused";
-                                                processedValue = Number.parseInt(value, 10);
-                                                pmtsd.d = processedValue;
-                                                displayValue = String(processedValue);
-                                                break;
-                                            default:
-                                                newKey = `${key.toUpperCase()}W`;
-                                        }
-                                        result[newKey] = value;
-                                        if (stateKey) {
-                                            stateUpdate[stateKey] = displayValue;
-                                            result[stateKey] = displayValue;
-                                        }
-                                        partsForCombined.push(`${newKey}${value}`);
+                                // (Fan) modes not allowed by the system_modes / fan_modes options: the state sent back below reverts them.
+                                const {system_mode: systemMode, fan_mode: fanMode} = w100PmtsdToState(pmtsd);
+                                const fanModes = w100.getFanModes(options);
+                                if (fanModes.length && !fanModes.includes(fanMode as ThermostatFanMode)) {
+                                    const fallback = w100.getFallback(fanModes, previousFanMode);
+                                    logger.info(`Aqara W100: fan_mode '${fanMode}' is not allowed, reverting to '${fallback}'`, NS);
+                                    pmtsd.s = w100PmtsdFanModes.indexOf(fallback);
+                                }
+                                const modes = w100.getSystemModes(options);
+                                if (!modes.includes(systemMode as ThermostatSystemMode)) {
+                                    const fallback = w100.getFallback(modes, previousMode);
+                                    logger.info(`Aqara W100: system_mode '${systemMode}' is not allowed, reverting to '${fallback}'`, NS);
+                                    if (fallback === "off") {
+                                        pmtsd.p = 1;
+                                    } else {
+                                        pmtsd.p = 0;
+                                        pmtsd.m = w100PmtsdModes.indexOf(fallback);
                                     }
-                                });
-
-                                const modeDisplay = ["cool", "heat", "auto"][pmtsd.m] || "cool";
-                                const systemMode = pmtsd.p === 1 ? "off" : modeDisplay;
-                                if (pmtsd.p === 0 && pmtsd.m !== undefined) {
-                                    if (!meta.device.meta) meta.device.meta = {};
-                                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                                    (meta.device.meta as any).lastActiveMode = pmtsd.m;
                                 }
-                                stateUpdate.system_mode = systemMode;
-                                result.system_mode = systemMode;
+                                Object.assign(result, w100PmtsdToState(pmtsd));
+
+                                // Send the resulting state back, otherwise the W100 blocks the next local change (E02).
+                                try {
+                                    await w100SendPMTSD(endpoint, pmtsd, meta);
+                                } catch (error) {
+                                    logger.error(`Aqara W100: Failed to send PMTSD frame: ${(error as Error).message}`, NS);
+                                }
 
                                 const date = new Date();
                                 const pad = (n: number) => n.toString().padStart(2, "0");
@@ -11144,36 +11721,17 @@ export const toZigbee = {
     w100_pmtsd: {
         key: ["system_mode", "occupied_heating_setpoint", "fan_mode", "unused", "pmtsd_to_w100"],
         convertSet: async (entity, key, value, meta) => {
-            const MIN_SEND_INTERVAL_MS = 5000;
-            const base = w100EnsureDefaults(meta);
-
-            let initialP = 0;
-            let initialM = 0;
-            if (base.system_mode === "off") {
-                initialP = 1;
-                initialM = (meta.device?.meta?.lastActiveMode as number) ?? 0;
-            } else {
-                initialP = 0;
-                const modeMap: KeyValue = {cool: 0, heat: 1, auto: 2};
-                initialM = (modeMap[base.system_mode] as number) ?? 0;
+            if (key === "system_mode" && !w100.getSystemModes(meta.options).includes(String(value).toLowerCase() as ThermostatSystemMode)) {
+                throw new Error(`Aqara W100: system_mode '${value}' is not allowed by the system_modes option`);
             }
-
-            let initialS = 0;
-            const speedMap: KeyValue = {auto: 0, low: 1, medium: 2, high: 3};
-            initialS = (speedMap[base.fan_mode] as number) ?? 0;
-
-            const pmtsd: W100Pmtsd = {
-                p: initialP,
-                m: initialM,
-                t:
-                    typeof base.occupied_heating_setpoint === "string"
-                        ? Number.parseFloat(base.occupied_heating_setpoint)
-                        : base.occupied_heating_setpoint,
-                s: initialS,
-                d: typeof base.unused === "string" ? Number.parseInt(base.unused, 10) : (base.unused as number),
-            };
-            if (typeof pmtsd.t === "string") pmtsd.t = Number.parseFloat(pmtsd.t);
-            if (typeof pmtsd.d === "string") pmtsd.d = Number.parseInt(pmtsd.d, 10);
+            if (key === "fan_mode" && !w100.getFanModes(meta.options).includes(String(value).toLowerCase() as ThermostatFanMode)) {
+                throw new Error(`Aqara W100: fan_mode '${value}' is not allowed by the fan_modes option`);
+            }
+            if (w100.getProtocol(meta.device, meta.options) === "ha") {
+                return await w100HaConvertSet(entity, key, value, meta);
+            }
+            const MIN_SEND_INTERVAL_MS = 5000;
+            const pmtsd = w100GetPmtsd(meta);
 
             let hasChanged = false;
             if (key === "pmtsd_to_w100") {
@@ -11221,13 +11779,10 @@ export const toZigbee = {
                         break;
                     }
                     case "occupied_heating_setpoint": {
-                        const temp = Number.parseFloat(value as string);
-                        const minTarget =
-                            meta.options?.min_target_temp !== undefined ? Number(meta.options.min_target_temp) : w100Defaults.min_target_temp;
-                        const maxTarget =
-                            meta.options?.max_target_temp !== undefined ? Number(meta.options.max_target_temp) : w100Defaults.max_target_temp;
-                        if (Number.isNaN(temp) || temp < (minTarget as number) || temp > (maxTarget as number))
-                            throw new Error(`occupied_heating_setpoint must be between ${minTarget} and ${maxTarget}`);
+                        const requested = Number.parseFloat(value as string);
+                        w100CheckSetpointRange(requested, meta.options);
+                        // The W100 only handles whole degrees with the PMTSD protocol.
+                        const temp = Math.round(requested);
                         if (pmtsd.t !== temp) {
                             pmtsd.t = temp;
                             hasChanged = true;
@@ -11259,16 +11814,9 @@ export const toZigbee = {
                 }
             }
 
-            const modeDisplay = ["cool", "heat", "auto"][pmtsd.m as number] || "cool";
-            const speedDisplay = ["auto", "low", "medium", "high"][pmtsd.s as number] || "auto";
-            const stateUpdate = {
-                state: {
-                    occupied_heating_setpoint: pmtsd.t,
-                    fan_mode: speedDisplay,
-                    system_mode: pmtsd.p === 1 ? "off" : modeDisplay,
-                    unused: String(pmtsd.d),
-                },
-            };
+            const stateUpdate = {state: w100PmtsdToState(pmtsd)};
+            // Store the values right away so that a command arriving before this one is sent builds on them.
+            w100SetPmtsd(meta.device, pmtsd);
 
             const {p, m, t, s, d} = pmtsd;
             if (p === undefined || m === undefined || t === undefined || s === undefined || d === undefined) return stateUpdate;
@@ -11294,41 +11842,31 @@ export const toZigbee = {
     w100_mode: {
         key: ["thermostat_mode"],
         convertSet: async (entity, key, value, meta) => {
-            const deviceMac = meta.device.ieeeAddr.replace(/^0x/, "").toLowerCase();
-            const hubMac = "54ef4480711a";
-            function cleanMac(mac: string, expectedLen: number) {
-                const cleaned = mac.replace(/[:-]/g, "");
-                if (cleaned.length !== expectedLen) throw new Error(`MAC must be ${expectedLen} hex digits`);
-                return cleaned;
-            }
-            const dev = Buffer.from(cleanMac(deviceMac, 16), "hex");
-            const hub = Buffer.from(cleanMac(hubMac, 12), "hex");
-            let frame: Buffer;
-
-            if (value === "ON") {
-                const prefix = Buffer.concat([
-                    Buffer.from("aa713244", "hex"),
-                    Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]),
-                ]);
-                const zigbeeHeader = Buffer.from("02412f6891", "hex");
-                const messageId = Buffer.from([Math.floor(Math.random() * 256), Math.floor(Math.random() * 256)]);
-                const control = Buffer.from([0x18]);
-                const payloadMacs = Buffer.concat([dev, Buffer.from("0000", "hex"), hub]);
-                const payloadTail = Buffer.from("08000844150a0109e7a9bae8b083e58a9f000000000001012a40", "hex");
-                frame = Buffer.concat([prefix, zigbeeHeader, messageId, control, payloadMacs, payloadTail]);
-            } else {
-                const prefix = Buffer.from([0xaa, 0x71, 0x1c, 0x44, 0x69, 0x1c, 0x04, 0x41, 0x19, 0x68, 0x91]);
-                const frameId = Buffer.from([Math.floor(Math.random() * 256)]);
-                const seq = Buffer.from([Math.floor(Math.random() * 256)]);
-                const control = Buffer.from([0x18]);
-                frame = Buffer.concat([prefix, frameId, seq, control, dev]);
-                if (frame.length < 34) frame = Buffer.concat([frame, Buffer.alloc(34 - frame.length, 0x00)]);
+            // Mode wanted by the user, restored after a reboot: the state can be changed meanwhile by a 0x0172 report.
+            meta.device.meta.w100ThermostatMode = value;
+            meta.device.save();
+            if (w100.getProtocol(meta.device, meta.options) === "ha") {
+                const base = w100EnsureDefaults(meta);
+                if (value === "ON") {
+                    await w100.clearLegacySubscriptionOnce(entity, meta.device);
+                    // Writing the thermostat state subscribes the W100 to the thermostat.
+                    await w100.writeSetpointStep(entity, meta.options);
+                    await w100.writeHaState(entity, base, meta.options, true);
+                } else {
+                    await w100.unsubscribe(entity);
+                }
+                logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
+                return {state: {...base, thermostat_mode: value}};
             }
 
-            await entity.write(64704, {65522: {value: frame, type: 0x41}}, {manufacturerCode: 4447, disableDefaultResponse: true});
+            await w100WriteFrame(entity, w100LegacyModeFrame(meta.device, value === "ON"));
             logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
             const defaults = w100EnsureDefaults(meta);
             return {state: {...defaults, thermostat_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            // 0x0172 bit 0 is the thermostat mode, decoded by lumiExternalSensor.
+            await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0172], {manufacturerCode});
         },
     } satisfies Tz.Converter,
 

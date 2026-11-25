@@ -5812,19 +5812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "ON: Enables thermostat mode, buttons send encrypted payloads, and the middle line is displayed. OFF: Disables thermostat mode, buttons send actions, and the middle line is hidden.",
                 ),
-            e
-                .climate()
-                .withSystemMode(["off", "heat", "cool", "auto"])
-                .withFanMode(["auto", "low", "medium", "high"])
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
-                .withLocalTemperature()
-                .withDescription(
-                    "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
-                ),
             e.action(["W100_PMTSD_request"]).withDescription("PMTSD request sent by the W100 via the 08000844 sequence"),
-            e
-                .text("PMTSD_from_W100_Data", ea.STATE)
-                .withDescription('Latest PMTSD values sent by the W100 when manually changed, formatted as "YYYY-MM-DD HH:mm:ss_Px_Mx_Tx_Sx_Dx"'),
             e.battery(),
         ],
         options: [
@@ -5835,7 +5823,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withUnit("°C")
                 .withCategory("config")
-                .withDescription("Minimum target temperature for the thermostat (default: 5°C)"),
+                .withDescription("Minimum target temperature for the thermostat (default: 5°C, 4.5°C with the ha protocol)"),
             e
                 .numeric("max_target_temp", ea.STATE_SET)
                 .withValueMin(-20)
@@ -5843,7 +5831,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.5)
                 .withUnit("°C")
                 .withCategory("config")
-                .withDescription("Maximum target temperature for the thermostat (default: 30°C)"),
+                .withDescription("Maximum target temperature for the thermostat (default: 30°C, 37°C with the ha protocol)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -5852,33 +5840,41 @@ export const definitions: DefinitionWithExtend[] = [
             // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             if (!device.meta.state) (device.meta as any).state = {};
 
-            // Send thermostat_mode = OFF. We construct a fake meta object as convertSet needs it.
-            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-            const meta = {device, state: (device.meta as any).state, logger} as any;
-            try {
+            // Detect whether the firmware supports the HA thermostat protocol (0x0174/0x0175) or only PMTSD,
+            // w100_mode uses the detected protocol.
+            await lumi.w100.probeProtocol(device);
+
+            // Send thermostat_mode = OFF on a new device. Not when the user enabled it: Z2M also runs configure after an OTA
+            // update, the subscription is then restored after the reboot (device announce / 0x00EE).
+            if (device.meta.w100ThermostatMode !== "ON") {
+                // We construct a fake meta object as convertSet needs it.
                 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
-            } catch (_error) {
-                // ignore
+                const meta = {device, state: (device.meta as any).state, logger} as any;
+                try {
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
+                } catch (_error) {
+                    // ignore
+                }
             }
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
-            await endpoint.configureReporting("msTemperatureMeasurement", [
-                {
-                    attribute: "measuredValue",
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 3600,
-                    reportableChange: 100,
-                },
-            ]);
+            // 0x0174 and 0x00F7 are only reported once manuSpecificLumi is bound (Aqara). Temperature and humidity are bound
+            // and their reporting configured by m.temperature() / m.humidity().
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+
+            // Z2M does not publish the state set by configure: read 0x0172 so the actual thermostat_mode is published.
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0172], {manufacturerCode: lumi.manufacturerCode});
 
             logger.info("Aqara W100: configure completed", NS);
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumi.modernExtend.w100Thermostat(),
             lumiZigbeeOTA(),
-            m.temperature(),
-            m.humidity(),
+            // The ZCL reporting configuration only filters the reports, the W100 reports according to its own settings
+            // (temp_report_mode, temp_period, temp_threshold...). Values recommended by Aqara to not filter them.
+            m.temperature({reporting: {min: 1, max: 3600, change: 1}}),
+            m.humidity({reporting: {min: 1, max: 3600, change: 1}}),
             lumiExternalSensor(),
             m.deviceEndpoints({endpoints: {plus: 1, center: 2, minus: 3}}),
             lumiAction({
