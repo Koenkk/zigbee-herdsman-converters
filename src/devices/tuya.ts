@@ -1002,6 +1002,25 @@ const spm02Thresholds: Tuya.ValueConverterSingle = {
 };
 
 const tzLocal = {
+    dualRailDatapoints: {
+        convertSet: async (entity, key, value, meta) => {
+            const entries = Object.entries(meta.message);
+            const positionKey = (attr: string) => (attr === "position" && meta.endpoint_name ? `position_${meta.endpoint_name}` : attr);
+            for (const [attr, target] of entries) {
+                if (["position_top", "position_bottom"].includes(positionKey(attr))) {
+                    utils.assertNumber(target, "position");
+                    if (!Number.isFinite(target) || target < 0 || target > 100) throw new Error("Position must be between 0 and 100");
+                }
+            }
+            const top = entries.find(([attr]) => positionKey(attr) === "position_top");
+            const bottom = entries.find(([attr]) => positionKey(attr) === "position_bottom");
+            if (entries.length === 2 && top && bottom) {
+                // Zigbee2MQTT can put the selected endpoint's position last; send top first regardless.
+                return await tuya.tz.datapoints.convertSet(entity, key, value, {...meta, message: Object.fromEntries([top, bottom])});
+            }
+            return tuya.tz.datapoints.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -1740,6 +1759,29 @@ const sdm01V2Only = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverterS
 const sdm01Variant = (v1Key: string, v1: Tuya.ValueConverterSingle, v2Key: string, v2: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
     from: (value, meta, options, publish, msg) =>
         meta.device.meta.sdm01V2 ? {[v2Key]: v2.from(value, meta, options, publish, msg)} : {[v1Key]: v1.from(value, meta, options, publish, msg)},
+});
+
+const dualRailPosition = (rail: "top" | "bottom"): Tuya.ValueConverterSingle => ({
+    from: (_value, meta, options, _publish, msg) => {
+        const dp = rail === "top" ? 3 : 102;
+        // The decoded value loses the datatype and length. Use the last valid raw report for this rail.
+        const entries: Tuya.DpValue[] = msg?.data.dpValues ?? [];
+        const report = entries.findLast(
+            (entry) =>
+                entry.dp === dp &&
+                entry.datatype === tuya.dataTypes.number &&
+                entry.data.length === 4 &&
+                Buffer.from(entry.data).readUInt32BE(0) <= 100,
+        );
+        if (!report) return null;
+
+        const converter = rail === "top" ? tuya.valueConverter.coverPosition : tuya.valueConverter.coverPositionInverted;
+        const state: KeyValue = {};
+        const position = converter.from(tuya.getDataValue(report) as number, meta, options, ({state: value}) => {
+            state[`state_${rail}`] = value;
+        });
+        return {...state, [`position_${rail}`]: position};
+    },
 });
 
 const fzLocal = {
@@ -7384,7 +7426,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         whiteLabel: [{vendor: "Yooksmart", model: "YKV24SAED", fingerprint: tuya.fingerprint("YKV24SAED", ["Yooksmart"])}],
         description: "Top-down bottom-up dual motor shade",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
+        extend: [tuya.modernExtend.tuyaBase(), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tzLocal.dualRailDatapoints],
         exposes: [
             te.coverPosition().withEndpoint("bottom").withDescription("Bottom rail"),
             te.coverPosition().withEndpoint("top").withDescription("Top rail"),
@@ -7401,7 +7445,7 @@ export const definitions: DefinitionWithExtend[] = [
                     {optimistic: false},
                 ],
                 [101, "position_bottom", {to: tuya.valueConverter.coverPositionInverted.to}, {optimistic: false}],
-                [102, null, {from: (v: number) => ({position_bottom: 100 - v, state_bottom: v === 100 ? "CLOSE" : "OPEN"})}],
+                [102, null, dualRailPosition("bottom")],
                 // Top rail - DP1 is control, DP2 is set position, DP3 is current position
                 // Note: State commands are reversed for Home Assistant compatibility with top-down operation
                 [
@@ -7411,7 +7455,7 @@ export const definitions: DefinitionWithExtend[] = [
                     {optimistic: false},
                 ],
                 [2, "position_top", {to: tuya.valueConverter.coverPosition.to}, {optimistic: false}],
-                [3, null, {from: (v: number) => ({position_top: v, state_top: v === 0 ? "CLOSE" : "OPEN"})}],
+                [3, null, dualRailPosition("top")],
                 // Battery
                 [13, "battery", tuya.valueConverter.raw],
             ],
