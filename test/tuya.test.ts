@@ -750,6 +750,81 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("TS0601_TZE284_gnpflcoq", () => {
+        let sequence = 0;
+        const setup = async () => {
+            const device = mockDevice({
+                modelID: "TS0601",
+                manufacturerName: "_TZE284_gnpflcoq",
+                ieeeAddr: "0x0000000000000009",
+                endpoints: [{ID: 1}],
+            });
+            const definition = await findByDevice(device);
+            return {device, definition, endpoint: device.getEndpoint(1)};
+        };
+
+        it("exposes sensitivity levels and the supported vacancy delay range", async () => {
+            const {device, definition} = await setup();
+            expect(definition.model).toBe("TS0601_TZE284_gnpflcoq");
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            expect(exposes).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({property: "sensitivity", type: "enum", values: ["low", "middle", "high"]}),
+                    expect.objectContaining({property: "fading_time", type: "numeric", value_min: 10, value_max: 180, unit: "s"}),
+                ]),
+            );
+        });
+
+        it.each([
+            {key: "sensitivity", value: "low", dp: 9, datatype: 4, data: [0]},
+            {key: "sensitivity", value: "middle", dp: 9, datatype: 4, data: [1]},
+            {key: "sensitivity", value: "high", dp: 9, datatype: 4, data: [2]},
+            {key: "fading_time", value: 10, dp: 12, datatype: 2, data: [0, 0, 0, 10]},
+            {key: "fading_time", value: 180, dp: 12, datatype: 2, data: [0, 0, 0, 180]},
+        ])("writes and reads $key=$value using DP $dp", async ({key, value, dp, datatype, data}) => {
+            const {device, definition, endpoint} = await setup();
+            const meta: Tz.Meta = {
+                state: {},
+                device,
+                deviceExposesChanged: () => {},
+                message: {[key]: value},
+                mapped: definition,
+                options: {},
+                publish: null,
+                endpoint_name: null,
+            };
+            expect(definition.toZigbee).toContain(tuya.tz.datapoints);
+            await tuya.tz.datapoints.convertSet(endpoint, key, value, meta);
+            expect(endpoint.command).toHaveBeenCalledExactlyOnceWith(
+                "manuSpecificTuya",
+                "dataRequest",
+                expect.objectContaining({dpValues: [{dp, datatype, data: Buffer.from(data)}]}),
+                expect.anything(),
+            );
+            const msg = {
+                data: {dpValues: [{dp, datatype, data: Buffer.from(data)}]},
+                device,
+                endpoint,
+                meta: {zclTransactionSequenceNumber: ++sequence},
+            } as unknown as Fz.Message;
+            expect(definition.fromZigbee).toContain(tuya.fz.datapoints);
+            const result = await tuya.fz.datapoints.convert(definition, msg, null, {}, {state: {}, device, deviceExposesChanged: () => {}});
+            expect(result).toEqual({[key]: value});
+        });
+
+        it("does not interpret temperature compensation as vacancy delay", async () => {
+            const {device, definition, endpoint} = await setup();
+            const msg = {
+                data: {dpValues: [{dp: 102, datatype: 2, data: Buffer.from([0, 0, 0, 30])}]},
+                device,
+                endpoint,
+                meta: {zclTransactionSequenceNumber: ++sequence},
+            } as unknown as Fz.Message;
+            const result = await tuya.fz.datapoints.convert(definition, msg, null, {}, {state: {}, device, deviceExposesChanged: () => {}});
+            expect(result).toEqual({});
+        });
+    });
+
     describe("MTG075-ZB-RL distance_report (DP 116)", () => {
         const resolve = async (manufacturerName: string) => {
             const device = mockDevice({modelID: "TS0601", manufacturerName, endpoints: [{ID: 1}]});
