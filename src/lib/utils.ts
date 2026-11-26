@@ -618,24 +618,17 @@ export async function discoverAttributes<Cl extends string>(
             disableRecovery: true,
             disableDefaultResponse: true,
         });
-        if (extended && result === Zcl.Status.UNSUP_COMMAND) {
+    } catch (error) {
+        if (extended && (error as Zcl.StatusError).code === Zcl.Status.UNSUP_COMMAND) {
             // extended command is unsupported
             if (device) {
                 device.meta[DISCOVER_EXT_UNSUPPORTED_META_KEY] = true;
             }
-            if (attrs === undefined || Object.keys(attrs).length === 0) {
-                result = await endpoint.discoverAttributes(cluster, false, {
-                    sendPolicy: "immediate",
-                    disableRecovery: true,
-                    disableDefaultResponse: true,
-                });
-            } else {
-                result = attrs;
-            }
+            result = await discoverAttributes(endpoint, cluster, false);
+        } else {
+            const message = (error as Error).message;
+            logger.debug(`discovery error in cluster ${cluster}: ${message}`, NS);
         }
-    } catch (error) {
-        const message = (error as Error).message;
-        logger.debug(`discovery error in cluster ${cluster}: ${message}`, NS);
     }
     return result instanceof Object ? result : undefined;
 }
