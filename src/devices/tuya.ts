@@ -1540,6 +1540,78 @@ const tzLocal = {
             return ret;
         },
     } satisfies Tz.Converter,
+    // Skydance WZ5 (RGB+CCT) has two internal channels: colour and white, each with its own brightness.
+    // On these controllers genLevelCtrl.moveToLevel only drives the WHITE channel, so in colour mode
+    // the colour does not dim and raising the brightness turns the white LEDs on (red becomes pink).
+    // tuyaMoveToHueAndSaturationBrightness2 sets hue/saturation/brightness of the colour channel at once.
+    // https://github.com/Koenkk/zigbee2mqtt/issues/18301
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    WZ5_hsb: {
+        key: ["state", "brightness", "brightness_percent", "color"],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            const {message, state} = meta;
+            const readHs = (color: unknown): {hue: number; saturation: number} | undefined => {
+                if (!utils.isObject(color)) return undefined;
+                const c = color as KeyValueAny;
+                const hue = c.hue ?? c.h;
+                const saturation = c.saturation ?? c.s;
+                return hue != null && saturation != null ? {hue: Number(hue), saturation: Number(saturation)} : undefined;
+            };
+            const wantedState = typeof message.state === "string" ? message.state.toLowerCase() : undefined;
+            let hs = readHs(message.color);
+            const brightnessOnly =
+                message.color == null &&
+                message.color_temp == null &&
+                (message.brightness != null || message.brightness_percent != null) &&
+                state.color_mode === "hs";
+            if (!hs && brightnessOnly && Number(message.brightness) !== 0) {
+                hs = readHs(state.color);
+            }
+
+            if (!hs || wantedState === "off" || wantedState === "toggle") {
+                // Not a hue/saturation request: use the standard converters.
+                const result: KeyValueAny = {state: {}};
+                if (message.state != null || message.brightness != null || message.brightness_percent != null) {
+                    const ret = (await tz.light_onoff_brightness.convertSet(entity, "state", message.state ?? "ON", meta)) as KeyValueAny;
+                    Object.assign(result.state, ret?.state);
+                }
+                if (message.color != null) {
+                    const ret = (await tz.light_color.convertSet(entity, "color", message.color, meta)) as KeyValueAny;
+                    Object.assign(result.state, ret?.state);
+                }
+                return result;
+            }
+
+            let brightness: number;
+            if (message.brightness != null) brightness = Number(message.brightness);
+            else if (message.brightness_percent != null) brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 254);
+            else brightness = state.brightness != null ? Number(state.brightness) : 254;
+            brightness = Math.min(254, Math.max(1, Math.round(brightness)));
+
+            if (state.state !== "ON") {
+                await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
+            }
+            await entity.command<"lightingColorCtrl", "tuyaMoveToHueAndSaturationBrightness2", tuya.TuyaLightingColorCtrl>(
+                "lightingColorCtrl",
+                "tuyaMoveToHueAndSaturationBrightness2",
+                {
+                    hue: Math.min(360, Math.max(0, Math.round(hs.hue))),
+                    saturation: Math.min(1000, Math.max(0, Math.round(hs.saturation * 10))),
+                    brightness: utils.mapNumberRange(brightness, 0, 254, 0, 1000),
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+            const newState: KeyValueAny = {
+                state: "ON",
+                brightness,
+                color_mode: colorModeLookup[ColorMode.HS],
+                color: {hue: hs.hue, saturation: hs.saturation},
+            };
+            Object.assign(newState, libColor.syncColorState(newState, meta.state, entity, meta.options));
+            return {state: newState};
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0601_knob_dimmer_switch_group_id: {
         key: ["group_id"],
@@ -5715,12 +5787,30 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0505B", ["_TZB210_3zfp8mki", "_TZB210_gj0ccsar", "_TZ3210_jaap6jeb"]),
+        // https://github.com/Koenkk/zigbee2mqtt/issues/18301
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZB210_3zfp8mki"]),
+        model: "WZ5_dim_2",
+        vendor: "Skydance",
+        description: "Zigbee & RF 5 in 1 LED controller (DIM mode)",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                colorTemp: {range: [153, 500]},
+                color: {modes: ["hs"], applyRedFix: true, enhancedHue: false},
+            }),
+        ],
+        toZigbee: [tzLocal.WZ5_hsb],
+        configure: (device, coordinatorEndpoint) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
+                colorCapabilities: 29,
+            });
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZB210_gj0ccsar", "_TZ3210_jaap6jeb"]),
         model: "TS0505B_3",
         vendor: "Tuya",
         description: "Zigbee RGB+CCT light",
         whiteLabel: [
-            tuya.whitelabel("Skydance", "WZ5_dim_2", "Zigbee & RF 5 in 1 LED controller (DIM mode)", ["_TZB210_3zfp8mki"]),
             tuya.whitelabel("QA", "QADZC5", "5 in 1 LED controller", ["_TZB210_gj0ccsar"]),
             tuya.whitelabel("LEDEPLY", "SG45-E26", "Zigbee A15 5W Smart Bulbs", ["_TZ3210_jaap6jeb"]),
         ],
