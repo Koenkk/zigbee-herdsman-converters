@@ -413,6 +413,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9029425",
         vendor: "Somfy",
         description: "Zigbee consumption sensor for Linky meter (TIC)",
-        extend: [m.electricityMeter({producedEnergy: false, voltage: false})],
+        extend: [m.electricityMeter({voltage: false, power: {cluster: "metering"}})],
     },
 ];
