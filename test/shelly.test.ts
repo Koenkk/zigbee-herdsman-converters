@@ -430,7 +430,7 @@ describe("Shelly Wi-Fi setup", () => {
             wifi_config: {
                 enabled: true,
                 ssid: "The Internet of Shitty Things",
-                use_saved: true,
+                fetch: false,
             },
         });
         expect(definition.options?.some((option) => option.name === "shelly_wifi_ssid")).toBe(true);
@@ -503,7 +503,7 @@ describe("Shelly Wi-Fi setup", () => {
         const result = await wifiSet(device, {enabled: false});
 
         expect(wifiWrites(device)).toStrictEqual([{actionCode: 0}, {enabled: false}, {actionCode: 1}]);
-        expect(result).toStrictEqual({state: {wifi_config: {use_saved: true, enabled: false}}});
+        expect(result).toStrictEqual({state: {wifi_config: {fetch: false, enabled: false}}});
     });
 
     it("setting only credentials does not silently disable Wi-Fi", async () => {

@@ -1682,10 +1682,10 @@ const shellyModernExtend = {
                 .composite("wifi_config", "wifi_config", ea.ALL)
                 .withFeature(
                     e
-                        .binary("use_saved", ea.STATE_SET, true, false)
-                        .withLabel("Use saved settings")
+                        .binary("fetch", ea.STATE_SET, true, false)
+                        .withLabel("Fetch current settings")
                         .withDescription(
-                            "Checked: fields left out keep the values saved on the device. Unchecked: the saved settings are not loaded first, so fields left out may be cleared",
+                            "Check and apply to read the settings saved on the device into the fields below, without changing anything. The password is never read back",
                         ),
                 )
                 .withFeature(
@@ -1746,8 +1746,8 @@ const shellyModernExtend = {
                         }
                     }
 
-                    // The checkbox is always checked again after the device is read
-                    wifi_config.use_saved = true;
+                    // The fetch checkbox is a one-shot: unchecked again after every read
+                    wifi_config.fetch = false;
 
                     return state;
                 },
@@ -1776,6 +1776,15 @@ const shellyModernExtend = {
                     assertObject<KeyValue>(value);
                     const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
 
+                    // Fetch only: read the saved settings into the fields, write nothing.
+                    if (value.fetch === true) {
+                        utils.assertEndpoint(entity);
+                        const shellyEp = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+                        if (!shellyEp) throw new Error(`Shelly endpoint ${SHELLY_ENDPOINT_ID} not found`);
+                        await refresh(shellyEp, meta);
+                        return {state: {wifi_config: {fetch: false}}};
+                    }
+
                     // Stage only the fields actually given: every staged attribute is applied by
                     // actionCode 1, so an absent field must not travel as its empty default - a
                     // payload of only {enabled} used to wipe the stored credentials, and one of
@@ -1795,11 +1804,8 @@ const shellyModernExtend = {
 
                     // actionCode 1 applies the whole staging area of the firmware, which is only filled from the
                     // stored config by actionCode 0 and is empty after every boot. Without loading it first, a payload
-                    // of only {enabled} would apply an empty SSID, password and static network, wiping the saved
-                    // ones. Skipped only when the user explicitly unchecks "use_saved".
-                    if (value.use_saved !== false) {
-                        await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
-                    }
+                    // of only {enabled} would apply an empty SSID, password and static network, wiping the saved ones.
+                    await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
 
                     // Keep the proven write grouping (small multi-attribute frames, password on
                     // its own), but skip groups with nothing to write.
@@ -1819,7 +1825,7 @@ const shellyModernExtend = {
                     await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 1}, SHELLY_OPTIONS);
 
                     // Optimistic state: only what was written; the password stays write-only.
-                    const written: KeyValue = {use_saved: true};
+                    const written: KeyValue = {fetch: false};
                     if (staged.enabled !== undefined) written.enabled = staged.enabled;
                     if (staged.ssid !== undefined) written.ssid = staged.ssid;
                     if (staged.staticIp !== undefined) written.static_ip = staged.staticIp;
