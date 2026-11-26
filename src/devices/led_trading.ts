@@ -51,7 +51,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
-        zigbeeModel: ["HK-LN-SOCKET-A", "HK-LN-SOCKET-EU-5"],
+        zigbeeModel: ["HK-LN-SOCKET-EU-5"],
         model: "9134",
         vendor: "LED-Trading",
         description: "Powerstrip with 4 sockets and USB",
