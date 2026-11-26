@@ -2,10 +2,56 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
+import {definitions as sonoffDefinitions} from "./sonoff";
 
 const e = exposes.presets;
 const ea = exposes.access;
 const te = tuya.exposes;
+
+// Reuse SONOFF BASIC-ZB1GSP protocol handling for the Manhot variant.
+// Only the maximum current and power overload thresholds differ;
+// the voltage threshold is already 85–277 V in the SONOFF definition.
+const sonoffBasic = sonoffDefinitions.find((definition) => definition.model === "BASIC-ZB1GSP");
+
+if (!sonoffBasic || !("extend" in sonoffBasic)) {
+    throw new Error("SONOFF BASIC-ZB1GSP definition not found or missing modern extensions");
+}
+
+const manhotOverloadMax = new Map([
+    ["ac_current_max_overload", 63],
+    ["ac_power_max_overload", 13860],
+]);
+
+const updatedManhotOverloads = new Set<string>();
+const manhotExtend = sonoffBasic.extend.map((extension) => {
+    if (!extension.exposes) {
+        return extension;
+    }
+
+    return {
+        ...extension,
+        exposes: extension.exposes.map((expose) => {
+            if (typeof expose === "function" || expose.type !== "numeric") {
+                return expose;
+            }
+
+            const valueMax = manhotOverloadMax.get(expose.name);
+            if (valueMax === undefined) {
+                return expose;
+            }
+
+            updatedManhotOverloads.add(expose.name);
+            // Do not change the SONOFF expose shared by its own definition.
+            return expose.clone().withValueMax(valueMax);
+        }),
+    };
+});
+
+for (const name of manhotOverloadMax.keys()) {
+    if (!updatedManhotOverloads.has(name)) {
+        throw new Error(`SONOFF BASIC-ZB1GSP overload expose not found: ${name}`);
+    }
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -756,5 +802,19 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             ],
         },
+    },
+    {
+        ...sonoffBasic,
+        // The device reports manufacturerName "Zbeacon" (case-sensitive).
+        // Display the Manhot brand separately via vendor.
+        zigbeeModel: [],
+        fingerprint: [{modelID: "ZBC-ZB1GSP", manufacturerName: "Zbeacon"}],
+        model: "ZBC-ZB1GSP",
+        vendor: "Manhot",
+        description: "DIN rail Zigbee smart switch with power monitoring",
+        whiteLabel: [],
+        extend: manhotExtend,
+        // Never offer SONOFF OTA images to Manhot hardware.
+        ota: false,
     },
 ];
