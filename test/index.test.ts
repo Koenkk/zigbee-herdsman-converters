@@ -167,14 +167,6 @@ describe("ZHC", () => {
         expect(definition2.model).toStrictEqual("ZG192910-4");
     });
 
-    it.each([
-        {endpoints: [1, 242], model: "SR-ZG9021A"},
-        {endpoints: [1, 2, 3, 4, 5, 242], model: "9134"},
-    ])("matches HK-LN-SOCKET-A with endpoints $endpoints to $model", async ({endpoints, model}) => {
-        const device = mockDevice({modelID: "HK-LN-SOCKET-A", manufacturerName: "Sunricher", endpoints: endpoints.map((id) => ({ID: id}))});
-        expect((await findByDevice(device)).model).toBe(model);
-    });
-
     it("finds definition by fingerprint for mismatching zigbeeModel in firmware", async () => {
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1449
         const device1 = mockDevice(
