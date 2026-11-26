@@ -1681,6 +1681,14 @@ const shellyModernExtend = {
             e
                 .composite("wifi_config", "wifi_config", ea.ALL)
                 .withFeature(
+                    e
+                        .binary("use_saved", ea.STATE_SET, true, false)
+                        .withLabel("Use saved settings")
+                        .withDescription(
+                            "Checked: fields left out keep the values saved on the device. Unchecked: the saved settings are not loaded first, so fields left out may be cleared",
+                        ),
+                )
+                .withFeature(
                     e.binary("enabled", ea.STATE_SET, true, false).withLabel("Wi-Fi enabled").withDescription("Enable/disable Wi-Fi connectivity"),
                 )
                 .withFeature(e.text("ssid", ea.STATE_SET).withLabel("Network").withDescription("Name (SSID) of the Wi-Fi network to connect to"))
@@ -1738,6 +1746,9 @@ const shellyModernExtend = {
                         }
                     }
 
+                    // The checkbox is always checked again after the device is read
+                    wifi_config.use_saved = true;
+
                     return state;
                 },
             },
@@ -1782,6 +1793,14 @@ const shellyModernExtend = {
                     if (typeof value.name_server === "string") staged.nameServer = value.name_server;
                     if (Object.keys(staged).length === 0) return;
 
+                    // actionCode 1 applies the whole staging area of the firmware, which is only filled from the
+                    // stored config by actionCode 0 and is empty after every boot. Without loading it first, a payload
+                    // of only {enabled} would apply an empty SSID, password and static network, wiping the saved
+                    // ones. Skipped only when the user explicitly unchecks "use_saved".
+                    if (value.use_saved !== false) {
+                        await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
+                    }
+
                     // Keep the proven write grouping (small multi-attribute frames, password on
                     // its own), but skip groups with nothing to write.
                     const groups: Partial<ShellyWiFiSetup["attributes"]>[] = [
@@ -1800,7 +1819,7 @@ const shellyModernExtend = {
                     await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 1}, SHELLY_OPTIONS);
 
                     // Optimistic state: only what was written; the password stays write-only.
-                    const written: KeyValue = {};
+                    const written: KeyValue = {use_saved: true};
                     if (staged.enabled !== undefined) written.enabled = staged.enabled;
                     if (staged.ssid !== undefined) written.ssid = staged.ssid;
                     if (staged.staticIp !== undefined) written.static_ip = staged.staticIp;

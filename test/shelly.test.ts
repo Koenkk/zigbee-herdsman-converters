@@ -430,6 +430,7 @@ describe("Shelly Wi-Fi setup", () => {
             wifi_config: {
                 enabled: true,
                 ssid: "The Internet of Shitty Things",
+                use_saved: true,
             },
         });
         expect(definition.options?.some((option) => option.name === "shelly_wifi_ssid")).toBe(true);
@@ -501,8 +502,8 @@ describe("Shelly Wi-Fi setup", () => {
 
         const result = await wifiSet(device, {enabled: false});
 
-        expect(wifiWrites(device)).toStrictEqual([{enabled: false}, {actionCode: 1}]);
-        expect(result).toStrictEqual({state: {wifi_config: {enabled: false}}});
+        expect(wifiWrites(device)).toStrictEqual([{actionCode: 0}, {enabled: false}, {actionCode: 1}]);
+        expect(result).toStrictEqual({state: {wifi_config: {use_saved: true, enabled: false}}});
     });
 
     it("setting only credentials does not silently disable Wi-Fi", async () => {
@@ -510,7 +511,7 @@ describe("Shelly Wi-Fi setup", () => {
 
         await wifiSet(device, {ssid: "TestNet", password: "secret"});
 
-        expect(wifiWrites(device)).toStrictEqual([{ssid: "TestNet"}, {password: "secret"}, {actionCode: 1}]);
+        expect(wifiWrites(device)).toStrictEqual([{actionCode: 0}, {ssid: "TestNet"}, {password: "secret"}, {actionCode: 1}]);
     });
 
     it("a full set still writes every group", async () => {
@@ -527,6 +528,7 @@ describe("Shelly Wi-Fi setup", () => {
         });
 
         expect(wifiWrites(device)).toStrictEqual([
+            {actionCode: 0},
             {enabled: true, ssid: "TestNet"},
             {password: "secret"},
             {staticIp: "10.0.0.2", netMask: "255.255.255.0"},
