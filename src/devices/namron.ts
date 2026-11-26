@@ -1410,6 +1410,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512733",
         vendor: "Namron",
         description: "Zigbee dimmer 2-pol 400W",
+        ota: true,
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -2090,27 +2091,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512735",
         vendor: "Namron",
         description: "Multiprise with 4 AC outlets and 2 USB super charging ports (16A)",
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.switch().withEndpoint("l3"),
-            e.switch().withEndpoint("l4"),
-            e.switch().withEndpoint("l5"),
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}),
+            m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5"], powerOnBehavior: false}),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3, 4, 5]) {
-                const endpoint = device.getEndpoint(ID);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            }
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["5401392", "5401396", "5401393", "5401397", "5401394", "5401398", "5401395", "5401399"],
@@ -2650,48 +2636,32 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512762",
         vendor: "Namron",
         description: "Zigbee Door Sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
+        ota: true,
+        extend: [m.battery({voltage: true, voltageReporting: true}), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]})],
     },
     {
         zigbeeModel: ["4512763"],
         model: "4512763",
         vendor: "Namron",
         description: "Zigbee movement sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.tamper()],
-        extend: [m.battery({voltage: true, lowStatus: true})],
+        ota: true,
+        extend: [m.battery({voltage: true, lowStatus: true}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper"]})],
     },
     {
         zigbeeModel: ["4512764"],
         model: "4512764",
         vendor: "Namron",
         description: "Zigbee water leak sensor",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.battery_low(), e.water_leak(), e.battery()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        ota: true,
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
     },
     {
         zigbeeModel: ["4512765"],
         model: "4512765",
         vendor: "Namron",
         description: "Zigbee humidity and temperature Sensor",
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
-        toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity()],
+        ota: true,
+        extend: [m.battery(), m.temperature(), m.humidity()],
     },
     {
         zigbeeModel: ["4512750", "4512751"],
@@ -3075,6 +3045,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512793",
         vendor: "Namron",
         description: "Simplify 6-button remote with battery",
+        ota: true,
         extend: [m.battery(), namron.namronExtend.addCustomClusterNamronPrivateE004()],
         fromZigbee: [fzLocal.namronSimplifyRemote],
         toZigbee: [],
