@@ -2057,9 +2057,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["ZG-205Z/A", "HS205Z/A", "HS205ZL"],
         fingerprint: [
             ...tuya.fingerprint("TS0225", ["_TZE200_2aaelwxk", "_TZE200_crq3r3la"]),
             ...tuya.fingerprint("CK-BL702-MWS-01(7016)", ["HOBEIAN", "_TZE200_crq3r3la"]),
+            ...tuya.fingerprint("TS0225", ["_TZD200_sjq0qok6", "_TZD200_1a9lu9iy"]),
+            {modelID: "HS205Z/A"},
+            {modelID: "HS205Z/A", manufacturerName: "HYSYIOT"},
+            {modelID: "HS205ZL"},
+            {modelID: "HS205ZL", manufacturerName: "HYSYIOT"},
         ],
         model: "ZG-205Z/A",
         vendor: "HOBEIAN",
@@ -2154,6 +2160,28 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "minimum_range", tuya.valueConverter.divideBy100],
             ],
         },
+        whiteLabel: [
+            {
+                model: "HS205Z/A",
+                vendor: "HYSYIOT",
+                description: "5.8Ghz/24Ghz human presence sensor",
+                fingerprint: [
+                    ...tuya.fingerprint("TS0225", ["_TZD200_sjq0qok6"]),
+                    {modelID: "HS205Z/A"},
+                    {modelID: "HS205Z/A", manufacturerName: "HYSYIOT"},
+                ],
+            },
+            {
+                model: "HS205ZL",
+                vendor: "HYSYIOT",
+                description: "5.8Ghz/24Ghz human presence sensor (ceiling embedded)",
+                fingerprint: [
+                    ...tuya.fingerprint("TS0225", ["_TZD200_1a9lu9iy"]),
+                    {modelID: "HS205ZL"},
+                    {modelID: "HS205ZL", manufacturerName: "HYSYIOT"},
+                ],
+            },
+        ],
     },
     {
         zigbeeModel: ["ZG-222Z"],
