@@ -280,6 +280,23 @@ export const definitions: DefinitionWithExtend[] = [
             }),
 
             m.numeric({
+                name: "hardware_current_limit",
+                cluster: "genLevelCtrl",
+                attribute: "maxLevel",
+                description: "Maximum charging current allowed by the hardware setting",
+                unit: "A",
+                valueMin: 6,
+                valueMax: 32,
+                access: "STATE_GET",
+                reporting: false,
+                entityCategory: "diagnostic",
+                homeassistant: {
+                    deviceClass: "current",
+                    name: "Hardware current limit",
+                },
+            }),
+
+            m.numeric({
                 name: "total_active_power",
                 cluster: "haElectricalMeasurement",
                 attribute: "totalActivePower",

@@ -9,6 +9,18 @@ const e = exposes.presets;
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["ROB_200-082-0"],
+        model: "ROB_200-082-0",
+        vendor: "ROBB",
+        description: "4-button wireless Zigbee switch",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsLevelCtrl({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
         zigbeeModel: ["ROB_200-011-1"],
         model: "ROB_200-011-1",
         vendor: "ROBB",
@@ -126,6 +138,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ROBB",
         description: "Zigbee AC phase-cut dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter({current: {divisor: 1000}, voltage: {divisor: 10}, power: {divisor: 10}})],
+    },
+    {
+        zigbeeModel: ["ROB_200-012-0"],
+        model: "ROB_200-012-0",
+        vendor: "ROBB",
+        description: "Dual Zigbee AC phase-cut dimmer",
+        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ["l1", "l2"], configureReporting: true})],
     },
     {
         zigbeeModel: ["ROB_200-003-0"],

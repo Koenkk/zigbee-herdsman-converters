@@ -37,4 +37,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [m.linkQuality({reporting: true}), m.forcePowerSource({powerSource: "Mains (single phase)"}), m.onOff({powerOnBehavior: false})],
     },
+    {
+        zigbeeModel: ["ZREL"],
+        model: "ZREL",
+        vendor: "SMLIGHT",
+        description: "Zigbee-Ethernet router",
+        ota: true,
+        extend: [m.identify(), m.linkQuality({reporting: true})],
+    },
 ];

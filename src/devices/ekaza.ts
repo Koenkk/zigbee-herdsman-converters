@@ -10,10 +10,11 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0225", ["_TZ3210_eep3fewj"]),
+        fingerprint: tuya.fingerprint("TS0225", ["_TZ3210_eep3fewj", "_TZ3210_ekjc2rzh"]),
         model: "TS0225_EKAZA",
         vendor: "Ekaza",
         description: "24 GHz presence sensor",
+        whiteLabel: [tuya.whitelabel("Girier", "TS0225_GIRIER", "24 GHz ceiling presence sensor", ["_TZ3210_ekjc2rzh"])],
         extend: [
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
             // Keep this before tuyaBase so the generic DP converter does not intercept distance writes.

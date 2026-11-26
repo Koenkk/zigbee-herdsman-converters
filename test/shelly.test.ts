@@ -167,6 +167,103 @@ describe("Shelly 1L Gen4", () => {
     });
 });
 
+describe("Shelly i4 Gen4", () => {
+    // Endpoint layout captured from a device on firmware 2.1.99-i4g4prod1.
+    const mockShellyI4 = (ieeeAddr = "0x000000000000e401") =>
+        mockDevice({
+            modelID: "I4",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 0, inputClusterIDs: [0, 3, 7], outputClusterIDs: [25, 4, 6, 3, 5]},
+                {ID: 2, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 3, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 4, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 5, profileID: 260, deviceID: 7, inputClusterIDs: [], outputClusterIDs: [4, 258, 8, 6, 3]},
+                {ID: 6, profileID: 260, deviceID: 7, inputClusterIDs: [], outputClusterIDs: [4, 258, 8, 6, 3]},
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+            ],
+        });
+
+    const convert = async (device: ReturnType<typeof mockDevice>, endpointId: number, type: string, data: object, sequence: number) => {
+        const definition = await findByDevice(device);
+        const cluster = type === "commandRecall" ? "genScenes" : "genOnOff";
+        const converter = definition.fromZigbee.find(
+            (c) => c.cluster === cluster && (Array.isArray(c.type) ? c.type.includes(type) : c.type === type),
+        ) as Fz.Converter;
+        return converter.convert(
+            definition,
+            {data, endpoint: device.getEndpoint(endpointId), device, type, meta: {zclTransactionSequenceNumber: sequence}} as never,
+            vi.fn(),
+            {},
+            {device, state: {}, deviceExposesChanged: () => {}} as never,
+        );
+    };
+
+    it("maps the four inputs to sw1-sw4", async () => {
+        const device = mockShellyI4();
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toBe("S4SN-0A24X");
+        expect(definition.endpoint?.(device)).toStrictEqual({sw1: 1, sw2: 2, sw3: 3, sw4: 4});
+
+        const exposes = (definition.exposes as DefinitionExposesFunction)(device, {});
+        const names = exposes.map((expose) => `${expose.name}${expose.endpoint ? `_${expose.endpoint}` : ""}`);
+        for (const input of [1, 2, 3, 4]) {
+            expect(names).toContain(`switch_type_sw${input}`);
+            expect(names).toContain(`momentary_toggle_binding_sw${input}`);
+        }
+        const action = exposes.find((expose) => expose.name === "action");
+        assert(action && "values" in action);
+        expect(action.values).toContain("input_4_hold");
+    });
+
+    it("reports every input as its own action", async () => {
+        const device = mockShellyI4();
+
+        expect(await convert(device, 1, "commandOn", {}, 1)).toStrictEqual({action: "input_1_on"});
+        expect(await convert(device, 3, "commandToggle", {}, 2)).toStrictEqual({action: "input_3_toggle"});
+        expect(await convert(device, 4, "commandRecall", {sceneid: 2}, 3)).toStrictEqual({action: "input_4_double"});
+        expect(await convert(device, 2, "commandRecall", {sceneid: 4}, 4)).toStrictEqual({action: "input_2_hold"});
+    });
+
+    it("ignores commands from the endpoints that are no input", async () => {
+        const device = mockShellyI4();
+
+        expect(await convert(device, 5, "commandOn", {}, 5)).toBeUndefined();
+    });
+
+    it("configures all four input endpoints", async () => {
+        const device = mockShellyI4();
+        const coordinator = mockDevice({endpoints: [{ID: 1}]}).getEndpoint(1);
+        const definition = await findByDevice(device);
+
+        await definition.configure?.(device, coordinator, definition);
+
+        for (const epID of [1, 2, 3, 4]) {
+            const endpoint = device.getEndpoint(epID);
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", coordinator);
+            expect(endpoint.bind).toHaveBeenCalledWith("genScenes", coordinator);
+            expect(endpoint.read).toHaveBeenCalledWith("genOnOffSwitchCfg", ["switchType", "switchActions"]);
+        }
+        expect(device.getEndpoint(5).bind).not.toHaveBeenCalled();
+    });
+
+    it("writes the switch type of the fourth input through Input.SetConfig", async () => {
+        const device = mockShellyI4();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key?.includes("switch_type")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(4), "switch_type", "momentary", {device, endpoint_name: "sw4"} as never);
+
+        expect(JSON.parse(sentRpcData(device.getEndpoint(239) as never))).toMatchObject({
+            method: "Input.SetConfig",
+            params: {id: 3, config: {type: "button"}},
+        });
+    });
+});
+
 describe("Shelly 2PM Gen4 cover mode", () => {
     const mockShelly2PMCover = (read?: ReturnType<typeof vi.fn>) =>
         mockDevice({
@@ -1074,6 +1171,108 @@ describe("Shelly 2PM Gen4 switch input events", () => {
     });
 });
 
+describe("Shelly Dimmer Gen4 input events", () => {
+    // Endpoint layout captured from an S4DM-0A101WWL on Zigbee firmware 2.0.3.
+    const mockDimmer = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "Dimmer",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {
+                    ID: 1,
+                    profileID: 260,
+                    deviceID: 257,
+                    inputClusterIDs: [0, 3, 4, 5, 8, 6, 2820, 1794],
+                    outputClusterIDs: [25],
+                    // The electricity meter's configure reads these divisors before it sets up reporting.
+                    attributes: {
+                        haElectricalMeasurement: {
+                            attributes: {
+                                acPowerMultiplier: 1,
+                                acPowerDivisor: 1,
+                                acVoltageMultiplier: 1,
+                                acVoltageDivisor: 1,
+                                acCurrentMultiplier: 1,
+                                acCurrentDivisor: 1000,
+                            },
+                        },
+                        seMetering: {attributes: {multiplier: 1, divisor: 1000}},
+                    },
+                },
+                {ID: 2, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 3, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 4, profileID: 260, deviceID: 0, inputClusterIDs: [], outputClusterIDs: [4, 258, 8, 6, 3]},
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+            ],
+        });
+
+    const convertRecall = async (device: ReturnType<typeof mockDevice>, endpointId: number, sceneid: number, sequence: number) => {
+        const definition = await findByDevice(device);
+        const converter = definition.fromZigbee.find((c) => c.cluster === "genScenes") as Fz.Converter;
+        return converter.convert(
+            definition,
+            {
+                data: {groupid: endpointId, sceneid},
+                endpoint: device.getEndpoint(endpointId),
+                device,
+                type: "commandRecall",
+                meta: {zclTransactionSequenceNumber: sequence},
+            } as never,
+            vi.fn(),
+            {},
+            {device, state: {}, deviceExposesChanged: () => {}} as never,
+        );
+    };
+
+    it("maps SW1 and SW2 to the input endpoints and keeps the light on endpoint 1", async () => {
+        const device = mockDimmer("0x000000000000d101");
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toBe("S4DM-0A101WWL");
+        expect(definition.endpoint?.(device)).toStrictEqual({sw1: 2, sw2: 3});
+
+        const exposes = definition.exposes as Expose[];
+        const light = exposes.find((expose) => expose.type === "light");
+        assert(light);
+        expect(light.endpoint).toBeUndefined();
+        expect(getFeatureNames(light)).toContain("state");
+        expect(exposes.map((expose) => expose.name)).toContain("action");
+    });
+
+    it("reports single, double, triple and hold per input", async () => {
+        const device = mockDimmer("0x000000000000d102");
+
+        expect(await convertRecall(device, 2, 1, 1)).toStrictEqual({action: "input_1_single"});
+        expect(await convertRecall(device, 2, 2, 2)).toStrictEqual({action: "input_1_double"});
+        expect(await convertRecall(device, 2, 3, 3)).toStrictEqual({action: "input_1_triple"});
+        expect(await convertRecall(device, 2, 4, 4)).toStrictEqual({action: "input_1_hold"});
+        expect(await convertRecall(device, 3, 2, 5)).toStrictEqual({action: "input_2_double"});
+    });
+
+    it("ignores recalls from endpoints that are no input", async () => {
+        const device = mockDimmer("0x000000000000d103");
+
+        expect(await convertRecall(device, 4, 1, 6)).toBeUndefined();
+    });
+
+    it("binds the scene recalls of both inputs and carries the re-configure version bump", async () => {
+        const device = mockDimmer("0x000000000000d104");
+        const definition = await findByDevice(device);
+        const coordinatorEndpoint = mockDevice({endpoints: [{ID: 1}]}).getEndpoint(1);
+
+        expect(definition.version).toBe("0.0.1");
+        assert(definition.configure);
+        await definition.configure(device, coordinatorEndpoint, definition);
+
+        for (const epID of [2, 3]) {
+            expect(device.getEndpoint(epID).bind).toHaveBeenCalledWith("genScenes", coordinatorEndpoint);
+        }
+        expect(device.getEndpoint(4).bind).not.toHaveBeenCalledWith("genScenes", coordinatorEndpoint);
+    });
+});
+
 // The genOnOff/genScenes bindings and the switchType read in configure were added to these
 // definitions after their devices shipped. Without a version bump the application never
 // re-configures already paired devices, so their input events silently never arrive - the
@@ -1181,7 +1380,7 @@ describe("Shelly WS90 rain rate", () => {
         const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
         const report = (windSpeed: number) => {
             for (const c of wind) {
-                (c as Fz.Converter).convert(
+                void (c as Fz.Converter).convert(
                     definition,
                     {data: {windSpeed}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
                     vi.fn(),
@@ -1233,6 +1432,41 @@ describe("Shelly WS90 rain rate", () => {
         expect(convertAll("shellyWS90Rain", {precipitation: 0xffffff}).precipitation).toBeUndefined();
         // A real reading still scales as before.
         expect(convertAll("shellyWS90Wind", {windSpeed: 123}).wind_speed).toBe(12.3);
+    });
+
+    it("ignores the all-zero frames the station sends now and then", async () => {
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const state = {temperature: 16.8, humidity: 41, pressure: 998, illuminance: 4000, precipitation: 208.9};
+        const convertAll = (cluster: string, data: Record<string, unknown>, lastState: Record<string, unknown> = state) =>
+            Object.assign(
+                {},
+                ...definition.fromZigbee
+                    .filter((c) => c.cluster === cluster)
+                    .map(
+                        (c) =>
+                            (c as Fz.Converter).convert(
+                                definition,
+                                {data, endpoint: device.getEndpoint(1), device, type: "readResponse", cluster} as never,
+                                vi.fn(),
+                                {},
+                                {device, state: lastState, deviceExposesChanged: () => {}} as never,
+                            ) ?? {},
+                    ),
+            ) as Record<string, unknown>;
+
+        expect(convertAll("msPressureMeasurement", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("msRelativeHumidity", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("msTemperatureMeasurement", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("msIlluminanceMeasurement", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("shellyWS90Rain", {precipitation: 0, rainStatus: 0})).toStrictEqual({});
+
+        // Real readings, a genuine 0 °C and a real counter reset still go through.
+        expect(convertAll("msPressureMeasurement", {measuredValue: 998}).pressure).toBe(998);
+        expect(convertAll("msPressureMeasurement", {measuredValue: 700}).pressure).toBe(700);
+        expect(convertAll("msRelativeHumidity", {measuredValue: 0}, {...state, humidity: 3}).humidity).toBe(0);
+        expect(convertAll("msTemperatureMeasurement", {measuredValue: 0}, {...state, temperature: 0.5}).temperature).toBe(0);
+        expect(convertAll("shellyWS90Rain", {precipitation: 1}).precipitation).toBe(0.1);
     });
 });
 

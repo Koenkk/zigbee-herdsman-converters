@@ -47,6 +47,7 @@ const {
     lumiOnOff,
     lumiLedDisabledNight,
     lumiFlipIndicatorLight,
+    lumiIndicatorLight,
     lumiPreventReset,
     lumiAqaraH2EuShutterSwitchAction,
     lumiClickMode,
@@ -76,6 +77,7 @@ const {
 
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
+
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
 const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
@@ -267,18 +269,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Door and window sensor P1",
         fromZigbee: [lumi.fromZigbee.lumi_contact, fz.ias_contact_alarm_1, lumi.fromZigbee.lumi_specific],
-        toZigbee: [lumi.toZigbee.lumi_detection_distance],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        exposes: [
-            e.contact(),
-            e.battery(),
-            e.battery_voltage(),
-            e.tamper(),
-            e
-                .enum("detection_distance", ea.ALL, ["10mm", "20mm", "30mm"])
-                .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
+        exposes: [e.contact(), e.tamper()],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.quirkCheckinInterval("1_HOUR"),
+            lumi.modernExtend.lumiP1Battery(),
+            lumi.modernExtend.lumiP1DetectionDistance(),
+            lumi.modernExtend.lumiP1Action(),
         ],
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR")],
     },
     {
         zigbeeModel: ["lumi.dimmer.rcbac1"],
@@ -1776,13 +1774,16 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.pressure({
-                unit: "hPa",
-                scale: 1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
+                // Use the more precise scaledValue when the device reports it
+                fzConvert: lumi.fromZigbee.lumi_pressure.convert,
             }),
             m.battery({
                 voltage: true,
                 voltageReporting: true,
+                // Device doesn't support batteryPercentageRemaining, percentage is calculated from voltage
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/13759
+                percentageReporting: false,
                 voltageToPercentage: {min: 2850, max: 3000},
             }),
             m.quirkCheckinInterval("1_HOUR"),
@@ -2945,7 +2946,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller shade driver E1",
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RSD-M01"}],
-        fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status, lumi.fromZigbee.lumi_specific],
+        fromZigbee: [
+            lumi.fromZigbee.lumi_curtain_position,
+            lumi.fromZigbee.lumi_curtain_status,
+            lumi.fromZigbee.lumi_curtain_options,
+            lumi.fromZigbee.lumi_specific,
+        ],
         ota: true,
         toZigbee: [
             lumi.toZigbee.lumi_curtain_position_state,
@@ -3799,7 +3805,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
         toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}, multiEndpoint: true},
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -5157,6 +5163,160 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.plug.aeu006"],
+        model: "SP-P06E",
+        vendor: "Aqara",
+        description: "Outdoor plug H2 EU",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            lumiOnOff({powerOutageMemory: "enum", deviceTemperature: false}),
+            m.electricityMeter({cluster: "electrical", power: {divisor: 1, multiplier: 1}, voltage: false, current: false}),
+            lumiElectricityMeter({voltage: false}),
+            lumiOverloadProtection(),
+            lumiLedIndicator(),
+            lumiFlipIndicatorLight(),
+            lumiChildLock(),
+            m.binary({
+                name: "charging_protection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Turn off the plug if the power is below 3W for half an hour",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.identify(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.plug.aeu005"],
+        model: "SP-P05D",
+        vendor: "Aqara",
+        description: "Power plug H2 EU (RGB)",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiIndicatorLight(),
+            lumiZigbeeOTA(),
+            lumiOnOff({deviceTemperature: false}),
+            lumiPowerOnBehavior(),
+            m.electricityMeter({cluster: "electrical", power: {divisor: 1, multiplier: 1}, voltage: false, current: false}),
+            lumiElectricityMeter({voltage: false}),
+            lumiOverloadProtection(),
+            lumiFlipIndicatorLight(),
+            lumiChildLock(),
+            m.binary({
+                name: "charging_protection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Turn off the plug if the power is below 3W for half an hour",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "led_color_mode",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02df, type: 0x20},
+                lookup: {fixed: 0, power: 1, daily_energy: 2, monthly_energy: 3},
+                description: "Indicator light colour: fixed, or a gradient by current power, daily or monthly energy",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "led_max_power",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02e0, type: 0x39},
+                valueMin: 0,
+                valueMax: 3840,
+                unit: "W",
+                description: "Power at the top of the indicator colour gradient",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "led_max_energy",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02e1, type: 0x39},
+                valueMin: 0,
+                valueMax: 10000,
+                unit: "kWh",
+                description: "Daily or monthly energy at the top of the indicator colour gradient",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.identify(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.plug.aeu007"],
+        model: "SP-P06D",
+        vendor: "Aqara",
+        description: "Outdoor power plug H2 EU (RGB)",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiIndicatorLight(),
+            lumiZigbeeOTA(),
+            lumiOnOff({deviceTemperature: false}),
+            lumiPowerOnBehavior(),
+            m.electricityMeter({cluster: "electrical", power: {divisor: 1, multiplier: 1}, voltage: false, current: false}),
+            lumiElectricityMeter({voltage: false}),
+            lumiOverloadProtection(),
+            lumiFlipIndicatorLight(),
+            lumiChildLock(),
+            m.binary({
+                name: "charging_protection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Turn off the plug if the power is below 3W for half an hour",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "led_color_mode",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02df, type: 0x20},
+                lookup: {fixed: 0, power: 1, daily_energy: 2, monthly_energy: 3},
+                description: "Indicator light colour: fixed, or a gradient by current power, daily or monthly energy",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "led_max_power",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02e0, type: 0x39},
+                valueMin: 0,
+                valueMax: 3840,
+                unit: "W",
+                description: "Power at the top of the indicator colour gradient",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "led_max_energy",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02e1, type: 0x39},
+                valueMin: 0,
+                valueMax: 10000,
+                unit: "kWh",
+                description: "Daily or monthly energy at the top of the indicator colour gradient",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.identify(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.acn032", "lumi.light.acn031"],
         model: "CL-L02D",
         vendor: "Aqara",
@@ -5221,7 +5381,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiKnobRotation(),
             lumiElectricityMeter(),
-            lumiPower(),
+            lumiPower({reporting: false}),
             lumiZigbeeOTA(),
         ],
     },
@@ -5425,13 +5585,23 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 powerOnBehavior: false,
                 levelConfig: {
-                    features: ["execute_if_off", "on_transition_time", "off_transition_time", "on_level"],
+                    features: ["execute_if_off", "on_transition_time", "off_transition_time"],
                 },
             }),
-            lumiKnobRotation({withButtonState: false}),
+            lumiKnobRotation({withButtonState: true, pressedEndpoint: 72}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiMultiClick(),
+            lumiSwitchMode(),
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
+                name: "event_mode",
+                lookup: {command: 0, event: 1},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0009, type: 0x20},
+                description: "Aqara command/event mode",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "sensitivity",
                 lookup: {low: 720, medium: 360, high: 180},
@@ -6440,6 +6610,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Presence sensor FP310",
         fromZigbee: [lumi.fromZigbee.lumi_specific],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
@@ -6447,6 +6618,15 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0142], {manufacturerCode: manufacturerCode}); // Read current presence
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+
+            // Configure reporting so presence (0x0142) updates autonomously. Without this the CN firmware can stop
+            // sending 0x0142 after idle while temp/humidity keep reporting (same class of bug as PS-S04D / #12383).
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+            await endpoint.configureReporting<"manuSpecificLumi", ManuSpecificLumi>(
+                "manuSpecificLumi",
+                [{attribute: {ID: 0x0142, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1}],
+                {manufacturerCode: manufacturerCode},
+            );
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
@@ -6649,6 +6829,31 @@ export const definitions: DefinitionWithExtend[] = [
             // OTA
             m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.models.4447_8295"],
+        model: "FP400",
+        vendor: "Aqara",
+        description: "Presence multi-sensor FP400",
+        // A new patch version has Zigbee2MQTT configure sensors paired under an older one again.
+        version: "0.0.1",
+        extend: [
+            // Its own clusters 0xFC0A-0xFC0C and 0x0080 (see lib/lumi.ts).
+            lumi.lumiModernExtend.fp400AddClusters(),
+            // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones, whose reports are ignored here.
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
+            m.occupancy({endpointNames: ["1"]}),
+            m.illuminance({endpointNames: ["2"], reporting: false}),
+            ...lumi.lumiModernExtend.fp400Settings(),
+            ...lumi.lumiModernExtend.fp400Room(),
+            ...lumi.lumiModernExtend.fp400Areas(),
+            m.identify(),
+            lumi.lumiModernExtend.lumiZigbeeOTA(),
+            // Herdsman cannot parse Aqara's 0x8A/0x8B frames and answers each with a Default Response (UNSUP_COMMAND):
+            // 6,757 transmissions in 5 hours with two sensors tracking, one per position frame. The sensor sets Disable
+            // Default Response on every other frame it sends (2026-11-12 logs), so it never needs one.
+            m.skipDefaultResponse(),
         ],
     },
 ];

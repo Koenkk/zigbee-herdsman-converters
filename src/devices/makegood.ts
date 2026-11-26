@@ -408,4 +408,55 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_xnwxmj8z"]),
+        model: "MG-AU01ZLMV01-XX",
+        vendor: "MakeGood",
+        description: "1 gang light switch, energy monitoring and RGB backlights",
+        whiteLabel: [tuya.whitelabel("Sparkelec", "SWS1TZ", "1 gang light switch, energy monitoring and RGB backlights", ["_TZE200_xnwxmj8z"])],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        endpoint: () => ({l1: 1}),
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.countdown().withEndpoint("l1"),
+            e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint("l1").withCategory("config"),
+            e.binary("all_on_off", ea.STATE_SET, "ON", "OFF").withDescription("Turn all channels on or off simultaneously"),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            backlightColorExpose(["Socket 1"]),
+            e.child_lock().withCategory("config"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["power", "current", "voltage", "energy", "all_on_off", "backlight_mode", "backlight_color", "child_lock"],
+            tuyaDatapoints: [
+                // Relays: DP 1..
+                [1, "state_l1", tuya.valueConverter.onOff],
+
+                // Countdown timers: DP 7..
+                [7, "countdown_l1", countdownConverter],
+
+                // Backlight enable
+                [16, "backlight_mode", tuya.valueConverter.onOff],
+
+                // Electrical measurements
+                [20, "energy", energyConverter],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                // DP 24 is reported by the device but its meaning is unconfirmed, so it is not exposed.
+
+                // Power-on behaviour: DP 29..
+                [29, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [107, "backlight_color", backlightColorConverter(1)],
+                [136, "all_on_off", tuya.valueConverter.onOff],
+                // DP 165 is reported by the device but its meaning is unconfirmed, so it is not exposed.
+            ],
+        },
+    },
 ];

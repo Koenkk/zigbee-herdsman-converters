@@ -137,6 +137,8 @@ export interface DefinitionMeta {
      */
     timeout?: number;
     tuyaSendCommand?: "sendData" | "dataRequest";
+    /** Keep color temperature in mireds in tuya.tz.led_control instead of scaling it to 0-254. */
+    tuyaColorTempInMireds?: boolean;
     /**
      * Set cover state based on tilt
      */
