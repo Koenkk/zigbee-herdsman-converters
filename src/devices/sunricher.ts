@@ -1969,7 +1969,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.minimumPWM()],
     },
     {
-        zigbeeModel: ["HK-LN-SOCKET-A"],
+        fingerprint: [{modelID: "HK-LN-SOCKET-A", manufacturerName: "Sunricher"}],
         model: "SR-ZG9021A",
         vendor: "Sunricher",
         description: "Smart plug with power monitoring and temperature measurement",
