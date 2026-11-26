@@ -712,10 +712,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLT2",
         vendor: "Hive",
         description: "Heating thermostat remote control",
+        version: "0.0.1",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         fromZigbee: [fz.battery],
         toZigbee: [],
         exposes: [e.battery()],
+        extend: [m.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);

@@ -199,6 +199,7 @@ interface ThirdPlugGen3 {
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
+        overloadProtection: number;
     };
     commands: never;
     commandResponses: never;
@@ -1362,6 +1363,7 @@ export const definitions: DefinitionWithExtend[] = [
                     powerRiseThreshold: {name: "powerRiseThreshold", ID: 0x0040, type: Zcl.DataType.UINT16, write: true, min: 0x01, max: 0xc80},
                     powerDropThreshold: {name: "powerDropThreshold", ID: 0x0041, type: Zcl.DataType.UINT16, write: true, min: 0x01, max: 0xc80},
                     meteringOnlyMode: {name: "meteringOnlyMode", ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    overloadProtection: {name: "overloadProtection", ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1400,6 +1402,15 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rPlugGen3Specialcluster",
                 attribute: "meteringOnlyMode",
                 description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
+                access: "ALL",
+            }),
+            m.binary<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
+                name: "overload_protection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rPlugGen3Specialcluster",
+                attribute: "overloadProtection",
+                description: "When enabled, the device will automatically turn off the relay if the power consumption exceeds the threshold.",
                 access: "ALL",
             }),
             m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({

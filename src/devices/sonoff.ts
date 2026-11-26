@@ -685,16 +685,25 @@ const sonoffTpWgzbaOverheatProtectionTemperatureRange = {min: 20, max: 50, step:
 const sonoffTpWgzbaTemperatureControlHistoryValueOffset = 9;
 const sonoffTpWgzbaTemperatureControlHistoryCacheTimeoutMs = 30 * 1000;
 
-const formatSonoffTpWgzbaNtcTemperature = (value: unknown): string => {
+const sonoffTpWgzbaNtcSensorStatusValues = ["ok", ...Object.values(sonoffTpWgzbaNtcTemperatureStatusLookup)];
+
+/**
+ * Split the raw NTC attribute into a temperature and a sensor status.
+ * The device reports either a temperature (0.01 °C) or a reserved fault code on the same attribute;
+ * on a fault the temperature is `null` so Home Assistant shows it as unknown.
+ */
+const parseSonoffTpWgzbaNtcTemperature = (value: unknown): {temperature: number | null; status: string} => {
     utils.assertNumber(value, "currentNtcTemperature");
     const rawValue = value & 0xffff;
     const status = sonoffTpWgzbaNtcTemperatureStatusLookup[rawValue as keyof typeof sonoffTpWgzbaNtcTemperatureStatusLookup];
-    if (status !== undefined) return status;
+    if (status !== undefined) return {temperature: null, status};
 
     const signedValue = rawValue >= 0x8000 ? rawValue - 0x10000 : rawValue;
-    if (signedValue < sonoffTpWgzbaNtcTemperatureMinimumRaw) return sonoffTpWgzbaNtcTemperatureStatusLookup[32768];
+    if (signedValue < sonoffTpWgzbaNtcTemperatureMinimumRaw) {
+        return {temperature: null, status: sonoffTpWgzbaNtcTemperatureStatusLookup[32768]};
+    }
 
-    return `${(signedValue / sonoffTpWgzbaTemperatureScale).toFixed(2)} °C`;
+    return {temperature: signedValue / sonoffTpWgzbaTemperatureScale, status: "ok"};
 };
 
 type SonoffTrvzbtTemperatureControlHistoryType = "day" | "month" | "half_year";
@@ -1533,6 +1542,7 @@ const featureGates = {
     zbminil2_external_switch_trigger_mode: firmwareSupportFeaturesVersion("1.0.19", "higher", {modelID: "ZBMINIL2"}),
     zbrbs_single_switch_mode: firmwareSupportFeaturesVersion("1.2.0", "higher", {modelID: "MINI-ZBRBS"}),
     mini_zb2gs_external_switch_actions: firmwareSupportFeaturesVersion("1.1.2", "higher", {modelID: "MINI-ZB2GS"}),
+    mini_zb2gsl_external_switch_actions: firmwareSupportFeaturesVersion("1.0.5", "higher", {modelID: "MINI-ZB2GS-L"}),
     snzb09p_support_chime: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     snzb09p_support_alarm_status: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     // Single-channel SWV-ZF* supports unified units from 1.1.0; dual-channel SWV-ZF2 supports them from 1.0.9.
@@ -4794,24 +4804,33 @@ const sonoffExtend = {
     },
     tpWgzbaNtcTemperature: (): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
-        const key = "ntc_temperature";
-        const exposes = e
-            .text(key, ea.STATE)
-            .withLabel("NTC temperature")
-            .withCategory("diagnostic")
-            .withDescription("Current external NTC temperature or sensor status.");
+        const exposes = [
+            e
+                .numeric("ntc_temperature", ea.STATE)
+                .withLabel("NTC temperature")
+                .withUnit("°C")
+                .withDescription("Current external NTC temperature, null when the sensor reports a fault (see ntc_sensor_status).")
+                // The device reports this every few seconds and the probe signal is noisy, so keep it out of the HA database unless enabled
+                .withHomeAssistant({enabledByDefault: false}),
+            e
+                .enum("ntc_sensor_status", ea.STATE, sonoffTpWgzbaNtcSensorStatusValues)
+                .withLabel("NTC sensor status")
+                .withCategory("diagnostic")
+                .withDescription("Status of the external NTC sensor."),
+        ];
         const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg) => {
                     if (msg.data.currentNtcTemperature === undefined) return;
-                    return {[key]: formatSonoffTpWgzbaNtcTemperature(msg.data.currentNtcTemperature)};
+                    const {temperature, status} = parseSonoffTpWgzbaNtcTemperature(msg.data.currentNtcTemperature);
+                    return {ntc_temperature: temperature, ntc_sensor_status: status};
                 },
             },
         ];
 
-        return {exposes: [exposes], fromZigbee, isModernExtend: true};
+        return {exposes, fromZigbee, isModernExtend: true};
     },
     cyclicTimedIrrigation: (): ModernExtend => {
         const exposes = e
@@ -9940,9 +9959,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBCurtain",
         vendor: "SONOFF",
         description: "Zigbee smart curtain motor",
+        version: "0.0.1",
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position(), e.battery()],
+        extend: [m.forcePowerSource({powerSource: "Battery"})],
     },
     {
         zigbeeModel: ["SA-029-1", "SA-028-1"],
@@ -12121,7 +12142,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
+            sonoffExtend.externalSwitchActions({endpointNames: ["l1", "l2"], gate: featureGates.mini_zb2gsl_external_switch_actions}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             sonoffExtend.addCustomClusterEwelink(),
             sonoffExtend.externalSwitchTriggerMode({endpointNames: ["l1", "l2"]}),
@@ -12173,7 +12194,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint2, {min: 1, max: 1800, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0014, 0x0015, 0x0016], defaultResponseOptions);
+            await endpoint2.read("customClusterEwelink", [0x0014, 0x0015, 0x0016], defaultResponseOptions);
             await endpoint2.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
                 {attribute: "externalTriggerMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
             ]);
@@ -12783,7 +12804,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["SNZB-02B"],
+        zigbeeModel: ["SNZB-02B", "SNZT-02B"],
+        whiteLabel: [{model: "SNZT-02B", vendor: "SONOFF", fingerprint: [{modelID: "SNZT-02B"}]}],
         model: "SNZB-02B",
         vendor: "SONOFF",
         description: "Temperature and humidity sensor",
@@ -14816,5 +14838,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["CAM-Router"],
+        model: "CAM-Router",
+        vendor: "SONOFF",
+        description: "CAM Outdoor DUO Dual-Lens Smart Security Camera with Switchable Zigbee Hub and Router Modes",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
 ];

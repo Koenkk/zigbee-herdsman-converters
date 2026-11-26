@@ -1,6 +1,8 @@
 // Used by .github/workflows/pr.yaml
 // Runs in pull_request_target context: never execute or checkout PR code, the PR body is only parsed as data.
 
+const zlib = require("node:zlib");
+
 const DOCS_REPO = {owner: "Koenkk", repo: "zigbee2mqtt.io"};
 const DOCS_BRANCH = "master";
 const IMAGE_DIR = "public/images/devices";
@@ -126,6 +128,119 @@ function mapImages(models, body) {
     return result;
 }
 
+const PNG_CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4};
+const PNG_BIT_DEPTHS = {0: [1, 2, 4, 8, 16], 2: [8, 16], 3: [1, 2, 4, 8], 4: [8, 16], 6: [8, 16]};
+// [x offset, y offset, x step, y step] per Adam7 pass
+const ADAM7 = [
+    [0, 0, 8, 8],
+    [4, 0, 8, 8],
+    [0, 4, 4, 8],
+    [2, 0, 4, 4],
+    [0, 2, 2, 4],
+    [1, 0, 2, 2],
+    [0, 1, 1, 2],
+];
+
+function paeth(a, b, c) {
+    const p = a + b - c;
+    const pa = Math.abs(p - a);
+    const pb = Math.abs(p - b);
+    const pc = Math.abs(p - c);
+    return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+}
+
+/** Decodes a PNG and returns the alpha (0-255) of every pixel, row by row */
+function decodeAlpha(buffer) {
+    let offset = 8;
+    let ihdr;
+    let trns;
+    const idat = [];
+    while (offset + 8 <= buffer.length) {
+        const length = buffer.readUInt32BE(offset);
+        const type = buffer.toString("ascii", offset + 4, offset + 8);
+        const data = buffer.subarray(offset + 8, offset + 8 + length);
+        if (type === "IHDR") {
+            ihdr = {width: data.readUInt32BE(0), height: data.readUInt32BE(4), bitDepth: data[8], colorType: data[9], interlace: data[12]};
+        } else if (type === "tRNS") {
+            trns = data;
+        } else if (type === "IDAT") {
+            idat.push(data);
+        } else if (type === "IEND") {
+            break;
+        }
+        offset += 12 + length;
+    }
+
+    const {width, height, bitDepth, colorType, interlace} = ihdr;
+    if (!PNG_BIT_DEPTHS[colorType]?.includes(bitDepth) || interlace > 1) throw new Error("invalid PNG");
+    const channels = PNG_CHANNELS[colorType];
+    const bitsPerPixel = channels * bitDepth;
+    const bytesPerPixel = Math.max(1, bitsPerPixel >> 3);
+    const passes = (interlace ? ADAM7 : [[0, 0, 1, 1]])
+        .map(([x0, y0, dx, dy]) => ({x0, y0, dx, dy, w: Math.ceil((width - x0) / dx), h: Math.ceil((height - y0) / dy)}))
+        .filter((p) => p.w > 0 && p.h > 0)
+        .map((p) => ({...p, stride: Math.ceil((p.w * bitsPerPixel) / 8)}));
+    const expectedLength = passes.reduce((acc, p) => acc + p.h * (1 + p.stride), 0);
+    // Limit the output size to protect against decompression bombs
+    const raw = zlib.inflateSync(Buffer.concat(idat), {maxOutputLength: expectedLength});
+    if (raw.length < expectedLength) throw new Error("invalid PNG");
+
+    const sample = (row, x, channel) => {
+        const bit = (x * channels + channel) * bitDepth;
+        if (bitDepth === 16) return row.readUInt16BE(bit >> 3);
+        if (bitDepth === 8) return row[bit >> 3];
+        return (row[bit >> 3] >> (8 - bitDepth - (bit & 7))) & ((1 << bitDepth) - 1);
+    };
+    const pixelAlpha = (row, x) => {
+        if (colorType === 4 || colorType === 6) return bitDepth === 16 ? sample(row, x, channels - 1) >> 8 : sample(row, x, channels - 1);
+        if (colorType === 3) {
+            const index = sample(row, x, 0);
+            return trns && index < trns.length ? trns[index] : 255;
+        }
+        // Grayscale/truecolor: transparent when matching the single tRNS color
+        if (trns?.length >= channels * 2) {
+            for (let c = 0; c < channels; c++) if (sample(row, x, c) !== trns.readUInt16BE(c * 2)) return 255;
+            return 0;
+        }
+        return 255;
+    };
+
+    const alpha = new Uint8Array(width * height);
+    let pos = 0;
+    for (const {x0, y0, dx, dy, w, h, stride} of passes) {
+        let prev = Buffer.alloc(stride);
+        for (let y = 0; y < h; y++) {
+            const filter = raw[pos];
+            const row = Buffer.from(raw.subarray(pos + 1, pos + 1 + stride));
+            pos += 1 + stride;
+            if (filter > 4) throw new Error("invalid PNG");
+            for (let i = 0; i < stride; i++) {
+                const a = i >= bytesPerPixel ? row[i - bytesPerPixel] : 0;
+                const b = prev[i];
+                const c = i >= bytesPerPixel ? prev[i - bytesPerPixel] : 0;
+                row[i] = (row[i] + [0, a, b, (a + b) >> 1, paeth(a, b, c)][filter]) & 0xff;
+            }
+            for (let x = 0; x < w; x++) alpha[(y0 + y * dy) * width + x0 + x * dx] = pixelAlpha(row, x);
+            prev = row;
+        }
+    }
+    return alpha;
+}
+
+/**
+ * A transparent background is detected by checking the corners: requiring all four to be opaque before failing allows
+ * devices that touch some of the corners (e.g. a square wall switch) while catching white/colored backgrounds.
+ */
+function hasTransparentBackground(buffer, width, height) {
+    let alpha;
+    try {
+        alpha = decodeAlpha(buffer);
+    } catch {
+        throw new Error("image is not a valid PNG");
+    }
+    return [0, width - 1, (height - 1) * width, height * width - 1].some((i) => alpha[i] < 128);
+}
+
 async function downloadAndValidate(url) {
     const response = await fetch(url, {redirect: "follow"});
     if (!response.ok) throw new Error(`failed to download (HTTP ${response.status})`);
@@ -140,6 +255,9 @@ async function downloadAndValidate(url) {
     const height = buffer.readUInt32BE(20);
     if (width !== IMAGE_SIZE || height !== IMAGE_SIZE) {
         throw new Error(`image is ${width}x${height}, expected ${IMAGE_SIZE}x${IMAGE_SIZE}`);
+    }
+    if (!hasTransparentBackground(buffer, width, height)) {
+        throw new Error("image background is not transparent");
     }
     return buffer;
 }
@@ -265,4 +383,4 @@ async function upload({github, context, core, docsGithub}) {
     }
 }
 
-module.exports = {check, upload, getImageName, getModels, getDetectTarget, resolveDetectModel, mapImages};
+module.exports = {check, upload, getImageName, getModels, getDetectTarget, resolveDetectModel, mapImages, hasTransparentBackground};

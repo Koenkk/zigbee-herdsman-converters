@@ -15,6 +15,15 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.temperature, fz.ias_contact_alarm_1],
         toZigbee: [],
         exposes: [e.temperature(), e.contact(), e.battery_low(), e.tamper()],
+        extend: [
+            m.battery({
+                // Match the voltage range used by ZHA's Ecolink 4655BC0-R quirk.
+                voltageToPercentage: {min: 2100, max: 3000},
+                voltage: true,
+                percentageReporting: false,
+                voltageReporting: true,
+            }),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);

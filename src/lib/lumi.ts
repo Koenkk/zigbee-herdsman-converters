@@ -52,6 +52,18 @@ const ZNCLBL01LM_RUNNING_STORE_KEY = "ZNCLBL01LM_running";
 const ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY = "ZNCLBL01LM_terminal_position";
 const ZNCLBL01LM_TERMINAL_TARGET_POSITION_STORE_KEY = "ZNCLBL01LM_terminal_target_position";
 
+/**
+ * Aqara LLKZMK12LM firmware 33 (date code 20250917) and newer report energy (0x95) in kWh,
+ * older firmware (e.g. 27, date code 20230606) reports it in Wh.
+ * `dateCode` is checked too because it is re-read after an OTA update, `applicationVersion` only on interview.
+ * https://github.com/Koenkk/zigbee2mqtt/issues/22148
+ * https://github.com/Koenkk/zigbee2mqtt/issues/31471
+ */
+const llkzmk12lmReportsEnergyInKwh = (device: Zh.Device) => {
+    const dateCode = /^\d{8}/.exec(device.dateCode ?? "")?.[0];
+    return (device.applicationVersion ?? 0) >= 33 || (dateCode !== undefined && dateCode >= "20250917");
+};
+
 declare type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
 export interface TrvScheduleConfigEvent {
@@ -559,9 +571,8 @@ export const numericAttributes2Payload = async (
             case "149":
                 assertNumber(value);
                 payload.energy = value; // 0x95
-                if (["LLKZMK12LM"].includes(model.model)) {
-                    assertNumber(payload.energy);
-                    payload.energy = payload.energy / 1000;
+                if (["LLKZMK12LM"].includes(model.model) && !llkzmk12lmReportsEnergyInKwh(meta.device)) {
+                    payload.energy = value / 1000;
                 }
                 // Consumption is deprecated
                 payload.consumption = payload.energy;
@@ -2118,6 +2129,9 @@ export interface AqaraFp400Config {
         installationHeightMax: number;
         installationStatus: number;
         installationAngle: number;
+        entryExitRegion: Buffer;
+        interferenceRegion: Buffer;
+        monitoringRegion: Buffer;
         humanCountEnabled: number;
         aiHighPrecision: number;
         aiAdaptiveSensitivity: number;
@@ -2127,7 +2141,7 @@ export interface AqaraFp400Config {
         detectionDirection: number;
         proximityDistance: number;
     };
-    commands: never;
+    commands: {startLearning: Record<string, never>};
     commandResponses: never;
 }
 export interface AqaraFp400Radar {
@@ -2137,7 +2151,7 @@ export interface AqaraFp400Radar {
 }
 export interface AqaraFp400Location {
     attributes: {activityState: number};
-    commands: never;
+    commands: {subscribeLocationData: {timeout: number}};
     commandResponses: never;
 }
 export interface AqaraFp400Sensitivity {
@@ -2161,6 +2175,9 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             installationHeightMax: {name: "installationHeightMax", ID: 0x0006, type: Zcl.DataType.UINT16},
             installationStatus: {name: "installationStatus", ID: 0x0007, type: Zcl.DataType.ENUM8},
             installationAngle: {name: "installationAngle", ID: 0x0008, type: Zcl.DataType.UINT8},
+            entryExitRegion: {name: "entryExitRegion", ID: 0x0012, type: Zcl.DataType.OCTET_STR, write: true},
+            interferenceRegion: {name: "interferenceRegion", ID: 0x0013, type: Zcl.DataType.OCTET_STR, write: true},
+            monitoringRegion: {name: "monitoringRegion", ID: 0x0014, type: Zcl.DataType.OCTET_STR, write: true},
             humanCountEnabled: {name: "humanCountEnabled", ID: 0x0023, type: Zcl.DataType.BOOLEAN, write: true},
             aiHighPrecision: {name: "aiHighPrecision", ID: 0x0029, type: Zcl.DataType.BOOLEAN, write: true},
             aiAdaptiveSensitivity: {name: "aiAdaptiveSensitivity", ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
@@ -2170,7 +2187,7 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             detectionDirection: {name: "detectionDirection", ID: 0x002e, type: Zcl.DataType.ENUM8, write: true, max: 1},
             proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
         },
-        commands: {},
+        commands: {startLearning: {name: "startLearning", ID: 0x03, parameters: []}},
         commandsResponse: {},
     },
     aqaraFp400Radar: {
@@ -2190,7 +2207,9 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         attributes: {
             activityState: {name: "activityState", ID: 0x0007, type: Zcl.DataType.ENUM8},
         },
-        commands: {},
+        commands: {
+            subscribeLocationData: {name: "subscribeLocationData", ID: 0x00, parameters: [{name: "timeout", type: Zcl.DataType.UINT16}]},
+        },
         commandsResponse: {},
     },
     aqaraFp400Sensitivity: {
@@ -2261,6 +2280,34 @@ function fp400DecodeAttributeSync(cluster: string | number, data: unknown): KeyV
         offset += 3 + fp400TypeSizes[type];
     }
     return values;
+}
+
+/**
+ * Decodes a position event (0xFC0C, 0x8B event 0): `4C <count u16>`, then per target a structure of typed fields of
+ * which 0 is the id, 1 and 2 are x and y (cm) and 8 is the native zone (0 when in none). Ember coordinators deliver only
+ * the first 80 bytes of a frame (zigbee-herdsman#1886), so targets whose position did not arrive are left out.
+ */
+function fp400DecodeTargets(data: unknown): {id: number; x: number; y: number; zone?: number}[] | undefined {
+    const frame = fp400ParseFrame(data);
+    const payload = frame?.payload;
+    if (frame?.command !== 0x8b || payload.length < 5 || payload.readUInt16LE(0) !== 0 || payload[2] !== Zcl.DataType.STRUCT) return;
+    const targets = [];
+    let offset = 5;
+    for (let i = 0; i < payload.readUInt16LE(3) && offset + 2 <= payload.length; i++) {
+        const fields = payload.readUInt16LE(offset);
+        const values: number[] = [];
+        offset += 2;
+        while (values.length < fields && offset < payload.length) {
+            const size = fp400TypeSizes[payload[offset]];
+            if (size === undefined) return;
+            if (offset + 1 + size > payload.length) break;
+            values.push(fp400ReadValue(payload, offset + 1, payload[offset]));
+            offset += 1 + size;
+        }
+        if (values.length >= 3) targets.push({id: values[0], x: values[1], y: values[2], zone: values[8]});
+        if (values.length < fields) break;
+    }
+    return targets;
 }
 
 /**
@@ -2601,6 +2648,64 @@ function fp400Room(): ModernExtend[] {
                 },
             })),
         },
+        fp400FromRoom({
+            isModernExtend: true,
+            options: [
+                e
+                    .binary("tracking", ea.SET, true, false)
+                    .withDescription(
+                        "Ask the sensor for the positions of the people it tracks and publish them, at most once a second (default false)",
+                    ),
+            ],
+            exposes: [
+                e
+                    .list(
+                        "targets",
+                        ea.STATE,
+                        e
+                            .composite("target", "target", ea.STATE)
+                            .withFeature(e.numeric("id", ea.STATE))
+                            .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("Sideways from the sensor, negative to its left"))
+                            .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Distance ahead of the sensor"))
+                            .withFeature(e.numeric("zone", ea.STATE).withDescription("Native zone the target is in, 0 when in none")),
+                    )
+                    .withDescription("Positions of the people (and pets) the sensor tracks, while the tracking option is on"),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "aqaraFp400Location",
+                    type: ["raw"],
+                    convert: (model, msg, publish, options, meta) => {
+                        if (options.tracking !== true) return;
+                        const targets = fp400DecodeTargets(msg.data);
+                        if (!targets) return;
+                        // About 7 reports a second arrive: publish one a second at most, and a new number of targets at once.
+                        const last = globalStore.getValue(msg.device.ieeeAddr, "fp400_targets");
+                        const now = Date.now();
+                        if (last?.count === targets.length && now - last.time < 1000) return;
+                        globalStore.putValue(msg.device.ieeeAddr, "fp400_targets", {time: now, count: targets.length});
+                        return {targets};
+                    },
+                } satisfies Fz.Converter<"aqaraFp400Location", AqaraFp400Location, ["raw"]>,
+            ],
+        }),
+        // The sensor sends positions only while subscribed to them, for at most 3 minutes per subscription.
+        modernExtend.poll({
+            key: "fp400_tracking",
+            optionKey: "tracking",
+            defaultIntervalSeconds: 60,
+            poll: async (device, options) => {
+                if (options.tracking !== true) return;
+                await device
+                    .getEndpoint(1)
+                    .command<"aqaraFp400Location", "subscribeLocationData", AqaraFp400Location>(
+                        "aqaraFp400Location",
+                        "subscribeLocationData",
+                        {timeout: 180},
+                        {manufacturerCode},
+                    );
+            },
+        }),
         {
             isModernExtend: true,
             configure: [
@@ -2621,9 +2726,93 @@ function fp400Room(): ModernExtend[] {
     ];
 }
 
+/**
+ * The entry/exit, interference and monitoring areas, as 80 hexadecimal characters: 20 rows (0 nearest the sensor) of 16
+ * columns of 50 cm cells, one bit per cell, most significant bit first. The monitoring mask marks the cells left out.
+ */
+function fp400Areas(): ModernExtend[] {
+    const regions = [
+        {
+            name: "entry_exit_mask_hex",
+            attribute: "entryExitRegion",
+            description: "Entrances and exits: targets are picked up and dropped faster here",
+        },
+        {
+            name: "interference_mask_hex",
+            attribute: "interferenceRegion",
+            description: "Interference sources (a fan, a curtain): movement here is ignored",
+        },
+        {name: "edge_mask_hex", attribute: "monitoringRegion", description: "Cells outside the monitored area: everything here is ignored"},
+    ] as const;
+    return [
+        ...regions.map(
+            ({name, attribute, description}): ModernExtend => ({
+                isModernExtend: true,
+                exposes: [
+                    e.text(name, ea.ALL).withCategory("config").withDescription(`${description} (80 hexadecimal characters, one bit per cell)`),
+                ],
+                fromZigbee: [
+                    {
+                        cluster: "aqaraFp400Config",
+                        type: ["attributeReport", "readResponse"],
+                        convert: (model, msg, publish, options, meta) => {
+                            const value = msg.data[attribute];
+                            if (msg.endpoint.ID === 1 && Buffer.isBuffer(value)) return {[name]: value.toString("hex").padEnd(80, "0")};
+                        },
+                    } satisfies Fz.Converter<"aqaraFp400Config", AqaraFp400Config, ["attributeReport", "readResponse"]>,
+                ],
+                toZigbee: [
+                    {
+                        key: [name],
+                        convertSet: async (entity, key, value, meta) => {
+                            if (typeof value !== "string" || !/^[0-9a-fA-F]{80}$/.test(value))
+                                throw new Error(`${key} must be 80 hexadecimal characters`);
+                            const payload: Partial<AqaraFp400Config["attributes"]> = {[attribute]: Buffer.from(value, "hex")};
+                            await meta.device
+                                .getEndpoint(1)
+                                .write<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", payload, {manufacturerCode});
+                            return {state: {[key]: value.toLowerCase()}};
+                        },
+                        convertGet: async (entity, key, meta) => {
+                            await meta.device
+                                .getEndpoint(1)
+                                .read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", [attribute], {manufacturerCode});
+                        },
+                    },
+                ],
+            }),
+        ),
+        {
+            isModernExtend: true,
+            exposes: [
+                e
+                    .enum("spatial_learning", ea.SET, ["start"])
+                    .withCategory("config")
+                    .withDescription("Have the sensor learn the empty room; keep everyone out"),
+            ],
+            toZigbee: [
+                {
+                    key: ["spatial_learning"],
+                    convertSet: async (entity, key, value, meta) => {
+                        await meta.device
+                            .getEndpoint(1)
+                            .command<"aqaraFp400Config", "startLearning", AqaraFp400Config>(
+                                "aqaraFp400Config",
+                                "startLearning",
+                                {},
+                                {manufacturerCode},
+                            );
+                    },
+                },
+            ],
+        },
+    ];
+}
+
 export const fp400 = {
     clusters: fp400Clusters,
     parseFrame: fp400ParseFrame,
+    decodeTargets: fp400DecodeTargets,
     decodeAttributeSync: fp400DecodeAttributeSync,
 };
 
@@ -2653,6 +2842,7 @@ export const lumiModernExtend = {
     },
     fp400Settings,
     fp400Room,
+    fp400Areas,
     lumiLight: (
         args?: Omit<modernExtend.LightArgs, "colorTemp"> & {
             colorTemp?: true;

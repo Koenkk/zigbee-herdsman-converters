@@ -1,7 +1,8 @@
 import type {Models as ZHModels} from "zigbee-herdsman";
 
 import {Zcl} from "zigbee-herdsman";
-import {APPTYPE_NAME, APPTYPE_UNIT, BACNET_UNIT} from "zigbee-herdsman/dist/zspec/zcl/definition/consts";
+import {HA_PROFILE_ID} from "zigbee-herdsman/dist/zspec/consts";
+import {APPTYPE_NAME, APPTYPE_UNIT, BACNET_UNIT, ENDPOINT_DEVICE_TYPE} from "zigbee-herdsman/dist/zspec/zcl/definition/consts";
 import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import type * as constants from "./constants";
 import type {HomeAssistant} from "./exposes";
@@ -376,12 +377,17 @@ async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promis
 async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
 
-    const lightEndpoints = endpoints.filter((e) => e.supportsInputCluster("lightingColorCtrl") || e.supportsInputCluster("genLevelCtrl"));
+    const lightEndpoints = endpoints.filter(
+        (e) =>
+            e.supportsInputCluster("lightingColorCtrl") ||
+            e.supportsInputCluster("genLevelCtrl") ||
+            (e.profileID === HA_PROFILE_ID && e.deviceID === ENDPOINT_DEVICE_TYPE.HAOnOffLight),
+    );
     const onOffEndpoints = endpoints.filter((e) => lightEndpoints.findIndex((ep) => e.ID === ep.ID) === -1);
 
     if (onOffEndpoints.length !== 0) {
         let endpointNames: string[] | undefined;
-        if (!onlyFirstDeviceEnpoint(device, onOffEndpoints)) {
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
             endpointNames = onOffEndpoints.map((e) => e.ID.toString());
         }
         generated.push(
@@ -389,7 +395,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
                 extend: m.onOff,
                 args: {endpointNames},
                 source: "onOff",
-                multiEndpointSkip: onlyFirstDeviceEnpoint(device, onOffEndpoints) ? ["state", "on", "off", "power_on_behavior"] : undefined,
+                multiEndpointSkip: onlyFirstDeviceEnpoint(device, endpoints) ? ["state", "on", "off", "power_on_behavior"] : undefined,
             }),
         );
     }
@@ -397,10 +403,20 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
     for (const endpoint of lightEndpoints) {
         let endpointNames: string[] | undefined;
         let multiEndpointSkip: string[] | undefined;
-        if (!onlyFirstDeviceEnpoint(device, lightEndpoints)) {
-            endpointNames = lightEndpoints.map((e) => e.ID.toString());
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = [endpoint.ID.toString()];
         } else {
-            multiEndpointSkip = ["state", "on", "off", "brightness", "level_config", "power_on_behavior"];
+            multiEndpointSkip = ["state", "on", "off", "power_on_behavior"];
+        }
+
+        const args: m.LightArgs = {};
+        args.endpointNames = endpointNames;
+        if (endpoint.supportsInputCluster("genLevelCtrl")) {
+            if (multiEndpointSkip) {
+                multiEndpointSkip.push("brightness", "level_config");
+            }
+        } else {
+            args.brightness = false;
         }
         // In case read fails, support all features with 31
         let colorCapabilities = 0;
@@ -411,8 +427,6 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         const supportsEnhancedHueSaturation = (colorCapabilities & (1 << 1)) > 0;
         const supportsColorXY = (colorCapabilities & (1 << 3)) > 0;
         const supportsColorTemperature = (colorCapabilities & (1 << 4)) > 0;
-        const args: m.LightArgs = {};
-        args.endpointNames = endpointNames;
 
         if (supportsColorTemperature) {
             const minColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMin", 150);

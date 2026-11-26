@@ -15,6 +15,7 @@ import {definitions as allesin} from "./allesin";
 import {definitions as amina} from "./amina";
 import {definitions as anchor} from "./anchor";
 import {definitions as ariston} from "./ariston";
+import {definitions as asteroid} from "./asteroid";
 import {definitions as atlantic} from "./atlantic";
 import {definitions as atsmart} from "./atsmart";
 import {definitions as auroraLighting} from "./aurora_lighting";
@@ -145,6 +146,7 @@ import {definitions as hobeian} from "./hobeian";
 import {definitions as hoftronic} from "./hoftronic";
 import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
+import {definitions as homycloud} from "./homycloud";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
 import {definitions as hzcElectric} from "./hzc_electric";
@@ -178,6 +180,7 @@ import {definitions as kami} from "./kami";
 import {definitions as keenHome} from "./keen_home";
 import {definitions as klikaanklikuit} from "./klikaanklikuit";
 import {definitions as kmpcil} from "./kmpcil";
+import {definitions as knockautx} from "./knockautx";
 import {definitions as konke} from "./konke";
 import {definitions as ksentry} from "./ksentry";
 import {definitions as kurvia} from "./kurvia";
@@ -228,6 +231,7 @@ import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
+import {definitions as movesmart} from "./movesmart";
 import {definitions as mowe} from "./mowe";
 import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
@@ -425,6 +429,7 @@ const definitions: DefinitionWithExtend[] = [
     ...amina,
     ...anchor,
     ...ariston,
+    ...asteroid,
     ...atlantic,
     ...atsmart,
     ...auroraLighting,
@@ -554,6 +559,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hoftronic,
     ...homeseer,
     ...hommyn,
+    ...homycloud,
     ...honyar,
     ...hornbach,
     ...hzcElectric,
@@ -636,6 +642,7 @@ const definitions: DefinitionWithExtend[] = [
     ...modular,
     ...moes,
     ...mowe,
+    ...movesmart,
     ...msh,
     ...mullerLicht,
     ...multir,
@@ -817,6 +824,7 @@ const definitions: DefinitionWithExtend[] = [
     ...engo,
     ...vsmart,
     ...manhot,
+    ...knockautx,
 ];
 
 export default definitions;

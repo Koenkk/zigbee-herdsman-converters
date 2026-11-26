@@ -915,4 +915,46 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: [" MGSI - Indoor Sensor"],
+        model: "CB0450",
+        vendor: "Legrand",
+        description: "Céliane with Netatmo indoor temperature and humidity sensor",
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.battery({
+                percentage: true,
+                percentageReporting: false,
+                voltage: true,
+                voltageReporting: false,
+                voltageToPercentage: "3V_2100",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: [" MGSC - Contact Sensor"],
+        model: "069062",
+        vendor: "Legrand",
+        description: "Door and window contact sensor",
+        extend: [
+            m.binary({
+                name: "contact",
+                cluster: "genBinaryInput",
+                attribute: "presentValue",
+                valueOn: [false, 1],
+                valueOff: [true, 0],
+                description: "Indicates whether the contact is opened or closed",
+                access: "STATE_GET",
+                reporting: {min: "MIN", max: "MAX", change: 1},
+            }),
+            m.battery({
+                percentage: true,
+                percentageReporting: false,
+                voltage: true,
+                voltageReporting: false,
+                voltageToPercentage: "3V_2100",
+            }),
+        ],
+    },
 ];
