@@ -19737,9 +19737,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("update_frequency", ea.STATE_SET)
                 .withUnit("s")
                 .withDescription("Update frequency")
-                .withValueMin(30)
+                .withValueMin(5)
                 .withValueMax(3600)
-                .withPreset("default", 10, "Default value"),
+                .withPreset("default", 30, "Default value"),
             // e.binary('clear_energy', ea.SET, 'ON', 'OFF').withDescription('Switch to OFF to clear energy'),
             e.binary("device_locating", ea.SET, "ON", "OFF").withDescription("Locate device"),
         ],
