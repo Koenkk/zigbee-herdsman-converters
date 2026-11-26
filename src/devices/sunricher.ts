@@ -109,7 +109,18 @@ const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
 // on multiple endpoints, while a single group button only touches one endpoint.
 // Collect the burst over a short window before deciding which action to report.
 const sunricherSrZG9002kr12z4OnOffDebounceMs = 300;
-const sunricherSrZG9002kr12z4OnOffBurstState = new Map<string, {endpoints: Set<number>; timer: ReturnType<typeof setTimeout> | undefined}>();
+const sunricherSrZG9002kr12z4OnOffBurstState = new Map<
+    string,
+    {endpoints: Set<number>; group: number | undefined; timer: ReturnType<typeof setTimeout> | undefined}
+>();
+
+// SR-ZG9002KR12-Z4: every command is sent twice, unicast to the coordinator (groupID 0) and to the
+// active group (353..356). Only handle the group copy so action_group is always set and published once.
+// biome-ignore lint/suspicious/noExplicitAny: generic
+const sunricherSrZG9002kr12z4GroupOnly = (converter: Fz.Converter<any, any, any>): Fz.Converter<any, any, any> => ({
+    ...converter,
+    convert: (model, msg, publish, options, meta) => (msg.groupID ? converter.convert(model, msg, publish, options, meta) : undefined),
+});
 
 const fzLocal = {
     SRZGP2801K45C: {
@@ -190,20 +201,23 @@ const fzLocal = {
 
             let state = sunricherSrZG9002kr12z4OnOffBurstState.get(key);
             if (!state) {
-                state = {endpoints: new Set(), timer: undefined};
+                state = {endpoints: new Set(), group: undefined, timer: undefined};
                 sunricherSrZG9002kr12z4OnOffBurstState.set(key, state);
             }
 
             state.endpoints.add(msg.endpoint.ID);
+            state.group = msg.groupID;
 
             if (state.timer) {
                 clearTimeout(state.timer);
             }
 
             state.timer = setTimeout(() => {
-                const touchedEndpoints = state.endpoints.size;
-                const action = touchedEndpoints >= 3 ? `power_${command}` : `${command}_${[...state.endpoints][0]}`;
-                publish({action});
+                if (state.endpoints.size >= 3) {
+                    publish({action: `power_${command}`});
+                } else {
+                    publish({action: `${command}_${[...state.endpoints][0]}`, action_group: state.group});
+                }
                 sunricherSrZG9002kr12z4OnOffBurstState.delete(key);
             }, sunricherSrZG9002kr12z4OnOffDebounceMs);
 
@@ -1821,13 +1835,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9002KR12-Z4",
         vendor: "Sunricher",
         description: "Zigbee smart wall panel remote with 4 group buttons, 7 scene buttons and rotary knob",
-        extend: [m.battery(), m.commandsLevelCtrl(), m.commandsScenes()],
+        extend: [m.battery(), m.commandsScenes()],
         fromZigbee: [
             fzLocal.sunricher_srzg9002kr12z4_power_or_group_onoff,
             fzLocal.sunricher_srzg9002kr12z4_color_temp_step,
             fzLocal.sunricher_srzg9002kr12z4_hue_step,
             fzLocal.sunricher_srzg9002kr12z4_cover_commands,
-        ],
+            fz.command_move_to_level,
+            fz.command_move,
+            fz.command_step,
+            fz.command_stop,
+        ].map(sunricherSrZG9002kr12z4GroupOnly),
         toZigbee: [],
         exposes: [
             e.action([
@@ -1841,6 +1859,12 @@ export const definitions: DefinitionWithExtend[] = [
                 "off_3",
                 "on_4",
                 "off_4",
+                "brightness_move_to_level",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_step_up",
+                "brightness_step_down",
+                "brightness_stop",
                 "color_temperature_step_up",
                 "color_temperature_step_down",
                 "hue_step_up",
@@ -1852,7 +1876,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             for (const ep of device.endpoints) {
-                for (const cluster of ["genOnOff", "lightingColorCtrl", "closuresWindowCovering"]) {
+                for (const cluster of ["genOnOff", "genLevelCtrl", "lightingColorCtrl", "closuresWindowCovering"]) {
                     try {
                         await ep.bind(cluster, coordinatorEndpoint);
                     } catch (error) {
@@ -1952,7 +1976,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery({dontDividePercentage: true}), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
     },
     {
-        zigbeeModel: ["SR-ZG9023A-EU"],
+        zigbeeModel: ["SR-ZG9023A-EU", "HK-LN-SOCKET-EU"],
         model: "SR-ZG9023A-EU",
         vendor: "Sunricher",
         description: "4 ports switch with 2 usb ports (no metering)",

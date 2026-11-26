@@ -1239,7 +1239,17 @@ export const definitions: DefinitionWithExtend[] = [
                     ),
                 ],
                 [2, "position", tuya.valueConverter.coverPosition], // Curtain position setting
-                [3, "position", tuya.valueConverter.coverPosition], // Current curtain position
+                // Current curtain position, only reported once the motor has stopped
+                [
+                    3,
+                    "position",
+                    {
+                        from: (v: number, meta, options, publish) => {
+                            publish({motor_state: "stopped"});
+                            return tuya.valueConverter.coverPosition.from(v, meta, options, publish);
+                        },
+                    },
+                ],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [
                     7,
@@ -1248,6 +1258,7 @@ export const definitions: DefinitionWithExtend[] = [
                         options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
                     ),
                 ],
+                [11, null, {from: () => ({motor_state: "stopped"})}], // Limit reached
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },

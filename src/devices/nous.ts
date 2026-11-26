@@ -185,7 +185,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_wtikaxzs", "_TZE200_nnrfa68v", "_TZE200_zppcgbdj", "_TZE200_wtikaxzs"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_wtikaxzs",
+            "_TZE200_nnrfa68v",
+            "_TZE200_zppcgbdj",
+            "_TZE200_wtikaxzs",
+            "_TZE2841000000_s4ihi63r",
+        ]),
         model: "E6",
         vendor: "Nous",
         description: "Temperature & humidity LCD sensor",
