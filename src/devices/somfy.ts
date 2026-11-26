@@ -408,4 +408,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Sonesse 40 WireFree Zigbee Li-ion USB-C roller shade",
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
+    {
+        zigbeeModel: ["Linky Energy Sensor"],
+        model: "9029425",
+        vendor: "Somfy",
+        description: "Zigbee consumption sensor for Linky meter (TIC)",
+        extend: [m.electricityMeter({producedEnergy: false, voltage: false})],
+    },
 ];
