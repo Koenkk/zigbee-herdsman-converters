@@ -2512,6 +2512,47 @@ const ms032zLedChips = {
     type_15: tuya.enum(15),
 };
 
+// Payload: day bitmask, followed by [slot, hour, minute, temperature (2 bytes)] per transition
+const thermosphereScheduleDays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const thermosphereScheduleDatapoints: Tuya.MetaTuyaDataPoints = [
+    [
+        16,
+        null,
+        {
+            from: (v: Buffer, meta: Fz.Meta) => {
+                const result: KeyValue = {};
+                for (const [i, day] of thermosphereScheduleDays.entries()) {
+                    if (!(v[0] & (1 << i))) continue;
+                    const key = `schedule_${day}`;
+                    const transitions = ((meta.state[key] as string) ?? Array(4).fill("00:00/16.0").join(" ")).split(" ");
+                    for (let o = 1; o + 4 < v.length && v[o] < 4; o += 5) {
+                        const time = `${String(v[o + 1]).padStart(2, "0")}:${String(v[o + 2]).padStart(2, "0")}`;
+                        transitions[v[o]] = `${time}/${(v.readUInt16BE(o + 3) / 10).toFixed(1)}`;
+                    }
+                    result[key] = transitions.join(" ");
+                }
+                return result;
+            },
+        },
+    ],
+    ...thermosphereScheduleDays.map(
+        (day, i): Tuya.MetaTuyaDataPointsSingle => [
+            16,
+            `schedule_${day}`,
+            {
+                to: async (v: string, meta: Tz.Meta) => {
+                    const data = tuya.valueConverter.thermostatScheduleDayMultiDP.to(v);
+                    // Sent as one transition per message
+                    for (let slot = 0; slot < 4; slot++) {
+                        const payload = Buffer.from([1 << i, slot, ...data.slice(1 + slot * 4, 5 + slot * 4)]);
+                        await tuya.sendDataPointRaw(meta.device.endpoints[0], 16, payload);
+                    }
+                },
+            },
+        ],
+    ),
+];
+
 const ts0601Wsek35umModeSetpointConverter = {
     cluster: "manuSpecificTuya",
     type: ["commandDataReport"],
@@ -13384,6 +13425,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3008_xvfd3nkp",
                 "_TZ3008_qziabvzj",
             ]),
+            tuya.whitelabel("EMOS", "IP-3010S", "Outdoor smart plug (with power monitoring)", ["_TZ3000_npg02xft"]),
         ],
         ota: true,
         extend: [
@@ -24412,8 +24454,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(10)
                 .withValueMax(60)
                 .withValueStep(5),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/19.0 09:00/16.0 16:00/25.0 23:30/16.0"),
         ],
         meta: {
+            publishDuplicateTransaction: true,
             tuyaDatapoints: [
                 [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, auto: true})],
                 [2, "current_heating_setpoint", tuya.valueConverter.divideBy10],
@@ -24449,7 +24493,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [53, "min_temperature_limit", tuya.valueConverter.divideBy10],
                 [54, "switch_delay", tuya.valueConverterBasic.divideBy(1)],
                 [55, "display_brightness", tuya.valueConverterBasic.divideBy(1)], //divideBy1 required to force the format. Raw does not work
-                //[16, 'schedule', tuya.valueConverter.Raw],
+                ...thermosphereScheduleDatapoints,
             ],
         },
     },

@@ -1127,7 +1127,7 @@ const easyiotExtend = {
                 commandsResponse: {},
             }),
             m.binary<"genOnOff", EasyiotGenOnOff>({
-                name: "child_lock",
+                name: "child_safety_lock",
                 cluster: "genOnOff",
                 attribute: "childLock",
                 valueOn: ["ON", true],
@@ -1338,11 +1338,34 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
     },
     {
-        zigbeeModel: ["ZB-WC01"],
+        fingerprint: [{modelID: "ZB-MPL01", manufacturerName: "easyiot"}],
+        model: "ZB-MPL01",
+        vendor: "easyiot",
+        description: "Smart plug with Metering",
+        extend: [m.onOff({powerOnBehavior: true, ota: true}), m.electricityMeter(), ...easyiotExtend.childLock({enabled: true})],
+    },
+    {
+        fingerprint: [{modelID: "ZB-WC01", manufacturerName: "easyiot"}],
         model: "ZB-WC01",
         vendor: "easyiot",
         description: "Curtain motor",
         extend: [m.windowCovering({controls: ["lift"], configureReporting: false})],
+    },
+    {
+        fingerprint: [{modelID: "ZB-WC02", manufacturerName: "easyiot"}],
+        model: "ZB-WC02",
+        vendor: "easyiot",
+        description: "Dooya Curtain Motor Controller",
+        fromZigbee: [fzLocal.easyiot_ir_recv_command],
+        toZigbee: [tzLocal.easyiot_ir_send_command, tzLocal.easyiot_rs485_set_config],
+        extend: [m.windowCovering({controls: ["lift"], configureReporting: true})],
+        exposes: [
+            e.text("last_received_command", ea.STATE).withDescription("Received dooya curtain command"),
+            e.text("send_command", ea.SET).withDescription(
+                "Send the Dooya unified serial protocol to set non-standard functions, \
+                    such as travel limits, etc. This protocol is provided by Dooya.",
+            ),
+        ],
     },
     {
         zigbeeModel: ["ZB-WB01"],
