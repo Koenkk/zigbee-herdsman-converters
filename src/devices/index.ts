@@ -146,6 +146,7 @@ import {definitions as hobeian} from "./hobeian";
 import {definitions as hoftronic} from "./hoftronic";
 import {definitions as homeseer} from "./homeseer";
 import {definitions as hommyn} from "./hommyn";
+import {definitions as homycloud} from "./homycloud";
 import {definitions as honyar} from "./honyar";
 import {definitions as hornbach} from "./hornbach";
 import {definitions as hzcElectric} from "./hzc_electric";
@@ -558,6 +559,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hoftronic,
     ...homeseer,
     ...hommyn,
+    ...homycloud,
     ...honyar,
     ...hornbach,
     ...hzcElectric,

@@ -1983,7 +1983,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery({dontDividePercentage: true}), m.identify(), m.occupancy(), m.temperature(), m.humidity(), m.illuminance()],
     },
     {
-        zigbeeModel: ["SR-ZG9023A-EU"],
+        zigbeeModel: ["SR-ZG9023A-EU", "HK-LN-SOCKET-EU"],
         model: "SR-ZG9023A-EU",
         vendor: "Sunricher",
         description: "4 ports switch with 2 usb ports (no metering)",
