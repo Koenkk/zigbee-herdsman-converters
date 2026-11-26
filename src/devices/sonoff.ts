@@ -1546,6 +1546,7 @@ const featureGates = {
     mini_zb2gsl_external_switch_actions: firmwareSupportFeaturesVersion("1.0.5", "higher", {modelID: "MINI-ZB2GS-L"}),
     snzb09p_support_chime: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     snzb09p_support_alarm_status: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
+    trvzb_support_screen_orientation: firmwareSupportFeaturesVersion("1.4.0", "higher", {modelID: "TRVZB"}),
     // Single-channel SWV-ZF* supports unified units from 1.1.0; dual-channel SWV-ZF2 supports them from 1.0.9.
     swvzne_supports_unified_imperial_gallon: (device?: Zh.Device): boolean => {
         if (!device) return false;
@@ -10443,15 +10444,18 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 0x02],
                 valueOff: [false, 0x00],
             }),
-            m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
-                name: "screen_orientation",
-                label: "Screen orientation",
-                lookup: {standard: 2, flipped: 0},
-                cluster: "customSonoffTrvzb",
-                attribute: "screenDirection",
-                entityCategory: "config",
-                description: "Select the display orientation.",
-            }),
+            withConditionalExpose(
+                m.enumLookup<"customSonoffTrvzb", SonoffTrvzb>({
+                    name: "screen_orientation",
+                    label: "Screen orientation",
+                    lookup: {standard: 2, flipped: 0},
+                    cluster: "customSonoffTrvzb",
+                    attribute: "screenDirection",
+                    entityCategory: "config",
+                    description: "Select the display orientation.",
+                }),
+                featureGates.trvzb_support_screen_orientation,
+            ),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
