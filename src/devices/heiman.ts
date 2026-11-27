@@ -4144,6 +4144,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery(),
             m.identify(),
+            m.voltage(),
             m.temperature(),
             m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
             heimanExtend.heimanClusterSpecial(),
