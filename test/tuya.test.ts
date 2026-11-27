@@ -1124,3 +1124,32 @@ describe("thermostatScheduleDayMultiDP configurable temperatures", () => {
         expect(() => converter.to("06:00/31 10:30/68 13:30/100 17:30/104")).toThrow("Invalid hour, minute or temperature");
     });
 });
+
+describe("TS0201 _TZ3210_ncw88jfq humidity", () => {
+    const convert = async (measuredValue: number, options: KeyValueAny, disableDefaultResponse = true, manufacturerName = "_TZ3210_ncw88jfq") => {
+        const device = mockDevice({modelID: "TS0201", manufacturerName, endpoints: [{ID: 1, inputClusters: ["msRelativeHumidity"]}]});
+        const definition = await findByDevice(device);
+        const converter = definition.fromZigbee.find((c) => c.cluster === "msRelativeHumidity");
+        const msg = {
+            data: {measuredValue},
+            endpoint: device.getEndpoint(1),
+            device,
+            meta: {frameControl: {disableDefaultResponse}},
+            type: "attributeReport",
+            cluster: "msRelativeHumidity",
+        };
+        // biome-ignore lint/suspicious/noExplicitAny: test message
+        return converter?.convert(definition, msg as any, () => {}, options, {state: {}, device, deviceExposesChanged: () => {}});
+    };
+
+    it("converts humidity", async () => {
+        const hundredths = {humidity_firmware_variant: "hundredths"};
+        expect(await convert(577, {})).toStrictEqual({humidity: 57.7});
+        expect(await convert(5770, hundredths)).toStrictEqual({humidity: 57.7});
+        expect(await convert(6, hundredths)).toStrictEqual({humidity: 65.6});
+        expect(await convert(3446, hundredths)).toStrictEqual({humidity: 100});
+        expect(await convert(620, hundredths, false)).toStrictEqual({humidity: 62});
+        expect(await convert(623, hundredths)).toStrictEqual({humidity: 62.3});
+        expect(await convert(606, hundredths, true, "_TZ3000_isw9u95y")).toStrictEqual({humidity: 60.6});
+    });
+});

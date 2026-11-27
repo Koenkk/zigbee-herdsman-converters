@@ -1885,8 +1885,24 @@ const fzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0201_humidity: {
         ...fz.humidity,
+        options: [
+            e
+                .enum("humidity_firmware_variant", ea.SET, ["tenths", "hundredths"])
+                .withDescription("Only for _TZ3210_ncw88jfq: set to hundredths when humidity is missing or wrong above 65.5 % (default tenths)"),
+        ],
         convert: (model, msg, publish, options, meta) => {
-            if (
+            if (meta.device.manufacturerName === "_TZ3210_ncw88jfq" && options.humidity_firmware_variant === "hundredths") {
+                // Firmware reports in 0.01 % steps (last digit 0) and overflows from 65.6 % (last digit 6, add 6554).
+                // Fast changes are additionally reported in 0.1 % steps with disableDefaultResponse = false.
+                // Read response format is unknown, ignore them. https://github.com/zigpy/zha-device-handlers/issues/3097
+                if (msg.type !== "attributeReport") return;
+                const value = msg.data.measuredValue;
+                if (msg.meta.frameControl?.disableDefaultResponse === false || (value % 10 !== 0 && value % 10 !== 6)) {
+                    msg.data.measuredValue = value * 10;
+                } else if (value % 10 === 6) {
+                    msg.data.measuredValue = value + 6554;
+                }
+            } else if (
                 ["_TZ3210_ncw88jfq", "_TZ3000_ywagc4rj", "_TZ3000_isw9u95y", "_TZ3000_yupc0pb7", "_TZ3000_wol32olt"].includes(
                     meta.device.manufacturerName,
                 )
