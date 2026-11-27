@@ -17906,7 +17906,19 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lonsonho", "QS-Zigbee-D02-TRIAC-LN_1", "1 channel dimmer", ["_TZ3210_ngqk6jia"]),
         ],
         ota: true,
-        fromZigbee: [tuya.fz.TS110E, tuya.fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
+        fromZigbee: [
+            tuya.fz.TS110E,
+            {
+                // Attribute 64514 is the switch type on _TZ3210_k1msuvg6 and the light type on the others
+                ...tuya.fz.TS110E_light_type,
+                convert: (model, msg, publish, options, meta) =>
+                    meta.device.manufacturerName === "_TZ3210_k1msuvg6"
+                        ? tuya.fz.TS110E_switch_type.convert(model, msg, publish, options, meta)
+                        : tuya.fz.TS110E_light_type.convert(model, msg, publish, options, meta),
+            } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
+            tuya.fz.power_on_behavior_1,
+            fz.on_off,
+        ],
         toZigbee: [
             tuya.tz.TS110E_onoff_brightness,
             tuya.tz.TS110E_options,
@@ -17919,9 +17931,9 @@ export const definitions: DefinitionWithExtend[] = [
             const countdownValueStep = device.manufacturerName === "_TZ3210_ngqk6jia" ? 30 : 1;
             return [
                 e.light_brightness().withMinBrightness().withMaxBrightness(),
-                tuya.exposes.lightType().withAccess(ea.ALL),
+                // light_type and switch_type share attribute 64514, so expose only the one this device uses
+                device.manufacturerName === "_TZ3210_k1msuvg6" ? tuya.exposes.switchType() : tuya.exposes.lightType().withAccess(ea.ALL),
                 e.power_on_behavior().withAccess(ea.ALL),
-                tuya.exposes.switchType(),
                 tuya.exposes.countdown().withValueStep(countdownValueStep),
             ];
         },
