@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {definitions} from "../src/devices/sygonix";
 import {prepareDefinition} from "../src/index";
 import {logger} from "../src/lib/logger";
@@ -8,13 +8,21 @@ import type {KeyValue, Tuya, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("Sygonix SY-6872860", () => {
-    beforeEach(() => globalStore.clear());
+    beforeEach(() => {
+        globalStore.clear();
+        vi.useFakeTimers();
+    });
+    afterEach(() => {
+        vi.clearAllTimers();
+        vi.useRealTimers();
+    });
 
-    const setup = () => {
+    const setup = (ieeeAddr = "0x12345678") => {
         const definition = prepareDefinition(definitions[0]);
         const device = mockDevice({
             modelID: "TS0601",
             manufacturerName: "_TZE284_hva0ao7p",
+            ieeeAddr,
             endpoints: [{ID: 1}],
         });
         const endpoint = device.getEndpoint(1);
@@ -84,6 +92,7 @@ describe("Sygonix SY-6872860", () => {
         const position = {dp: 3, datatype: 2, data: Buffer.from([0, 0, 0, 37])};
         expect(reportFrame(positionFirst ? [position, stop] : [stop, position])).toEqual({position: 37, state: "OPEN", motor_state: "stopped"});
         expect(report(3, 40)).toEqual({position: 40, state: "OPEN"});
+        vi.advanceTimersByTime(2000);
         expect(publish).not.toHaveBeenCalled();
     });
 
@@ -98,10 +107,88 @@ describe("Sygonix SY-6872860", () => {
     });
 
     it("discards a pending STOP when a new movement starts", () => {
-        const {report} = setup();
+        const {publish, report} = setup();
         expect(report(1, 1, {}, 4)).toEqual({});
+        vi.advanceTimersByTime(500);
         expect(report(1, 0, {}, 4)).toEqual({motor_state: "opening"});
+        vi.advanceTimersByTime(2000);
+        expect(publish).not.toHaveBeenCalled();
         expect(report(3, 37)).toEqual({position: 37, state: "OPEN"});
+    });
+
+    it.each([false, true])("reports a confirmed stop with unknown position when the final report is missing (invert_cover=%s)", (invertCover) => {
+        const {command, publish, report} = setup();
+        const options = {invert_cover: invertCover};
+        report(3, 0, options);
+        report(1, 0, options, 4);
+        expect(report(1, 1, options, 4)).toEqual({});
+        vi.advanceTimersByTime(999);
+        expect(publish).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(1);
+        expect(publish).toHaveBeenCalledExactlyOnceWith({motor_state: "stopped", position: null, state: null});
+        expect(command).not.toHaveBeenCalled();
+
+        expect(report(3, 37, options)).toEqual({position: invertCover ? 63 : 37, state: "OPEN", motor_state: "stopped"});
+        vi.advanceTimersByTime(2000);
+        expect(publish).toHaveBeenCalledTimes(1);
+    });
+
+    it("cancels the fallback when the final position arrives after STOP", () => {
+        const {publish, report} = setup();
+        report(1, 2, {}, 4);
+        report(1, 1, {}, 4);
+        vi.advanceTimersByTime(124);
+        expect(report(3, 0)).toEqual({position: 0, state: "CLOSE", motor_state: "stopped"});
+        vi.advanceTimersByTime(2000);
+        expect(publish).not.toHaveBeenCalled();
+    });
+
+    it("does not postpone or repeat the fallback for duplicate STOP or invalid position reports", () => {
+        const {publish, report} = setup();
+        report(1, 2, {}, 4);
+        report(1, 1, {}, 4);
+        vi.advanceTimersByTime(600);
+        report(1, 1, {}, 4);
+        expect(report(3, 255)).toEqual({});
+        vi.advanceTimersByTime(400);
+        expect(publish).toHaveBeenCalledExactlyOnceWith({motor_state: "stopped", position: null, state: null});
+        report(1, 1, {}, 4);
+        vi.advanceTimersByTime(2000);
+        expect(publish).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(["start", "stop"] as const)("cancels the pending fallback on %s", async (eventType) => {
+        const {definition, device, publish, report, start} = setup();
+        report(1, 1, {}, 4);
+        vi.advanceTimersByTime(500);
+        if (eventType === "start") await start();
+        else await definition.onEvent({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
+        vi.advanceTimersByTime(2000);
+        expect(publish).not.toHaveBeenCalled();
+        expect(report(3, 37)).toEqual({position: 37, state: "OPEN"});
+    });
+
+    it("keeps pending stops isolated between motors", () => {
+        const first = setup("0x12345678");
+        const second = setup("0x87654321");
+        first.report(1, 1, {}, 4);
+        second.report(1, 1, {}, 4);
+        vi.advanceTimersByTime(500);
+        first.report(1, 0, {}, 4);
+        vi.advanceTimersByTime(500);
+        expect(first.publish).not.toHaveBeenCalled();
+        expect(second.publish).toHaveBeenCalledExactlyOnceWith({motor_state: "stopped", position: null, state: null});
+    });
+
+    it("limits the Home Assistant unknown-position override to the cover", () => {
+        const {definition} = setup();
+        const battery = {state_topic: "motor", value_template: "{{ value_json.battery }}"};
+        const cover = {position_topic: "motor", set_position_topic: "motor/set", value_template: "{{ value_json.state }}"};
+        definition.meta?.overrideHaDiscoveryPayload?.(battery);
+        definition.meta?.overrideHaDiscoveryPayload?.(cover);
+        expect(battery).toEqual({state_topic: "motor", value_template: "{{ value_json.battery }}"});
+        expect(cover.value_template).toContain("{{ value_json.state }}");
+        expect(cover.value_template).toContain("%}None{% else %}");
     });
 
     it.each([false, true])("requires a reported favorite and recalls its native percentage (invert_cover=%s)", async (invertCover) => {

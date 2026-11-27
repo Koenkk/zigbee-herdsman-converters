@@ -2,12 +2,18 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, KeyValue, Tuya} from "../lib/types";
+import type {DefinitionWithExtend, KeyValue, Tuya, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 const favoriteCacheKey = "sygonix_favorite_native";
 const pendingStopKey = "sygonix_stop_pending";
+const pendingStopTimerKey = "sygonix_stop_timer";
+const clearPendingStop = (device: Zh.Device | string) => {
+    clearTimeout(globalStore.getValue(device, pendingStopTimerKey));
+    globalStore.clearValue(device, pendingStopTimerKey);
+    globalStore.clearValue(device, pendingStopKey);
+};
 const validReportedPosition = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
 const coverCommands = tuya.valueConverterBasic.lookup((options) =>
     options.invert_cover
@@ -48,7 +54,9 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("cover_limit", ea.SET, ["up", "down"])
                 .withCategory("config")
-                .withDescription("Store the current position as the upper or lower limit"),
+                .withDescription(
+                    "Move to the desired position and stop, then select up or down to save that limit. Set both limits before percentage positioning.",
+                ),
             e
                 .numeric("favorite_position", ea.STATE_SET)
                 .withUnit("%")
@@ -65,7 +73,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("travel_time", ea.STATE)
                 .withUnit("ms")
                 .withCategory("diagnostic")
-                .withDescription("Total calibrated travel time reported by the motor"),
+                .withDescription(
+                    "Last calibrated travel time reported by the motor; may retain the previous value until a new value is reported after calibration.",
+                ),
             e
                 .enum("situation_set", ea.STATE, ["fully_open", "fully_close"])
                 .withLabel("Position orientation")
@@ -74,10 +84,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         options: [exposes.options.invert_cover()],
         onEvent: async (event) => {
+            if (event.type === "stop") {
+                clearPendingStop(event.data.ieeeAddr);
+                return;
+            }
             if (event.type !== "start") return;
             const device = event.data.device;
             globalStore.clearValue(device, favoriteCacheKey);
-            globalStore.clearValue(device, pendingStopKey);
+            clearPendingStop(device);
             try {
                 await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
             } catch (error) {
@@ -92,25 +106,43 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.position_topic && payload.set_position_topic && typeof payload.value_template === "string") {
+                    payload.value_template =
+                        '{% if value_json.get("motor_state") == "stopped" and value_json.get("position") is none %}None{% else %}' +
+                        payload.value_template +
+                        "{% endif %}";
+                    payload.position_template =
+                        "{% if value_json.position is defined and value_json.position is number %}{{ value_json.position }}{% endif %}";
+                }
+            },
             tuyaDatapoints: [
                 [
                     1,
                     null,
                     {
-                        from: (value, meta, options, _publish, msg) => {
+                        from: (value, meta, options, publish, msg) => {
                             if (value === 1) {
                                 const hasPosition = msg.data.dpValues.some(
                                     (dp: Tuya.DpValue) => dp.dp === 3 && validReportedPosition(tuya.getDataValue(dp)),
                                 );
                                 if (!hasPosition) {
-                                    // STOP precedes the final position; publish both together when it arrives.
-                                    globalStore.putValue(meta.device, pendingStopKey, true);
+                                    // STOP normally precedes DP3, but a lost position report must not leave the motor moving indefinitely.
+                                    if (!globalStore.getValue(meta.device, pendingStopKey, false)) {
+                                        globalStore.putValue(meta.device, pendingStopKey, true);
+                                        const timer = setTimeout(() => {
+                                            if (globalStore.getValue(meta.device, pendingStopTimerKey) !== timer) return;
+                                            globalStore.clearValue(meta.device, pendingStopTimerKey);
+                                            publish({motor_state: "stopped", position: null, state: null});
+                                        }, 1000).unref();
+                                        globalStore.putValue(meta.device, pendingStopTimerKey, timer);
+                                    }
                                     return {};
                                 }
-                                globalStore.clearValue(meta.device, pendingStopKey);
+                                clearPendingStop(meta.device);
                                 return {motor_state: "stopped"};
                             }
-                            globalStore.clearValue(meta.device, pendingStopKey);
+                            clearPendingStop(meta.device);
                             return {motor_state: reportedMovement.from(value, meta, options)};
                         },
                     },
@@ -144,7 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
                             const position = options.invert_cover ? 100 - value : value;
                             const result: KeyValue = {position, state: position === 0 ? "CLOSE" : "OPEN"};
                             if (globalStore.getValue(meta.device, pendingStopKey, false)) {
-                                globalStore.clearValue(meta.device, pendingStopKey);
+                                clearPendingStop(meta.device);
                                 result.motor_state = "stopped";
                             }
                             return result;
