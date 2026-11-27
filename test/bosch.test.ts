@@ -39,6 +39,66 @@ describe("Bosch thermostats", () => {
         expect(definition.toZigbee.some((converter) => converter.key.includes("weekly_schedule"))).toBe(false);
         expect(JSON.stringify(definition.exposes)).not.toContain("weekly_schedule");
     });
+
+    it("does not publish cable sensor temperature when cable sensor mode is disabled", () => {
+        const device = mockDevice({
+            modelID: "RBSH-RTH0-ZB-EU",
+            manufacturerName: "BOSCH",
+            endpoints: [
+                {
+                    ID: 1,
+                    inputClusters: ["hvacThermostat"],
+                },
+            ],
+        });
+        const extend = boschThermostatExtend.cableSensorTemperature();
+        const converter = extend.fromZigbee?.[0];
+
+        if (!converter?.convert) throw new Error("No fromZigbee converter for cable_sensor_temperature");
+
+        const result = converter.convert(
+            device,
+            {
+                data: {cableSensorTemperature: 2150},
+                endpoint: device.getEndpoint(1),
+            } as never,
+            () => {},
+            {},
+            {state: {cable_sensor_mode: "not_used"}} as never,
+        );
+
+        expect(result).toBeUndefined();
+    });
+
+    it("publishes cable sensor temperature when cable sensor mode is enabled", () => {
+        const device = mockDevice({
+            modelID: "RBSH-RTH0-ZB-EU",
+            manufacturerName: "BOSCH",
+            endpoints: [
+                {
+                    ID: 1,
+                    inputClusters: ["hvacThermostat"],
+                },
+            ],
+        });
+        const extend = boschThermostatExtend.cableSensorTemperature();
+        const converter = extend.fromZigbee?.[0];
+
+        if (!converter?.convert) throw new Error("No fromZigbee converter for cable_sensor_temperature");
+
+        const result = converter.convert(
+            device,
+            {
+                data: {cableSensorTemperature: 2150},
+                endpoint: device.getEndpoint(1),
+            } as never,
+            () => {},
+            {},
+            {state: {cable_sensor_mode: "cable_sensor_without_regulation"}} as never,
+        );
+
+        expect(result).toStrictEqual({cable_sensor_temperature: 21.5});
+    });
 });
 
 describe("Bosch thermostat relayState extension", () => {
