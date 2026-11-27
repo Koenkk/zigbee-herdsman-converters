@@ -130,6 +130,7 @@ interface HeimanPrivateCluster {
         soundVolume: number;
         radarMicroCurrentSnr: number[];
         radarPersenceCurrentSnr: number[];
+        motionSensitivityLevel: number;
 
         // Light/Switch 0x1000~0x1FFF
         indicatorLightControl: number;
@@ -219,7 +220,9 @@ interface HeimanPrivateCluster {
             parameters: [];
         };
     };
-    commandResponses: never;
+    commandResponses: {
+        actionNotification: {action: number};
+    };
 }
 
 const iasWarningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
@@ -577,6 +580,7 @@ const heimanExtend = {
                 soundVolume: {name: "soundVolume", ID: 0x0047, type: Zcl.DataType.UINT8, write: true},
                 radarMicroCurrentSnr: {name: "radarMicroCurrentSnr", ID: 0x004a, type: Zcl.DataType.OCTET_STR},
                 radarPersenceCurrentSnr: {name: "radarPersenceCurrentSnr", ID: 0x004b, type: Zcl.DataType.OCTET_STR},
+                motionSensitivityLevel: {name: "motionSensitivityLevel", ID: 0x0056, type: Zcl.DataType.UINT8, write: true},
 
                 // Light/Switch 0x1000~0x1FFF
                 indicatorLightControl: {name: "indicatorLightControl", ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
@@ -668,7 +672,9 @@ const heimanExtend = {
                     parameters: [],
                 },
             },
-            commandsResponse: {},
+            commandsResponse: {
+                actionNotification: {ID: 0x0f, name: "actionNotification", parameters: [{name: "action", type: Zcl.DataType.UINT8}]},
+            },
         }),
 
     heimanClusterIasZone: () =>
@@ -2312,6 +2318,14 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    heiman_action_notification: {
+        cluster: "heimanClusterSpecial",
+        type: "commandActionNotification",
+        convert: (model, msg) => {
+            const action = {1: "triple_tap", 2: "tilted", 3: "tilt_recovered", 4: "vibration"}[msg.data.action];
+            if (action) return {action};
+        },
+    } satisfies Fz.Converter<"heimanClusterSpecial", HeimanPrivateCluster, "commandActionNotification">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -5348,8 +5362,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["HS2VTD"],
-        model: "HS2VTD",
+        zigbeeModel: ["HS2VDS"],
+        model: "HS2VDS",
         vendor: "Heiman",
         description: "Smart 4 in 1 door sensor",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
@@ -5406,6 +5420,32 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2VTD"],
+        model: "HS2VTD",
+        vendor: "Heiman",
+        description: "Motion and contact sensor",
+        fromZigbee: [fzLocal.heiman_action_notification],
+        exposes: [e.action(["triple_tap", "tilted", "tilt_recovered", "vibration"])],
+        extend: [
+            m.identify(),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+            heimanExtend.heimanClusterSpecial(),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "sensitivity_level",
+                cluster: "heimanClusterSpecial",
+                attribute: "motionSensitivityLevel",
+                description: "Sensitivity of triple tap, vibration and tilt detection",
+                access: "ALL",
+                valueMin: 1,
+                valueMax: 10,
+                valueStep: 1,
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
         ],
         ota: true,
     },
