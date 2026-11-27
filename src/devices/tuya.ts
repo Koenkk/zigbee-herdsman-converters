@@ -18571,6 +18571,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_wijoqjk1",
             "_TZ3000_5rpu3r0d",
             "_TZ3000_bbebkwjk",
+            "_TZ3000_djhsq2ff",
         ]),
         model: "TS0001_switch_1_gang",
         vendor: "Tuya",
@@ -18616,7 +18617,13 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("iHseno", "_TZ3000_qq9ahj6z", "1-gang touch switch", ["_TZ3000_qq9ahj6z"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pv4puuxi", "_TZ3000_avky2mvc", "_TZ3000_785olaiq", "_TZ3000_qxcnwv26"]),
+        fingerprint: tuya.fingerprint("TS0003", [
+            "_TZ3000_pv4puuxi",
+            "_TZ3000_avky2mvc",
+            "_TZ3000_785olaiq",
+            "_TZ3000_qxcnwv26",
+            "_TZ3000_3hjasqun",
+        ]),
         model: "TS0003_switch_3_gang",
         vendor: "Tuya",
         description: "3-Gang switch with backlight",
