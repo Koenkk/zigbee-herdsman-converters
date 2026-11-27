@@ -424,6 +424,26 @@ describe("FP400 definition", () => {
         });
     });
 
+    describe("movement", () => {
+        it.each([
+            [1, "1c5f11078b000000", "enter"],
+            [1, "1c5f11078b00003007", "away"],
+            // Captured from zone endpoints on firmware 63.
+            [3, "1c5f114c8b000001", "leave_3"],
+            [4, "1c5f11498b000006", "approach_4"],
+        ])("publishes endpoint %s frame %s as %s", async (endpoint, frame, action) => {
+            expect((await receive(sensor(), endpoint, "aqaraFp400Radar", "raw", hex(frame))).state).toStrictEqual({action});
+        });
+
+        it.each([
+            [1, "1c5f11078b000009"],
+            [1, "1c5f11078b030000"],
+            [2, "1c5f11078b000006"],
+        ])("ignores endpoint %s frame %s", async (endpoint, frame) => {
+            expect((await receive(sensor(), endpoint, "aqaraFp400Radar", "raw", hex(frame))).state).toStrictEqual({});
+        });
+    });
+
     describe("configure", () => {
         const coordinator = () => mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
         const configure = async (device: Zh.Device) => {

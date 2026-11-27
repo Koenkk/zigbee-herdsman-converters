@@ -2372,6 +2372,8 @@ function fp400RoomView(device: Zh.Device): Zh.Device {
 }
 
 const FP400_ZONE_ENDPOINTS = [3, 4, 5, 6, 7, 8, 9, 10];
+// Named after the Matter enum; only 0, 1, 6 and 7 have been seen over Zigbee.
+const fp400MovementEvents = ["enter", "leave", "left_in", "right_out", "right_in", "left_out", "approach", "away"];
 
 const fp400OccupancyReporting = (maximumReportInterval: number) => [
     {attribute: "occupancy" as const, minimumReportInterval: 0, maximumReportInterval, reportableChange: 0},
@@ -2528,7 +2530,7 @@ const fp400SettingSpecs: Fp400SettingSpec[] = [
         cluster: "aqaraFp400Config",
         attribute: "detectionDirection",
         values: {omnidirectional: 0, left_right: 1},
-        description: "Which movements the sensor reports: left_right adds left_in, left_out, right_in and right_out",
+        description: "Which movements the sensor reports as actions: left_right adds left_in, left_out, right_in and right_out",
     },
     {
         name: "proximity_distance",
@@ -2770,6 +2772,31 @@ function fp400Room(): ModernExtend[] {
                 } satisfies Fz.Converter<"aqaraFp400Location", AqaraFp400Location, ["raw"]>,
             ],
         }),
+        // Movement events (0x8B event 0); zone endpoints send them for their zone, published as <movement>_<endpoint>.
+        {
+            isModernExtend: true,
+            exposes: [
+                e.action([
+                    ...fp400MovementEvents,
+                    ...FP400_ZONE_ENDPOINTS.flatMap((endpoint) => fp400MovementEvents.map((movement) => `${movement}_${endpoint}`)),
+                ]),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "aqaraFp400Radar",
+                    type: ["raw"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const frame = fp400ParseFrame(msg.data);
+                        if (frame?.command !== 0x8b || frame.payload.length < 3 || frame.payload.length > 4 || frame.payload.readUInt16LE(0) !== 0)
+                            return;
+                        const endpoint = msg.endpoint.ID;
+                        if (endpoint !== 1 && !FP400_ZONE_ENDPOINTS.includes(endpoint)) return;
+                        const movement = fp400MovementEvents[frame.payload[frame.payload.length - 1]];
+                        if (movement) return {action: endpoint === 1 ? movement : `${movement}_${endpoint}`};
+                    },
+                } satisfies Fz.Converter<"aqaraFp400Radar", AqaraFp400Radar, ["raw"]>,
+            ],
+        },
         // The sensor sends positions only while subscribed to them, for at most 3 minutes per subscription.
         modernExtend.poll({
             key: "fp400_tracking",
