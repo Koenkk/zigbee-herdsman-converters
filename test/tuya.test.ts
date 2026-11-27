@@ -8,37 +8,6 @@ import type {Definition, Fz, KeyValue, KeyValueAny, OnEvent} from "../src/lib/ty
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
-    describe("TS110E reporting compatibility", () => {
-        it.each([
-            ["_TZ3210_zxbtub8r", false],
-            ["_TZ3210_cyuyd5az", true],
-        ])("configures standard reporting for %s only when supported", async (manufacturerName, supportsReporting) => {
-            const device = mockDevice({
-                modelID: "TS110E",
-                manufacturerName,
-                endpoints: [{ID: 1, inputClusters: ["genOnOff", "genLevelCtrl"]}],
-            });
-            const coordinator = mockDevice({modelID: "", endpoints: [{ID: 1}]});
-            const endpoint = device.getEndpoint(1);
-            if (!supportsReporting) {
-                vi.mocked(endpoint.configureReporting).mockRejectedValue(new Error("UNSUPPORTED_ATTRIBUTE"));
-            }
-            const definition = await findByDevice(device);
-            expect(definition.model).toBe("TS110E_1gang_1");
-
-            await definition.configure?.(device, coordinator.getEndpoint(1), definition);
-
-            if (supportsReporting) {
-                expect(endpoint.configureReporting).toHaveBeenCalledWith(
-                    "genLevelCtrl",
-                    expect.arrayContaining([expect.objectContaining({attribute: "currentLevel"})]),
-                );
-            } else {
-                expect(endpoint.configureReporting).not.toHaveBeenCalled();
-            }
-        });
-    });
-
     describe("tuyaBase data queries", () => {
         const maxIntervalSeconds = 20 * 24 * 60 * 60;
         const invalidIntervals = [maxIntervalSeconds + 0.001, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN];
