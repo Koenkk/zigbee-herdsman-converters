@@ -6863,4 +6863,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Floor lamp T1",
         extend: [m.identify(), m.light({colorTemp: {range: [111, 500]}, color: {modes: ["xy", "hs"]}}), lumi.lumiModernExtend.lumiZigbeeOTA()],
     },
+    {
+        zigbeeModel: ["lumi.models.4447_6213"],
+        model: "LS-L08D",
+        vendor: "Aqara",
+        description: "LED downlight T2 RGB CCT",
+        extend: [m.identify(), m.light({colorTemp: {range: [111, 500]}, color: {modes: ["xy", "hs"]}}), lumi.lumiModernExtend.lumiZigbeeOTA()],
+        whiteLabel: [{vendor: "Aqara", model: "LS-L08E"}],
+    },
 ];
