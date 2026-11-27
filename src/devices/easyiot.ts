@@ -1368,6 +1368,36 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [
+            {type: "EndDevice", modelID: "DS01", manufacturerName: "easyiot"},
+            {type: "EndDevice", modelID: "ZB-DS01", manufacturerName: "easyiot"},
+        ],
+        model: "ZB-DS01",
+        vendor: "easyiot",
+        description: "Contact sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
+        fingerprint: [
+            {type: "EndDevice", modelID: "MS01", manufacturerName: "easyiot"},
+            {type: "EndDevice", modelID: "ZB-MS01", manufacturerName: "easyiot"},
+        ],
+        model: "ZB-MS01",
+        vendor: "easyiot",
+        description: "Motion sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
+        fingerprint: [
+            {type: "EndDevice", modelID: "WS01", manufacturerName: "easyiot"},
+            {type: "EndDevice", modelID: "ZB-WS01", manufacturerName: "easyiot"},
+        ],
+        model: "ZB-WS01",
+        vendor: "easyiot",
+        description: "Water leak sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
         zigbeeModel: ["ZB-WB01"],
         model: "ZB-WB01",
         vendor: "easyiot",
@@ -1462,42 +1492,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "ZB-SW01", manufacturerName: "Lerlink"}],
-        model: "ZB-SW01_Lerlink",
-        vendor: "Lerlink",
-        description: "Zigbee 1-channel relay",
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1}}),
-            m.onOff({endpointNames: ["l1"], configureReporting: false, powerOnBehavior: true, ota: true}),
-            ...easyiotExtend.childLock({enabled: true, endpointNames: ["l1"]}),
-            ...easyiotExtend.switchMode({enabled: true, endpointNames: ["l1"]}),
-        ],
-    },
-    {
-        fingerprint: [{modelID: "ZB-SW02", manufacturerName: "Lerlink"}],
-        model: "ZB-SW02_Lerlink",
-        vendor: "Lerlink",
-        description: "Zigbee 2-channel relay",
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.onOff({endpointNames: ["l1", "l2"], configureReporting: false, powerOnBehavior: true, ota: true}),
-            ...easyiotExtend.childLock({enabled: true, endpointNames: ["l1", "l2"]}),
-            ...easyiotExtend.switchMode({enabled: true, endpointNames: ["l1", "l2"]}),
-        ],
-    },
-    {
-        fingerprint: [{modelID: "ZB-SW03", manufacturerName: "Lerlink"}],
-        model: "ZB-SW03_Lerlink",
-        vendor: "Lerlink",
-        description: "Zigbee 3-channel relay",
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.onOff({endpointNames: ["l1", "l2", "l3"], configureReporting: false, powerOnBehavior: true, ota: true}),
-            ...easyiotExtend.childLock({enabled: true, endpointNames: ["l1", "l2", "l3"]}),
-            ...easyiotExtend.switchMode({enabled: true, endpointNames: ["l1", "l2", "l3"]}),
-        ],
-    },
-    {
         fingerprint: [{modelID: "ZB-SW01", manufacturerName: "easyiot"}],
         model: "ZB-SW01_easyiot",
         vendor: "easyiot",
@@ -1543,6 +1537,42 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({endpointNames: ["l1", "l2", "l3", "l4"], configureReporting: false, powerOnBehavior: true, ota: true}),
             ...easyiotExtend.childLock({enabled: true, endpointNames: ["l1", "l2", "l3", "l4"]}),
             ...easyiotExtend.switchMode({enabled: true, endpointNames: ["l1", "l2", "l3", "l4"]}),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "ZB-SW01", manufacturerName: "Lerlink"}],
+        model: "ZB-SW01_Lerlink",
+        vendor: "Lerlink",
+        description: "Zigbee 1-channel relay",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1}}),
+            m.onOff({endpointNames: ["l1"], configureReporting: false, powerOnBehavior: true, ota: true}),
+            ...easyiotExtend.childLock({enabled: true, endpointNames: ["l1"]}),
+            ...easyiotExtend.switchMode({enabled: true, endpointNames: ["l1"]}),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "ZB-SW02", manufacturerName: "Lerlink"}],
+        model: "ZB-SW02_Lerlink",
+        vendor: "Lerlink",
+        description: "Zigbee 2-channel relay",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({endpointNames: ["l1", "l2"], configureReporting: false, powerOnBehavior: true, ota: true}),
+            ...easyiotExtend.childLock({enabled: true, endpointNames: ["l1", "l2"]}),
+            ...easyiotExtend.switchMode({enabled: true, endpointNames: ["l1", "l2"]}),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "ZB-SW03", manufacturerName: "Lerlink"}],
+        model: "ZB-SW03_Lerlink",
+        vendor: "Lerlink",
+        description: "Zigbee 3-channel relay",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            m.onOff({endpointNames: ["l1", "l2", "l3"], configureReporting: false, powerOnBehavior: true, ota: true}),
+            ...easyiotExtend.childLock({enabled: true, endpointNames: ["l1", "l2", "l3"]}),
+            ...easyiotExtend.switchMode({enabled: true, endpointNames: ["l1", "l2", "l3"]}),
         ],
     },
     {
