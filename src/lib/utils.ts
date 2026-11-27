@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {Clusters} from "zigbee-herdsman/dist/controller/model/endpoint";
 import type {ClusterOrRawAttributeKeys, ClusterOrRawAttributes, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import type {Light, Numeric} from "./exposes";
 import {logger} from "./logger";
@@ -20,6 +21,7 @@ import type {
 } from "./types";
 
 const NS = "zhc:utils";
+const DISCOVER_EXT_UNSUPPORTED_META_KEY = "zclDiscoverExtUnsupported";
 
 export function flatten<Type>(arr: Type[][]): Type[] {
     return [].concat(...arr);
@@ -587,6 +589,41 @@ export async function getClusterAttributeValue<
     } catch {
         return fallback;
     }
+}
+
+export async function discoverAttributes<Cl extends string>(
+    endpoint: Zh.Endpoint,
+    cluster: Cl,
+    extended?: boolean,
+    device?: Zh.Device,
+): Promise<Clusters[string]["attributeList"] | undefined> {
+    const attrs = endpoint.clusters[Zcl.Utils.getCluster(cluster).name]?.attributeList;
+    if (extended && device?.meta[DISCOVER_EXT_UNSUPPORTED_META_KEY]) {
+        extended = false;
+    }
+    if (attrs && Object.keys(attrs).length > 0 && (!extended || Object.values(attrs)[0].access)) {
+        return attrs;
+    }
+    let result: Clusters[string]["attributeList"] | number;
+    try {
+        result = await endpoint.discoverAttributes(cluster, extended, {
+            sendPolicy: "immediate",
+            disableRecovery: true,
+            disableDefaultResponse: true,
+        });
+    } catch (error) {
+        if (extended && (error as Zcl.StatusError).code === Zcl.Status.UNSUP_COMMAND) {
+            // extended command is unsupported
+            if (device) {
+                device.meta[DISCOVER_EXT_UNSUPPORTED_META_KEY] = true;
+            }
+            result = await discoverAttributes(endpoint, cluster, false);
+        } else {
+            const message = (error as Error).message;
+            logger.debug(`discovery error in cluster ${cluster}: ${message}`, NS);
+        }
+    }
+    return result instanceof Object ? result : undefined;
 }
 
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
