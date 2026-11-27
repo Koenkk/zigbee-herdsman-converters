@@ -649,7 +649,7 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 model: "AY-204ZX",
                 vendor: "AOYAN",
-                description: "24Ghz millimeter wave and T&H sensor",
+                description: "24Ghz human presence sensor",
                 fingerprint: [{modelID: "AY-204ZX", manufacturerName: "AOYAN"}],
             },
         ],
