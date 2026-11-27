@@ -984,7 +984,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_offset",
                 cluster: "msTemperatureMeasurement",
                 attribute: "temperatureOffset",
-                description: "Offset subtracted from the raw temperature reading",
+                description: "Offset added to the raw temperature reading",
                 valueMin: -10,
                 valueMax: 10,
                 valueStep: 0.1,
