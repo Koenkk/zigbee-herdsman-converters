@@ -96,7 +96,11 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["ERROR", 0],
                 description: "DS18B20 connection status",
                 access: "STATE_GET",
-                reporting: {min: 1, max: 60, change: 1},
+                reporting: {
+                    min: 1,
+                    max: 60,
+                    change: 1,
+                },
                 entityCategory: "diagnostic",
             }),
             m.numeric({
@@ -124,19 +128,32 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             overrideHaDiscoveryPayload: (payload) => {
                 const tpl = payload.value_template ?? payload.val_tpl ?? "";
-                if (tpl.includes("sensor_status")) payload.name = "DS18B20";
+
+                if (tpl.includes("sensor_status")) {
+                    payload.name = "DS18B20";
+                }
+
                 const cls = payload.device_class ?? payload.dev_cla;
+
                 if (cls !== "temperature") return;
+
                 const topic = payload.state_topic ?? payload.stat_t;
+
                 if (!topic) return;
+
                 const status = {
                     topic,
                     value_template: "{{ 'online' if value_json.sensor_status | default('ERROR') == 'OK' else 'offline' }}",
                     payload_available: "online",
                     payload_not_available: "offline",
                 };
-                if (Array.isArray(payload.availability)) payload.availability.push(status);
-                else payload.availability = [status];
+
+                if (Array.isArray(payload.availability)) {
+                    payload.availability.push(status);
+                } else {
+                    payload.availability = [status];
+                }
+
                 payload.availability_mode = "all";
             },
         },
@@ -185,12 +202,16 @@ export const definitions: DefinitionWithExtend[] = [
                 const tpl = payload.value_template ?? payload.val_tpl ?? "";
                 if (tpl.includes("sensor_status") && "name" in payload) payload.name = "XDB401";
                 const cls = payload.device_class ?? payload.dev_cla;
-                const pressure = cls === "pressure" || cls === "atmospheric_pressure" || tpl.includes("atmospheric_pressure");
+                const pressure =
+                    cls === "pressure" ||
+                    cls === "atmospheric_pressure" ||
+                    tpl.includes("atmospheric_pressure") ||
+                    /value_json(?:\.pressure\b|\[['"]pressure['"]\])/.test(tpl);
                 if (cls !== "temperature" && !pressure) return;
                 if (pressure) {
                     payload.name = "Pressure";
-                    payload.device_class = "pressure";
                     if ("dev_cla" in payload) payload.dev_cla = "pressure";
+                    if ("device_class" in payload || !("dev_cla" in payload)) payload.device_class = "pressure";
                 }
                 const topic = payload.state_topic ?? payload.stat_t;
                 if (!topic) return;
