@@ -76,6 +76,7 @@ describe("Control4 SR260", () => {
                 endpoint,
             );
         expect(read([0x0008, 0x0009, 0x000a])).toBe(true);
+        expect(read([0x000c, 0x0001])).toBe(true);
         const options = {profileId: 0xc25d, srcEndpoint: 2, disableDefaultResponse: true};
         expect(readResponse.mock.calls).toStrictEqual([
             [
@@ -88,6 +89,7 @@ describe("Control4 SR260", () => {
                 },
                 options,
             ],
+            ["genPowerCfg", 0x75, {12: {value: undefined, type: Zcl.DataType.NO_DATA}, 1: {value: undefined, type: Zcl.DataType.NO_DATA}}, options],
         ]);
         // Reads on other endpoints are left to zigbee-herdsman.
         expect(

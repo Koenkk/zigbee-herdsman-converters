@@ -151,7 +151,14 @@ const sr260 = (): ModernExtend => {
                 const {device} = event.data;
                 device.customReadResponse = (frame, endpoint) => {
                     if (endpoint.ID !== 2 || !frame.isCluster("genPowerCfg")) return false;
-                    endpoint.readResponse("genPowerCfg", frame.header.transactionSequenceNumber, identity(device), options).catch(() => {});
+                    // Only 8-10 are the identity; anything else it reads (0x000C, 0x0001) must come back unsupported,
+                    // answering those with the identity makes it rejoin over and over.
+                    const id: KeyValueAny = identity(device);
+                    const records: KeyValueAny = {};
+                    for (const {attrId} of frame.payload as {attrId: number}[]) {
+                        records[attrId] = id[attrId] ?? {value: undefined, type: Zcl.DataType.NO_DATA};
+                    }
+                    endpoint.readResponse("genPowerCfg", frame.header.transactionSequenceNumber, records, options).catch(() => {});
                     return true;
                 };
             },
