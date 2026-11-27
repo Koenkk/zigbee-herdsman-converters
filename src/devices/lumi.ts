@@ -6856,4 +6856,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.skipDefaultResponse(),
         ],
     },
+    {
+        zigbeeModel: ["lumi.models.4447_6207"],
+        model: "LB-L18D",
+        vendor: "Aqara",
+        description: "Floor lamp T1",
+        extend: [m.identify(), m.light({colorTemp: {range: [111, 500]}, color: {modes: ["xy", "hs"]}}), lumi.lumiModernExtend.lumiZigbeeOTA()],
+    },
 ];
