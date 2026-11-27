@@ -77,6 +77,7 @@ const {
 
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
+
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
 const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
@@ -1780,6 +1781,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({
                 voltage: true,
                 voltageReporting: true,
+                // Device doesn't support batteryPercentageRemaining, percentage is calculated from voltage
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/13759
+                percentageReporting: false,
                 voltageToPercentage: {min: 2850, max: 3000},
             }),
             m.quirkCheckinInterval("1_HOUR"),
@@ -5250,6 +5254,69 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.plug.aeu007"],
+        model: "SP-P06D",
+        vendor: "Aqara",
+        description: "Outdoor power plug H2 EU (RGB)",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiIndicatorLight(),
+            lumiZigbeeOTA(),
+            lumiOnOff({deviceTemperature: false}),
+            lumiPowerOnBehavior(),
+            m.electricityMeter({cluster: "electrical", power: {divisor: 1, multiplier: 1}, voltage: false, current: false}),
+            lumiElectricityMeter({voltage: false}),
+            lumiOverloadProtection(),
+            lumiFlipIndicatorLight(),
+            lumiChildLock(),
+            m.binary({
+                name: "charging_protection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Turn off the plug if the power is below 3W for half an hour",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup({
+                name: "led_color_mode",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02df, type: 0x20},
+                lookup: {fixed: 0, power: 1, daily_energy: 2, monthly_energy: 3},
+                description: "Indicator light colour: fixed, or a gradient by current power, daily or monthly energy",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "led_max_power",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02e0, type: 0x39},
+                valueMin: 0,
+                valueMax: 3840,
+                unit: "W",
+                description: "Power at the top of the indicator colour gradient",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "led_max_energy",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x02e1, type: 0x39},
+                valueMin: 0,
+                valueMax: 10000,
+                unit: "kWh",
+                description: "Daily or monthly energy at the top of the indicator colour gradient",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.identify(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.acn032", "lumi.light.acn031"],
         model: "CL-L02D",
         vendor: "Aqara",
@@ -5314,7 +5381,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiKnobRotation(),
             lumiElectricityMeter(),
-            lumiPower(),
+            lumiPower({reporting: false}),
             lumiZigbeeOTA(),
         ],
     },
@@ -5745,19 +5812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "ON: Enables thermostat mode, buttons send encrypted payloads, and the middle line is displayed. OFF: Disables thermostat mode, buttons send actions, and the middle line is hidden.",
                 ),
-            e
-                .climate()
-                .withSystemMode(["off", "heat", "cool", "auto"])
-                .withFanMode(["auto", "low", "medium", "high"])
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
-                .withLocalTemperature()
-                .withDescription(
-                    "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
-                ),
             e.action(["W100_PMTSD_request"]).withDescription("PMTSD request sent by the W100 via the 08000844 sequence"),
-            e
-                .text("PMTSD_from_W100_Data", ea.STATE)
-                .withDescription('Latest PMTSD values sent by the W100 when manually changed, formatted as "YYYY-MM-DD HH:mm:ss_Px_Mx_Tx_Sx_Dx"'),
             e.battery(),
         ],
         options: [
@@ -5785,33 +5840,33 @@ export const definitions: DefinitionWithExtend[] = [
             // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             if (!device.meta.state) (device.meta as any).state = {};
 
-            // Send thermostat_mode = OFF. We construct a fake meta object as convertSet needs it.
-            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-            const meta = {device, state: (device.meta as any).state, logger} as any;
-            try {
+            // Send thermostat_mode = OFF on a new device, it also detects the protocol. Not when the user enabled it: Z2M also
+            // runs configure after an OTA update, the subscription is then restored after the reboot (0x00EE).
+            if (device.meta.w100ThermostatMode !== "ON") {
+                // We construct a fake meta object as convertSet needs it.
                 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
-            } catch (_error) {
-                // ignore
+                const meta = {device, state: (device.meta as any).state, logger} as any;
+                try {
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
+                } catch (_error) {
+                    // ignore
+                }
             }
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
-            await endpoint.configureReporting("msTemperatureMeasurement", [
-                {
-                    attribute: "measuredValue",
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 3600,
-                    reportableChange: 100,
-                },
-            ]);
+            // 0x0174 and 0x00F7 are only reported when bound.
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0172], {manufacturerCode});
 
             logger.info("Aqara W100: configure completed", NS);
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumi.modernExtend.w100Thermostat(),
             lumiZigbeeOTA(),
-            m.temperature(),
-            m.humidity(),
+            // The W100 reports based on its own settings (e.g. temp_threshold), don't filter these.
+            m.temperature({reporting: {min: 1, max: 3600, change: 1}}),
+            m.humidity({reporting: {min: 1, max: 3600, change: 1}}),
             lumiExternalSensor(),
             m.deviceEndpoints({endpoints: {plus: 1, center: 2, minus: 3}}),
             lumiAction({
@@ -6763,5 +6818,46 @@ export const definitions: DefinitionWithExtend[] = [
             m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
+    },
+    {
+        zigbeeModel: ["lumi.models.4447_8295"],
+        model: "FP400",
+        vendor: "Aqara",
+        description: "Presence multi-sensor FP400",
+        // A new patch version has Zigbee2MQTT configure sensors paired under an older one again.
+        version: "0.0.1",
+        extend: [
+            // Its own clusters 0xFC0A-0xFC0C and 0x0080 (see lib/lumi.ts).
+            lumi.lumiModernExtend.fp400AddClusters(),
+            // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones.
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
+            m.occupancy({endpointNames: ["1"]}),
+            m.illuminance({endpointNames: ["2"], reporting: false}),
+            ...lumi.lumiModernExtend.fp400Settings(),
+            ...lumi.lumiModernExtend.fp400Room(),
+            ...lumi.lumiModernExtend.fp400Areas(),
+            ...lumi.lumiModernExtend.fp400NativeZones(),
+            m.identify(),
+            lumi.lumiModernExtend.lumiZigbeeOTA(),
+            // Herdsman cannot parse Aqara's 0x8A/0x8B frames and answers each with a Default Response (UNSUP_COMMAND):
+            // 6,757 transmissions in 5 hours with two sensors tracking, one per position frame. The sensor sets Disable
+            // Default Response on every other frame it sends (2026-11-12 logs), so it never needs one.
+            m.skipDefaultResponse(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.models.4447_6207"],
+        model: "LB-L18D",
+        vendor: "Aqara",
+        description: "Floor lamp T1",
+        extend: [m.identify(), m.light({colorTemp: {range: [111, 500]}, color: {modes: ["xy", "hs"]}}), lumi.lumiModernExtend.lumiZigbeeOTA()],
+    },
+    {
+        zigbeeModel: ["lumi.models.4447_6213"],
+        model: "LS-L08D",
+        vendor: "Aqara",
+        description: "LED downlight T2 RGB CCT",
+        extend: [m.identify(), m.light({colorTemp: {range: [111, 500]}, color: {modes: ["xy", "hs"]}}), lumi.lumiModernExtend.lumiZigbeeOTA()],
+        whiteLabel: [{vendor: "Aqara", model: "LS-L08E"}],
     },
 ];

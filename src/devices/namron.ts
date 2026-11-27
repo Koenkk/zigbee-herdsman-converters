@@ -467,6 +467,32 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
+
+const localModernExtend = {
+    // systemMode holds the preset, on/off is controlled with genOnOff.
+    simplifyThermostatSystemMode: (): ModernExtend => ({
+        fromZigbee: [
+            {
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.onOff !== undefined) return {system_mode: msg.data.onOff ? "heat" : "off"};
+                },
+            } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["system_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command("genOnOff", utils.getFromLookup(value, {off: "off", heat: "on"} as const), {});
+                    return {state: {system_mode: value}};
+                },
+                convertGet: tz.on_off.convertGet,
+            } satisfies Tz.Converter,
+        ],
+        isModernExtend: true,
+    }),
+};
 // Namron Simplify Dimmer (4512791) helpers + toZigbee converters
 type TzConvertSet = NonNullable<Tz.Converter["convertSet"]>;
 type TzEntity = Parameters<TzConvertSet>[0];
@@ -556,7 +582,6 @@ const fzSimplifyThermostat = {
         if (msg.data.localTemp !== undefined) result.local_temperature = utils.precisionRound(msg.data.localTemp / 100, 2);
         if (msg.data.localTemperatureCalibration !== undefined) result.local_temperature_calibration = msg.data.localTemperatureCalibration / 10;
         if (msg.data.occupiedHeatingSetpoint !== undefined) result.occupied_heating_setpoint = msg.data.occupiedHeatingSetpoint / 100;
-        if (msg.data.pIHeatingDemand !== undefined) result.pi_heating_demand = msg.data.pIHeatingDemand;
         if (msg.data.runningState !== undefined) result.running_state = msg.data.runningState === 0 ? "heat" : "idle";
         // The device requests the time by setting 0x800a, answer it by writing the time to 0x800b and clearing the flag.
         if ((msg.data as KeyValue)[0x800a] === 1) {
@@ -1380,6 +1405,11 @@ export const definitions: DefinitionWithExtend[] = [
             try {
                 await reporting.humidity(endpoint, {min: 10, max: 300, change: 100});
             } catch (_) {}
+            // Energy is otherwise only reported while the device's own default reporting is active. A unit that had
+            // other electrical reporting configured stopped reporting energy until this was set.
+            try {
+                await reporting.currentSummDelivered(endpoint, {min: 10, max: 300, change: 1});
+            } catch (_) {}
 
             await edgeReadAll(endpoint);
 
@@ -1565,6 +1595,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512733",
         vendor: "Namron",
         description: "Zigbee dimmer 2-pol 400W",
+        ota: true,
         extend: [m.light({configureReporting: true})],
     },
     {
@@ -2245,27 +2276,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512735",
         vendor: "Namron",
         description: "Multiprise with 4 AC outlets and 2 USB super charging ports (16A)",
-        fromZigbee: [fz.on_off],
-        toZigbee: [tz.on_off],
-        exposes: [
-            e.switch().withEndpoint("l1"),
-            e.switch().withEndpoint("l2"),
-            e.switch().withEndpoint("l3"),
-            e.switch().withEndpoint("l4"),
-            e.switch().withEndpoint("l5"),
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5}}),
+            m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5"], powerOnBehavior: false}),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            for (const ID of [1, 2, 3, 4, 5]) {
-                const endpoint = device.getEndpoint(ID);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            }
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["5401392", "5401396", "5401393", "5401397", "5401394", "5401398", "5401395", "5401399"],
@@ -2806,48 +2822,32 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512762",
         vendor: "Namron",
         description: "Zigbee Door Sensor",
-        fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
-        toZigbee: [],
-        exposes: [e.contact(), e.battery(), e.battery_voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
+        ota: true,
+        extend: [m.battery({voltage: true, voltageReporting: true}), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]})],
     },
     {
         zigbeeModel: ["4512763"],
         model: "4512763",
         vendor: "Namron",
         description: "Zigbee movement sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_1],
-        toZigbee: [],
-        exposes: [e.occupancy(), e.tamper()],
-        extend: [m.battery({voltage: true, lowStatus: true})],
+        ota: true,
+        extend: [m.battery({voltage: true, lowStatus: true}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper"]})],
     },
     {
         zigbeeModel: ["4512764"],
         model: "4512764",
         vendor: "Namron",
         description: "Zigbee water leak sensor",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [],
-        exposes: [e.battery_low(), e.water_leak(), e.battery()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
+        ota: true,
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
     },
     {
         zigbeeModel: ["4512765"],
         model: "4512765",
         vendor: "Namron",
         description: "Zigbee humidity and temperature Sensor",
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity],
-        toZigbee: [],
-        exposes: [e.battery(), e.temperature(), e.humidity()],
+        ota: true,
+        extend: [m.battery(), m.temperature(), m.humidity()],
     },
     {
         zigbeeModel: ["4512750", "4512751"],
@@ -3187,7 +3187,36 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512788",
         vendor: "Namron",
         description: "Zigbee smart plug dimmer 150W",
-        extend: [m.light({effect: false, configureReporting: true}), m.electricityMeter({cluster: "electrical"})],
+        ota: true,
+        meta: {disableDefaultResponse: false},
+        extend: [
+            m.light({effect: false, configureReporting: true, levelConfig: {features: ["on_level", "execute_if_off"]}}),
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10},
+                voltage: {multiplier: 1, divisor: 10},
+                current: {multiplier: 1, divisor: 100},
+                energy: {multiplier: 1, divisor: 100},
+            }),
+            m.numeric({
+                name: "dimming_speed",
+                cluster: "genLevelCtrl",
+                attribute: "defaultMoveRate",
+                description: "Default move rate used when dimming.",
+                valueMin: 1,
+                valueMax: 10,
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.enumLookup({
+                name: "dimmer_mode",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xb000, type: Zcl.DataType.ENUM8},
+                description: "Dimmer type: trailing edge (RC) or leading edge (RL).",
+                lookup: {trailing_edge: 0, leading_edge: 1},
+                access: "ALL",
+                entityCategory: "config",
+            }),
+        ],
     },
 
     {
@@ -3231,6 +3260,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512793",
         vendor: "Namron",
         description: "Simplify 6-button remote with battery",
+        ota: true,
         extend: [m.battery(), namron.namronExtend.addCustomClusterNamronPrivateE004()],
         fromZigbee: [fzLocal.namronSimplifyRemote],
         toZigbee: [],
@@ -3393,9 +3423,11 @@ export const definitions: DefinitionWithExtend[] = [
                 localTemperatureCalibration: {values: {min: -10, max: 10, step: 0.5}},
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
                 runningState: {values: ["idle", "heat"], configure: {reporting: false}},
-                piHeatingDemand: {values: true},
+                // Converters are in localModernExtend.simplifyThermostatSystemMode
+                systemMode: {values: ["off", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
             }),
             m.onOff({powerOnBehavior: false}),
+            localModernExtend.simplifyThermostatSystemMode(),
             m.identify(),
             m.humidity({reporting: false}),
             // Reporting configuration fails with INSUFFICIENT_SPACE, the device reports by itself.

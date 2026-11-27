@@ -1132,6 +1132,31 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["ZHOT201", "ZHOT101 - ZigBee Occupancy, Temperature & Light Sensor"],
+        model: "ZHOT201",
+        vendor: "Develco",
+        description: "Motion, temperature and illuminance sensor",
+        fromZigbee: [
+            {
+                // Device sends a truncated (3 byte) zone status change notification which zigbee-herdsman can't parse
+                cluster: "ssIasZone",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    const data = msg.data;
+                    if (data.length !== 6 || data[2] !== 0x00) return;
+                    const zoneStatus = data.readUInt16LE(3);
+                    return {tamper: (zoneStatus & 0x04) > 0, battery_low: (zoneStatus & 0x08) > 0};
+                },
+            } satisfies Fz.Converter<"ssIasZone", undefined, ["raw"]>,
+        ],
+        extend: [
+            m.occupancy({pirConfig: ["otu_delay", "uto_delay", "uto_threshold"]}),
+            m.temperature(),
+            m.illuminance(),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["tamper", "battery_low"]}),
+        ],
+    },
+    {
         whiteLabel: [{vendor: "Frient", model: "MOSZB-153", description: "Motion Sensor 2 Pet"}],
         zigbeeModel: ["MOSZB-153"],
         model: "MOSZB-153",

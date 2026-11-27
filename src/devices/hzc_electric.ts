@@ -149,6 +149,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.binary<"hzcValue", HzcValueCluster>({
                 name: "boost_switch",
@@ -157,6 +158,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Boost",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hzcValue", HzcValueCluster>({
                 name: "boost_countdown",
@@ -166,6 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 90,
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
             }),
             m.binary<"hzcValue", HzcValueCluster>({
                 name: "value_switch",
@@ -174,6 +177,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Value switch",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.enumLookup<"hzcValue", HzcValueCluster>({
                 name: "control_type",
@@ -182,6 +186,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Control type",
                 lookup: {PDPID: 0, NF: 1},
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hzcValue", HzcValueCluster>({
                 name: "value_opening",
@@ -191,6 +196,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 valueMin: 0,
                 valueMax: 10,
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
             }),
             m.binary<"hzcValue", HzcValueCluster>({
                 name: "scale_switch",
@@ -200,6 +206,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.binary<"hvacThermostat", undefined>({
                 name: "frost",
@@ -209,6 +216,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hvacThermostat", undefined>({
                 name: "frost_temp",
@@ -221,6 +229,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 10,
                 valueStep: 0.5,
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
             }),
             m.binary<"hvacUserInterfaceCfg", undefined>({
                 name: "keypad_lockout",
@@ -230,6 +239,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["LOCK", 1],
                 valueOff: ["UNLOCK", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.enumLookup<"hvacUserInterfaceCfg", undefined>({
                 name: "display_mode",
@@ -238,6 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Display orientation",
                 lookup: {forward: 0, reverse: 1},
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hvacUserInterfaceCfg", undefined>({
                 name: "holiday_time",
@@ -248,6 +259,17 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 99,
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
+            }),
+            m.binary<"hvacUserInterfaceCfg", undefined>({
+                name: "auto_time",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x8004, type: Zcl.DataType.BOOLEAN},
+                description: "Enable automatic time sync",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             {
                 configure: [
@@ -260,5 +282,6 @@ export const definitions: DefinitionWithExtend[] = [
                 isModernExtend: true,
             },
         ],
+        meta: {timeout: 30000},
     },
 ];

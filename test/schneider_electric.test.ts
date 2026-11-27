@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
-import type {Fz, KeyValueAny} from "../src/lib/types";
+import type {Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("Schneider Electric S520567", () => {
@@ -88,5 +89,96 @@ describe("Schneider Electric WV704R0A0902", () => {
                 "hvacUserInterfaceCfg.keypadLockout",
             ]),
         );
+    });
+});
+
+describe("Schneider Electric EER51000", () => {
+    it("answers the thermostat's setpoint and mode reads from the cache", async () => {
+        const device = mockDevice({
+            modelID: "EH-ZB-RTS",
+            manufacturerName: "Schneider Electric",
+            endpoints: [{ID: 11, inputClusters: ["hvacThermostat"]}],
+        });
+        const definition = await findByDevice(device);
+        const endpoint = device.getEndpoint(11);
+        endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: 1500});
+        await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: () => {}}});
+        await definition.toZigbee.find((c) => c.key?.includes("zone_mode"))?.convertSet?.(endpoint, "zone_mode", "schedule", {} as Tz.Meta);
+        const readResponse = vi.spyOn(endpoint, "readResponse").mockResolvedValue(undefined);
+        const read = (attrId: number) =>
+            device.customReadResponse?.(
+                Zcl.Frame.create(Zcl.FrameType.GLOBAL, Zcl.Direction.CLIENT_TO_SERVER, true, undefined, 1, "read", "hvacThermostat", [{attrId}], {}),
+                endpoint,
+            );
+
+        // Simulate the reads made when increasing/decreasing the temperature
+        expect(read(0x0012)).toBe(true);
+        expect(read(0xe010)).toBe(true);
+        expect(readResponse.mock.calls).toStrictEqual([
+            ["hvacThermostat", 1, {occupiedHeatingSetpoint: 1500}, {srcEndpoint: 11, manufacturerCode: undefined}],
+            ["hvacThermostat", 1, {[0xe010]: {value: 2, type: Zcl.DataType.ENUM8}}, {srcEndpoint: 11, manufacturerCode: undefined}],
+        ]);
+        // Other attributes are left to zigbee-herdsman.
+        expect(read(0x0000)).toBe(false);
+    });
+});
+
+describe("Schneider Electric EER53000", () => {
+    it("sends setpoint and offset changes when the valve reports and answers its reads with them", async () => {
+        const device = mockDevice({
+            modelID: "EH-ZB-VACT",
+            manufacturerName: "Schneider Electric",
+            endpoints: [{ID: 11, inputClusters: ["hvacThermostat"]}],
+        });
+        const definition = await findByDevice(device);
+        const endpoint = device.getEndpoint(11);
+        await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: () => {}}});
+        const command = vi.spyOn(endpoint, "command").mockResolvedValue(undefined);
+        const write = vi.spyOn(endpoint, "write").mockResolvedValue(undefined);
+        const readResponse = vi.spyOn(endpoint, "readResponse").mockResolvedValue(undefined);
+        const set = (key: string, value: unknown) =>
+            definition.toZigbee.find((c) => c.key?.includes(key))?.convertSet?.(endpoint, key, value, {} as Tz.Meta);
+        const report = async () => {
+            const msg = {data: {localTemp: 1900}, endpoint, device, type: "attributeReport", cluster: "hvacThermostat"};
+            const converter = definition.fromZigbee.find((c) => c.cluster === "hvacThermostat" && c.type.includes("attributeReport"));
+            await converter?.convert(definition, msg as never, () => {}, {}, {state: {}, device} as never);
+            await new Promise(setImmediate);
+        };
+        const read = (attrId: number) =>
+            device.customReadResponse?.(
+                Zcl.Frame.create(Zcl.FrameType.GLOBAL, Zcl.Direction.CLIENT_TO_SERVER, true, undefined, 1, "read", "hvacThermostat", [{attrId}], {}),
+                endpoint,
+            );
+
+        await set("occupied_heating_setpoint", 21.5);
+        await set("zone_mode", "schedule");
+        await set("local_temperature_calibration", -0.7);
+        await set("keypad_lockout", "lock1");
+        await set("calibrate_valve", "calibrate");
+        await set("open_window_detection", false);
+        // Nothing is sent while the valve sleeps
+        expect(command).not.toHaveBeenCalled();
+        expect(write).not.toHaveBeenCalled();
+
+        // The valve reports, so it listens: everything is sent once, with the last setpoint
+        await report();
+        await report();
+        expect(command.mock.calls.map((call) => call.slice(0, 3))).toStrictEqual([
+            ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 2, setpoint: 2150, reserved: 0xff}],
+            ["hvacThermostat", "wiserSmartCalibrateValve", {}],
+        ]);
+        expect(write.mock.calls.map((call) => call[1])).toStrictEqual([
+            {localTemperatureCalibration: -7},
+            {keypadLockout: 1},
+            {57363: {value: 0, type: Zcl.DataType.UINT8}, 57364: {value: 600, type: Zcl.DataType.UINT16}},
+        ]);
+
+        // Simulate the reads made after a button press
+        expect(read(0x0012)).toBe(true);
+        expect(read(0xe010)).toBe(true);
+        expect(readResponse.mock.calls).toStrictEqual([
+            ["hvacThermostat", 1, {occupiedHeatingSetpoint: 2150}, {srcEndpoint: 11, manufacturerCode: undefined}],
+            ["hvacThermostat", 1, {[0xe010]: {value: 2, type: Zcl.DataType.ENUM8}}, {srcEndpoint: 11, manufacturerCode: undefined}],
+        ]);
     });
 });

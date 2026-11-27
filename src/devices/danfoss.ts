@@ -1002,6 +1002,64 @@ const danfossExtend = {
             },
         ],
     }),
+    danfossWeeklySchedule: (): ModernExtend => {
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const dayBit = (key: string) => 1 << days.indexOf(key.replace("schedule_", ""));
+        const pad = (n: number) => n.toString().padStart(2, "0");
+        // The TRV sends one getWeeklyScheduleRsp per requested day, so don't wait for a response
+        const read = (entity: Zh.Endpoint | Zh.Group, daystoreturn: number) =>
+            entity.command("hvacThermostat", "getWeeklySchedule", {daystoreturn, modetoreturn: 1}, {disableResponse: true});
+        return {
+            exposes: days.map((day) =>
+                e.text(`schedule_${day}`, ea.ALL).withDescription(`Schedule for ${day}, up to 6 transitions, e.g. "06:00/21 22:00/17"`),
+            ),
+            fromZigbee: [
+                {
+                    cluster: "hvacThermostat",
+                    type: ["commandGetWeeklyScheduleRsp"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const schedule = msg.data.transitions
+                            .map((t) => `${pad(Math.floor(t.transitionTime / 60))}:${pad(t.transitionTime % 60)}/${t.heatSetpoint / 100}`)
+                            .join(" ");
+                        return Object.fromEntries(days.filter((d, i) => msg.data.dayofweek & (1 << i)).map((d) => [`schedule_${d}`, schedule]));
+                    },
+                } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
+            ],
+            toZigbee: [
+                {
+                    key: days.map((day) => `schedule_${day}`),
+                    convertSet: async (entity, key, value, meta) => {
+                        utils.assertString(value, key);
+                        const transitions = value
+                            .split(" ")
+                            .filter((t) => t)
+                            .map((t) => {
+                                const match = t.match(/^(\d{1,2}):(\d{2})\/(\d+(\.\d+)?)$/);
+                                if (!match) throw new Error(`Invalid transition '${t}', expected format HH:MM/temperature`);
+                                return {transitionTime: Number(match[1]) * 60 + Number(match[2]), heatSetpoint: Math.round(Number(match[3]) * 100)};
+                            });
+                        await entity.command(
+                            "hvacThermostat",
+                            "setWeeklySchedule",
+                            {dayofweek: dayBit(key), numoftrans: transitions.length, mode: 1, transitions},
+                            // Queue for sleepy TRV, can be removed after https://github.com/Koenkk/zigbee-herdsman/pull/1948
+                            {...utils.getOptions(meta.mapped, entity), sendPolicy: "keep-payload"},
+                        );
+                        return {state: {[key]: value}};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await read(entity, dayBit(key));
+                    },
+                },
+            ],
+            configure: [
+                async (device) => {
+                    await read(device.getEndpoint(1), 0x7f);
+                },
+            ],
+            isModernExtend: true,
+        };
+    },
 };
 
 const tzLocal = {
@@ -1517,6 +1575,7 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
             danfossExtend.danfossTimeSyncOnAnnounce(),
+            danfossExtend.danfossWeeklySchedule(),
             m.poll({
                 key: "danfossTime",
                 defaultIntervalSeconds: 60 * 60 * 24,

@@ -65,6 +65,7 @@ import {
 } from "./utils";
 
 const NS = "zhc:modernextend";
+const MAX_POLL_INTERVAL_SECONDS = 20 * 24 * 60 * 60;
 
 const IAS_EXPOSE_LOOKUP = {
     occupancy: e.binary("occupancy", ea.STATE, true, false).withDescription("Indicates whether the device detected occupancy"),
@@ -791,12 +792,16 @@ export function poll(args: {
     const onEvent: OnEvent.Handler[] = [
         (event) => {
             if (event.type === "start" || (event.type === "deviceOptionsChanged" && event.data.from[optionKey] !== event.data.to[optionKey])) {
+                clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
+                globalStore.clearValue(event.data.device.ieeeAddr, args.key);
+
                 let seconds = args.defaultIntervalSeconds;
                 if (args.option) {
                     seconds = toNumber(event.data.options[optionKey] ?? args.defaultIntervalSeconds, optionKey);
                 }
-
-                clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
+                if (!Number.isFinite(seconds) || seconds > MAX_POLL_INTERVAL_SECONDS) {
+                    throw new Error(`${optionKey} must be finite and no greater than ${MAX_POLL_INTERVAL_SECONDS} seconds`);
+                }
 
                 if (seconds <= 0 || event.data.options.disabled) {
                     logger.debug(
@@ -1286,6 +1291,7 @@ export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): Modern
 export interface LightArgs {
     effect?: boolean;
     powerOnBehavior?: boolean;
+    brightness?: boolean;
     colorTemp?: {startup?: boolean; range: Range};
     color?: boolean | {modes?: ("xy" | "hs")[]; applyRedFix?: boolean; enhancedHue?: boolean; moveToLevelWithOnOffDisable?: boolean};
     turnsOffAtBrightness1?: boolean;
@@ -1303,6 +1309,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         powerOnBehavior = true,
         configureReporting = false,
         ota = false,
+        brightness = true,
         color = undefined,
         levelConfig = undefined,
         turnsOffAtBrightness1 = false,
@@ -1324,20 +1331,21 @@ export function light(args: LightArgs = {}): ModernExtend {
           }
         : false;
 
-    const baseLightExpose = e.light().withBrightness();
+    const baseLightExpose = e.light();
+    if (brightness) baseLightExpose.withBrightness();
     if (homeassistant) baseLightExpose.withHomeAssistant(homeassistant);
     const lightExpose = exposeEndpoints(baseLightExpose, endpointNames);
 
     const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
-        [fz.on_off, fz.brightness, fz.level_config];
-    const toZigbee: Tz.Converter[] = [
-        endpointNames ? {...tz.light_onoff_brightness, endpoints: endpointNames} : tz.light_onoff_brightness,
-        tz.ignore_transition,
-        tz.level_config,
-        tz.ignore_rate,
-        tz.light_brightness_move,
-        tz.light_brightness_step,
-    ];
+        [fz.on_off];
+    if (brightness) {
+        fromZigbee.push(fz.brightness, fz.level_config);
+    }
+    const onOffTz = brightness ? tz.light_onoff_brightness : tz.on_off;
+    const toZigbee: Tz.Converter[] = [endpointNames ? {...onOffTz, endpoints: endpointNames} : onOffTz, tz.ignore_transition];
+    if (brightness) {
+        toZigbee.push(tz.level_config, tz.ignore_rate, tz.light_brightness_move, tz.light_brightness_step);
+    }
     const meta: DefinitionMeta = {};
 
     if (colorTemp || argsColor) {
@@ -1377,7 +1385,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         }
     }
 
-    if (levelConfig) {
+    if (levelConfig && brightness) {
         lightExpose.forEach((e) => {
             levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
         });
@@ -1415,9 +1423,11 @@ export function light(args: LightArgs = {}): ModernExtend {
 
             if (configureReporting) {
                 await setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
-                await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
-                    {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(levelReportingConfig || {})},
-                ]);
+                if (brightness) {
+                    await setupAttributes(device, coordinatorEndpoint, "genLevelCtrl", [
+                        {attribute: "currentLevel", min: "5_SECONDS", max: "MAX", change: 1, ...(levelReportingConfig || {})},
+                    ]);
+                }
                 if (colorTemp) {
                     await setupAttributes(device, coordinatorEndpoint, "lightingColorCtrl", [
                         {attribute: "colorTemperature", min: "10_SECONDS", max: "MAX", change: 1},
@@ -2894,6 +2904,8 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     entityCategory?: "config" | "diagnostic";
     precision?: number | (number | undefined)[];
     fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
+    tzConvertSet?: Tz.Converter["convertSet"];
+    tzConvertGet?: Tz.Converter["convertGet"];
     homeassistant?: exposes.HomeAssistant | (exposes.HomeAssistant | undefined)[];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
@@ -2915,6 +2927,8 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         entityCategory,
         precision,
         fzConvert,
+        tzConvertSet,
+        tzConvertGet,
         homeassistant,
     } = args;
 
@@ -3096,11 +3110,12 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
             key: [uniqName],
             convertSet:
                 access & ea.SET
-                    ? async (entity, key, value, meta) => {
+                    ? (tzConvertSet ??
+                      (async (entity, key, value, meta) => {
                           assertNumber(value, key);
                           let payloadValue = value;
                           if (scale !== undefined) {
-                              payloadValue = typeof scale === "number" ? payloadValue * scale : scale(payloadValue, "to");
+                              payloadValue = typeof scale === "number" ? Math.round(payloadValue * scale) : scale(payloadValue, "to");
                           }
                           assertNumber(payloadValue);
 
@@ -3117,18 +3132,19 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                               zigbeeCommandOptions,
                           );
                           return {state: {[key]: value}};
-                      }
+                      }))
                     : undefined,
             convertGet:
                 access & ea.GET
-                    ? async (entity, key, meta) => {
+                    ? (tzConvertGet ??
+                      (async (entity, key, meta) => {
                           await determineEndpoint(entity, meta, cluster).read(
                               cluster,
                               // XXX: too dynamic for typing
                               [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
                               zigbeeCommandOptions,
                           );
-                      }
+                      }))
                     : undefined,
         };
         toZigbee.push(tZ);

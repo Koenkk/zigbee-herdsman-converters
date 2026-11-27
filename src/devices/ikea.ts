@@ -596,7 +596,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "KAJPLATS E14 CWS globe 806lm"}],
             },
             {
-                model: "LED2410R5/LED2410R5NA",
+                model: "LED2410R5/LED2410R5NA/LED2410R5JP",
                 description: "KAJPLATS GU10 bulb, color/white spectrum, 470/575 lm (Matter)",
                 fingerprint: [{modelID: "KAJPLATS GU10 CWS 575lm"}],
             },

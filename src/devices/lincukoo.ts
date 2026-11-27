@@ -373,7 +373,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "radar_switch", tuya.valueConverter.onOff], // toggle to enable presence notifications in app is ignored
                 [101, "indicator", tuya.valueConverter.onOff],
                 [104, "relay_switch", tuya.valueConverter.onOff],
-                [106, "relay_mode", tuya.valueConverterBasic.lookup({auto: tuya.enum(0), manual: tuya.enum(1)})],
+                [106, "relay_mode", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), auto: tuya.enum(1)})],
                 [107, "radar_mode", tuya.valueConverterBasic.lookup({people_on: tuya.enum(0), people_off: tuya.enum(1)})],
             ],
         },

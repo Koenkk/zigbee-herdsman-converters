@@ -244,6 +244,8 @@ const moesMeterFzFragment = {
         if (!transfer) return;
         const part = Buffer.from(msgpart);
         const crc = part.reduce((sum, byte) => (sum + byte) & 0xff, 0);
+        // Device sometimes repeats an already received fragment, ignore it
+        if (position < transfer.position) return;
         if (position !== transfer.position || !part.length || transfer.position + part.length > transfer.buffer.length || crc !== msgpartcrc) {
             moesMeterTransfers.delete(key);
             return;
@@ -585,7 +587,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [67, null, tuya.valueConverter.ZWT198_schedule],
                 [67, "schedule_weekday", tuya.valueConverter.ZWT198_schedule],
-                [68, "schedule_holiday", tuya.valueConverter.ZWT198_schedule],
+                [67, "schedule_holiday", tuya.valueConverter.ZWT198_schedule],
             ],
         },
     },
@@ -1530,7 +1532,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.child_lock(),
                 e.deadzone_temperature(),
                 e.max_temperature_limit().withValueMax(80),
-                e.min_temperature_limit(),
+                e.min_temperature_limit().withValueMax(10),
                 e
                     .climate()
                     .withSetpoint("current_heating_setpoint", 5, 90, heatingStepSize, ea.STATE_SET)
@@ -2972,7 +2974,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Smart 1-phase energy power meter with CT sensor clamp",
         whiteLabel: [tuya.whitelabel("Moes", "ZM7LT1", "Single-phase energy meter with CT clamp", ["_TZE284_y7hpvgyp"])],
-        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        extend: [
+            zosung.zosungExtend.addZosungIRTransmitCluster(),
+            tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryIntervalSeconds: 60}),
+        ],
         fromZigbee: moesMeterSegments,
         exposes: (device) => {
             const isZM7LT1 = device?.manufacturerName === "_TZE284_y7hpvgyp";
@@ -3052,7 +3057,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM7LT3",
         vendor: "Moes",
         description: "Three-phase energy meter with CT clamps",
-        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        extend: [
+            zosung.zosungExtend.addZosungIRTransmitCluster(),
+            tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryIntervalSeconds: 60}),
+        ],
         fromZigbee: moesMeterSegments,
         exposes: [
             e.energy().withDescription("Total forward active energy"),

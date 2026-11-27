@@ -14,7 +14,7 @@ const ea = exposes.access;
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.NXP_SEMICONDUCTORS};
 
-interface EurotronicHvacThermostat {
+export interface EurotronicHvacThermostat {
     attributes: {
         trvMode: number;
         valvePosition: number;

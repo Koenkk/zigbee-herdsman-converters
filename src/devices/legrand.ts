@@ -15,7 +15,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
-import {ignoreErrors} from "../lib/utils";
+import {ignoreErrors, ignoreUnsupportedAttribute} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -197,7 +197,10 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
             p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
-            await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
+            await ignoreUnsupportedAttribute(
+                async () => await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions),
+                "Tilt reporting not supported",
+            );
         },
     },
     {
@@ -248,10 +251,11 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fzLegrand.cover_moving_state, fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
+        fromZigbee: [fz.cover_position_tilt, fzLegrand.cover_moving_state, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
         toZigbee: [
             tzLegrand.cover_state_with_moving,
             tzLegrand.cover_position_with_moving,
+            tzLegrand.cover_moving,
             tzLegrand.identify,
             tzLegrand.led_mode,
             tzLegrand.calibration_mode(true),
@@ -274,7 +278,10 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
             p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
-            await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
+            await ignoreUnsupportedAttribute(
+                async () => await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions),
+                "Tilt reporting not supported",
+            );
         },
     },
     {
@@ -721,16 +728,32 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Outlet with power consumption monitoring",
         ota: true,
-        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
+        whiteLabel: [{vendor: "Legrand", description: "Mobile outlet", model: "064887"}],
+        fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior, fzLegrand.cluster_fc01],
+        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify, tz.power_on_behavior],
         extend: [legrandExtend.addLegrandDevicesCluster()],
-        exposes: [e.switch(), e.action(["identify"]), e.power()],
+        exposes: [
+            e.switch(),
+            e.action(["identify"]),
+            e.power(),
+            e.power_apparent(),
+            e.power_on_behavior(),
+            eLegrand.identify(),
+            eLegrand.ledInDark(),
+            eLegrand.ledIfOn(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genOnOff", "haElectricalMeasurement"]);
             await reporting.onOff(endpoint);
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
+            try {
+                await reporting.apparentPower(endpoint);
+            } catch {
+                // Some version/firmware don't seem to support this.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/16732
+            }
         },
     },
     {
@@ -891,5 +914,47 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genOnOff", "genBinaryInput"]);
             await reporting.onOff(endpoint);
         },
+    },
+    {
+        zigbeeModel: [" MGSI - Indoor Sensor"],
+        model: "CB0450",
+        vendor: "Legrand",
+        description: "Céliane with Netatmo indoor temperature and humidity sensor",
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.battery({
+                percentage: true,
+                percentageReporting: false,
+                voltage: true,
+                voltageReporting: false,
+                voltageToPercentage: "3V_2100",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: [" MGSC - Contact Sensor"],
+        model: "069062",
+        vendor: "Legrand",
+        description: "Door and window contact sensor",
+        extend: [
+            m.binary({
+                name: "contact",
+                cluster: "genBinaryInput",
+                attribute: "presentValue",
+                valueOn: [false, 1],
+                valueOff: [true, 0],
+                description: "Indicates whether the contact is opened or closed",
+                access: "STATE_GET",
+                reporting: {min: "MIN", max: "MAX", change: 1},
+            }),
+            m.battery({
+                percentage: true,
+                percentageReporting: false,
+                voltage: true,
+                voltageReporting: false,
+                voltageToPercentage: "3V_2100",
+            }),
+        ],
     },
 ];

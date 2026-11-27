@@ -419,7 +419,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.light({
-                colorTemp: {range: [153, 556]},
+                colorTemp: {range: [50, 1000]},
                 color: {modes: ["xy", "hs"], enhancedHue: true},
                 turnsOffAtBrightness1: true,
             }),
@@ -629,7 +629,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RS 242 C",
         vendor: "Innr",
         description: "Smart spot colour GU10",
-        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         ota: true,
     },
     {
@@ -944,6 +944,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 250 C",
         vendor: "Innr",
         description: "Lightstrip colour, 5m",
+        ota: true,
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["FL 290 C"],
+        model: "FL 290 C",
+        vendor: "Innr",
+        description: "Lightstrip colour, 10m",
         ota: true,
         extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },

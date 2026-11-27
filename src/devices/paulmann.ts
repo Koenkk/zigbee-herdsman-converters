@@ -143,6 +143,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true, applyRedFix: true}})],
     },
     {
+        fingerprint: [{modelID: "RGBW light ", manufacturerName: "Paulmann Licht GmbH ", softwareBuildID: "1218-0909", dateCode: "Jan 24 2019"}],
+        model: "500.54",
+        vendor: "Paulmann",
+        description: "SmartHome E27 Bulb Opal 7,5W 650lm, RGB and tuneable white 2700K-6500K",
+        extend: [
+            m.identify(),
+            m.light({powerOnBehavior: false, colorTemp: {range: [153, 370], startup: false}, color: {modes: ["xy", "hs"], enhancedHue: true}}),
+        ],
+    },
+    {
         zigbeeModel: ["RGBW light", "500.49", "RGBW_light"],
         model: "50049/500.63",
         vendor: "Paulmann",
@@ -162,6 +172,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paulmann",
         description: "Plug & shine LED strip",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}})],
+    },
+    {
+        fingerprint: [
+            {modelID: "CCT Light", manufacturerName: "Paulmann lamp", dateCode: "20200710", hardwareVersion: 21, softwareBuildID: "00.00.01"},
+        ],
+        model: "503.95",
+        vendor: "Paulmann",
+        description: "SmartHome E27 Edison Bulb Filament 7W 806lm, tuneable white 2200K-6500K",
+        extend: [m.identify(), m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         fingerprint: [
@@ -374,6 +393,11 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerName: "Paulmann Licht GmbH",
                 softwareBuildID: "PIIC5405",
             },
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC540B",
+            },
         ],
         model: "291.48",
         vendor: "Paulmann",
@@ -383,6 +407,7 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 vendor: "Paulmann",
                 model: "291.53",
+                fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC540B"}],
             },
         ],
     },
@@ -422,7 +447,10 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 vendor: "Paulmann",
                 model: "291.50",
-                fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51104"}],
+                fingerprint: [
+                    {modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51104"},
+                    {modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51109"},
+                ],
             },
         ],
     },

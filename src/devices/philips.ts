@@ -198,6 +198,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: true}), m.identify()],
     },
     {
+        zigbeeModel: ["LCX026"],
+        model: "929003858301",
+        vendor: "Philips",
+        description: "Hue Festavia globe outdoor string lights (7 meter with 8 bulbs)",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: true}), m.identify()],
+    },
+    {
         zigbeeModel: ["LCX030", "LCX048"],
         model: "929004284702",
         vendor: "Philips",
@@ -385,7 +392,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003853601",
         vendor: "Philips",
         description: "Hue white and color ambiance A67 1600lm E27",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, ota: false}), m.identify()],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
+    },
+    {
+        zigbeeModel: ["LCA024"],
+        model: "9290038538A",
+        vendor: "Philips",
+        description: "Hue white and color ambiance A19 1100lm E26",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
     },
     {
         zigbeeModel: ["LTA013"],
@@ -2178,7 +2192,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}}), m.identify()],
     },
     {
-        zigbeeModel: ["4096730U9"],
+        zigbeeModel: ["4096730U9", "929003053801"],
         model: "046677803087",
         vendor: "Philips",
         description: "Hue White ambiance Cher ceiling light",
@@ -2316,6 +2330,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003736601",
         vendor: "Philips",
         description: "Hue Datura - Round small Rev2",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
+    },
+    {
+        zigbeeModel: ["929003736801_01", "929003736801_02"],
+        model: "929003736801",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance Datura Ceiling Light Rectangle",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
     },
     {
@@ -2555,6 +2576,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Signe table light",
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true}), m.identify()],
+    },
+    {
+        zigbeeModel: ["929003693901"],
+        model: "929003693901",
+        vendor: "Philips",
+        description: "Hue Signe table lamp",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["4080148U9"],
@@ -5218,11 +5246,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.identify(), philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ["929004611002", "929004611102"],
+        zigbeeModel: ["929004610902", "929004611002", "929004611102"],
         model: "929004611002",
         vendor: "Philips",
         description: "Hue Flux Outdoor strip light (6m)",
         whiteLabel: [
+            {
+                model: "929004610902",
+                vendor: "Philips",
+                description: "Hue Flux Outdoor strip light (5m)",
+                fingerprint: [{modelID: "929004610902"}],
+            },
             {
                 model: "929004611102",
                 vendor: "Philips",

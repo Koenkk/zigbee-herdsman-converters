@@ -7214,6 +7214,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 name: "air_enthalpy",

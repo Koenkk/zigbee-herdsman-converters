@@ -984,7 +984,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "temperature_offset",
                 cluster: "msTemperatureMeasurement",
                 attribute: "temperatureOffset",
-                description: "Offset subtracted from the raw temperature reading",
+                description: "Offset added to the raw temperature reading",
                 valueMin: -10,
                 valueMax: 10,
                 valueStep: 0.1,
@@ -1075,7 +1075,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["WBMSW3"],
         model: "WB-MSW-ZIGBEE v.3",
-        vendor: "Wirenboard",
+        vendor: "Wiren Board",
         description: "Wall-mounted multi sensor",
         fromZigbee: [
             fzLocal.temperature,
@@ -1230,7 +1230,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["WBMSW4"],
         model: "WB-MSW-ZIGBEE v.4",
-        vendor: "Wirenboard",
+        vendor: "Wiren Board",
         description: "Wall-mounted multi sensor",
         extend: [
             addSprutVocCluster(),

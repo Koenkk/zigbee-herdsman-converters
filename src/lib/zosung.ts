@@ -671,7 +671,6 @@ export const fzZosung = {
                     },
                     {disableDefaultResponse: true},
                 );
-                globalStore.getValue(msg.endpoint, "irLearnRelease")?.();
 
                 // Clear learned IR timings for HA
                 clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
@@ -746,32 +745,9 @@ export const tzZosung = {
                     },
                     {disableDefaultResponse: true},
                 );
-            if (stop) {
-                globalStore.getValue(entity, "irLearnRelease")?.();
-                await study(true);
-            } else {
-                // Hold the IR queue until a code is learned, learning is stopped or it times out
-                const started = Promise.withResolvers<void>();
-                void runQueued(async () => {
-                    const learned = Promise.withResolvers<void>();
-                    globalStore.putValue(entity, "irLearnRelease", learned.resolve);
-                    const timeout = setTimeout(() => {
-                        learned.resolve();
-                        study(true).catch((error) => logger.error(`Failed to stop IR Code Learning: ${error}`, NS));
-                    }, 60000);
-                    try {
-                        await study(false);
-                        started.resolve();
-                        await learned.promise;
-                    } catch (error) {
-                        started.reject(error);
-                    } finally {
-                        clearTimeout(timeout);
-                        globalStore.clearValue(entity, "irLearnRelease");
-                    }
-                });
-                await started.promise;
-            }
+            await runQueued(async () => {
+                await study(stop);
+            });
             logger.debug(stop ? "IR Code Learning stopped." : "IR Code Learning started.", NS);
         },
     } satisfies Tz.Converter,

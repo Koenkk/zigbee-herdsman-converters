@@ -38,8 +38,8 @@ const valueConverterLocal = {
         yellow: tuya.enum(4),
         magenta: tuya.enum(5),
         cyan: tuya.enum(6),
-        warmwhite: tuya.enum(7),
-        warmyellow: tuya.enum(8),
+        warm_white: tuya.enum(7),
+        warm_yellow: tuya.enum(8),
     }),
     relayStatus: tuya.valueConverterBasic.lookup({
         power_off: tuya.enum(0),
@@ -54,8 +54,8 @@ const valueConverterLocal = {
         yellow: tuya.enum(4),
         magenta: tuya.enum(5),
         cyan: tuya.enum(6),
-        warmwhite: tuya.enum(7),
-        warmyellow: tuya.enum(8),
+        warm_white: tuya.enum(7),
+        warm_yellow: tuya.enum(8),
     }),
     radarConfig: tuya.valueConverterBasic.lookup({
         none: tuya.enum(0),
@@ -1207,7 +1207,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzLocal.batteryQuery],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery().withAccess(ea.STATE_GET)],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery().withAccess(ea.STATE_GET), te.clickControl()],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
@@ -1216,6 +1216,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
                 [16, "cover_limit", tuya.valueConverter.coverLimit],
+                [20, "click_control", tuya.valueConverter.clickControl],
             ],
         },
     },
@@ -1239,7 +1240,17 @@ export const definitions: DefinitionWithExtend[] = [
                     ),
                 ],
                 [2, "position", tuya.valueConverter.coverPosition], // Curtain position setting
-                [3, "position", tuya.valueConverter.coverPosition], // Current curtain position
+                // Current curtain position, only reported once the motor has stopped
+                [
+                    3,
+                    "position",
+                    {
+                        from: (v: number, meta, options, publish) => {
+                            publish({motor_state: "stopped"});
+                            return tuya.valueConverter.coverPosition.from(v, meta, options, publish);
+                        },
+                    },
+                ],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [
                     7,
@@ -1248,6 +1259,7 @@ export const definitions: DefinitionWithExtend[] = [
                         options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
                     ),
                 ],
+                [11, null, {from: () => ({motor_state: "stopped"})}], // Limit reached
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },
