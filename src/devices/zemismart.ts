@@ -1207,7 +1207,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzLocal.batteryQuery],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery().withAccess(ea.STATE_GET)],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery().withAccess(ea.STATE_GET), te.clickControl()],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
@@ -1216,6 +1216,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
                 [16, "cover_limit", tuya.valueConverter.coverLimit],
+                [20, "click_control", tuya.valueConverter.clickControl],
             ],
         },
     },
