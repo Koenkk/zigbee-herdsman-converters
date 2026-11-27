@@ -7814,9 +7814,15 @@ async function w100WriteFrame(entity: Zh.Endpoint | Zh.Group, type: number, coun
     await entity.write(64704, {65522: {value, type: 0x41}}, {manufacturerCode: 4447, disableDefaultResponse: true});
 }
 
+/**
+ * Kept in the device meta, saved with the database (every 5 minutes, no extra write) so that it continues after a restart.
+ * After a restart, skip the values that may have been sent after the last save.
+ */
 function w100NextCounter(device: Zh.Device): number {
-    const counter = (globalStore.getValue(device, "w100_counter", 0) + 1) & 0xff;
-    globalStore.putValue(device, "w100_counter", counter);
+    const skip = globalStore.getValue(device, "w100_counter_loaded") ? 0 : 10;
+    globalStore.putValue(device, "w100_counter_loaded", true);
+    const counter = (((device.meta.w100Counter as number | undefined) ?? 0) + 1 + skip) & 0xff;
+    device.meta.w100Counter = counter;
     return counter;
 }
 

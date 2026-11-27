@@ -1492,6 +1492,14 @@ describe("TH-S04D (W100) thermostat", () => {
         await expect(set("w100_pmtsd", "occupied_heating_setpoint", 31)).rejects.toThrow("must be between 5 and 30");
     });
 
+    it("PMTSD: keeps the frame counter in the device meta, skipping ahead after a restart", async () => {
+        const {write, set, device} = setup({w100Counter: 250});
+        await set("w100_pmtsd", "occupied_heating_setpoint", 21);
+        await set("w100_pmtsd", "occupied_heating_setpoint", 22);
+        expect(frames(write).map((f) => f[4])).toStrictEqual([5, 6]);
+        expect(device.meta.w100Counter).toStrictEqual(6);
+    });
+
     it("PMTSD: acknowledges a change on the device and sends back the result", async () => {
         const {write, report} = setup();
         const data = Buffer.from("M0_T22");
