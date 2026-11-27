@@ -8376,8 +8376,10 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            if (device.getEndpoint(2)) await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            // Some units (e.g. _TZE204_wvovwe9h) are DP only and don't support genOnOff, binding fails with INVALID_EP
+            for (const endpoint of [device.getEndpoint(1), device.getEndpoint(2)]) {
+                if (endpoint?.supportsInputCluster("genOnOff")) await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            }
         },
         endpoint: (device) => {
             // Endpoint selection is made in tuya_switch_state
