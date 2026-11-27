@@ -1079,6 +1079,7 @@ describe("Sonoff SWV-ZFE", () => {
 describe("Sonoff TP-WGZBA", () => {
     describe("NTC temperature", () => {
         let device: Definition;
+        let panel: ReturnType<typeof mockDevice>;
         // biome-ignore lint/suspicious/noExplicitAny: generic
         let fzConverter: Fz.Converter<any, any, any>;
 
@@ -1097,7 +1098,8 @@ describe("Sonoff TP-WGZBA", () => {
         const convert = (data: Record<string, unknown>) => fzConverter.convert(device, message(data), vi.fn(), {}, meta);
 
         beforeEach(async () => {
-            device = await findByDevice(mockDevice({modelID: "TP-WGZBA", endpoints: [{ID: 1}]}));
+            panel = mockDevice({modelID: "TP-WGZBA", endpoints: [{ID: 1}]});
+            device = await findByDevice(panel);
             fzConverter = device.fromZigbee.find(
                 (c) =>
                     c.cluster === "customSonoffTpWgzba" &&
@@ -1106,13 +1108,7 @@ describe("Sonoff TP-WGZBA", () => {
         });
 
         it("exposes the temperature as a numeric sensor and the status as a diagnostic enum", () => {
-            const exposes = device.exposes as {
-                name: string;
-                type: string;
-                unit?: string;
-                category?: string;
-                homeassistant?: {enabledByDefault?: boolean};
-            }[];
+            const exposes = typeof device.exposes === "function" ? device.exposes(panel, {}) : device.exposes;
             const temperature = exposes.find((expose) => expose.name === "ntc_temperature");
             const status = exposes.find((expose) => expose.name === "ntc_sensor_status");
 

@@ -236,6 +236,11 @@ interface SonoffTrvzbt {
         heatPercentageHour: number;
         motorTravelCalibration: number;
         motorTravelCalibrationStatus: number;
+        deviceWorkMode: number;
+        screenNightModeEnable: number;
+        screenNightModePeriod: SonoffStructValue;
+        holidayEnable: number;
+        valveOpeningRatio: number;
     };
     commands: {
         readTemperatureControlHistory: {data: number[]};
@@ -452,6 +457,9 @@ interface SonoffTpWgzba {
         overheatProtectionTemperature: number;
         overheatProtectionEnable: number;
         radarEnable: number;
+        defaultDisplayPage: number;
+        holidayEnable: number;
+        antiStuckEnable: number;
     };
     commands: {
         setTemporaryMode: {data: number[]};
@@ -1539,6 +1547,8 @@ const featureGates = {
     // Unknown firmware retains the legacy display controls, matching the original firmwareAtLeast fallback.
     snzb02dr2_legacy_remote_source: (device: Zh.Device): boolean => !featureGates.snzb02dr2_support_remote_source(device),
     snzb02dr2_support_remote_source: firmwareSupportFeaturesVersion("1.0.5", "higher"),
+    trvzbl_support_iteration: firmwareSupportFeaturesVersion("1.0.5", "higher", {modelID: "TRV-ZBL"}),
+    tpwgzba_support_iteration: firmwareSupportFeaturesVersion("1.0.6", "higher", {modelID: "TP-WGZBA"}),
     zbminir2_external_switch_actions: firmwareSupportFeaturesVersion("1.1.0", "higher", {modelID: "ZBMINIR2"}),
     zbminil2_external_switch_trigger_mode: firmwareSupportFeaturesVersion("1.0.19", "higher", {modelID: "ZBMINIL2"}),
     zbrbs_single_switch_mode: firmwareSupportFeaturesVersion("1.2.0", "higher", {modelID: "MINI-ZBRBS"}),
@@ -1930,6 +1940,14 @@ const parseSonoffSnzb02dr2RemoteSourceElements = (elements: number[] | undefined
 
     return offset === elements.length ? items : undefined;
 };
+
+// Like withConditionalExpose, but also skips configure reads on unsupported firmware.
+const withFirmwareGate = (extend: ModernExtend, gate: FirmwareFeatureGate): ModernExtend => ({
+    ...withConditionalExpose(extend, gate),
+    configure: extend.configure?.map((configure) => async (device, coordinatorEndpoint, definition) => {
+        if (gate(device)) await configure(device, coordinatorEndpoint, definition);
+    }),
+});
 
 const sonoffExtend = {
     externalSwitchActions: (args: {endpointNames?: string[]; gate: FirmwareFeatureGate}): ModernExtend => {
@@ -4542,11 +4560,11 @@ const sonoffExtend = {
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     tpWgzbaTimePeriod: (
+        clusterName: "customSonoffTpWgzba" | "customSonoffTrvzbt",
         key: "radar_do_not_disturb_period" | "night_mode_period",
         attribute: "radarDoNotDisturbPeriod" | "screenNightModePeriod",
         description: string,
     ): ModernExtend => {
-        const clusterName = "customSonoffTpWgzba";
         const exposes = [e.text(key, ea.ALL).withCategory("config").withDescription(`${description} Format: HH:mm-HH:mm, e.g. 00:00-06:00.`)];
 
         const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
@@ -10848,6 +10866,9 @@ export const definitions: DefinitionWithExtend[] = [
                     screenNightModeEnable: {name: "screenNightModeEnable", ID: 0x6026, type: Zcl.DataType.BOOLEAN, write: true},
                     screenNightModePeriod: {name: "screenNightModePeriod", ID: 0x6027, type: Zcl.DataType.STRUCT, write: true},
                     relayOutputType: {name: "relayOutputType", ID: 0x6028, type: Zcl.DataType.BITMAP8, write: true, max: 0xff},
+                    defaultDisplayPage: {name: "defaultDisplayPage", ID: 0x002a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    holidayEnable: {name: "holidayEnable", ID: 0x602b, type: Zcl.DataType.BOOLEAN, write: true},
+                    antiStuckEnable: {name: "antiStuckEnable", ID: 0x602d, type: Zcl.DataType.BOOLEAN, write: true},
                     remoteAttributeLinkage: {name: "remoteAttributeLinkage", ID: 0x601e, type: Zcl.DataType.ARRAY, write: true},
                     currentNtcTemperature: {name: "currentNtcTemperature", ID: 0x6031, type: Zcl.DataType.INT16, min: -32768},
                     overheatProtectionTemperature: {
@@ -10941,6 +10962,55 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["enable", 0x01],
                 valueOff: ["disable", 0x00],
             }),
+            withFirmwareGate(m.occupancy({reporting: false}), featureGates.tpwgzba_support_iteration),
+            withFirmwareGate(
+                m.numeric({
+                    name: "occupancy_timeout",
+                    cluster: "msOccupancySensing",
+                    attribute: "ultrasonicOToUDelay",
+                    entityCategory: "config",
+                    description: "Time in seconds the occupancy stays occupied after the radar stops detecting presence.",
+                    valueMin: 10,
+                    valueMax: 3600,
+                    unit: "s",
+                }),
+                featureGates.tpwgzba_support_iteration,
+            ),
+            withFirmwareGate(
+                m.enumLookup<"customSonoffTpWgzba", SonoffTpWgzba>({
+                    name: "screen_temperature_display",
+                    lookup: {ambient_temperature: 0x00, target_temperature: 0x01},
+                    cluster: "customSonoffTpWgzba",
+                    attribute: "defaultDisplayPage",
+                    entityCategory: "config",
+                    description: "Temperature shown on the screen by default.",
+                }),
+                featureGates.tpwgzba_support_iteration,
+            ),
+            withFirmwareGate(
+                m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                    name: "holiday_mode",
+                    cluster: "customSonoffTpWgzba",
+                    attribute: "holidayEnable",
+                    entityCategory: "config",
+                    description: "Enable or disable the holiday schedule.",
+                    valueOn: ["ON", 0x01],
+                    valueOff: ["OFF", 0x00],
+                }),
+                featureGates.tpwgzba_support_iteration,
+            ),
+            withFirmwareGate(
+                m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                    name: "anti_stuck",
+                    cluster: "customSonoffTpWgzba",
+                    attribute: "antiStuckEnable",
+                    entityCategory: "config",
+                    description: "Periodically switch on the relay output to prevent the valve from sticking.",
+                    valueOn: ["ON", 0x01],
+                    valueOff: ["OFF", 0x00],
+                }),
+                featureGates.tpwgzba_support_iteration,
+            ),
             m.enumLookup<"customSonoffTpWgzba", SonoffTpWgzba>({
                 name: "radar_sensitivity",
                 lookup: {low: 0, medium: 1, high: 2},
@@ -10959,6 +11029,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["disable", 0x00],
             }),
             sonoffExtend.tpWgzbaTimePeriod(
+                "customSonoffTpWgzba",
                 "radar_do_not_disturb_period",
                 "radarDoNotDisturbPeriod",
                 "During the scheduled period, presence detection will not wake the screen automatically.",
@@ -10992,7 +11063,12 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["enable", 0x01],
                 valueOff: ["disable", 0x00],
             }),
-            sonoffExtend.tpWgzbaTimePeriod("night_mode_period", "screenNightModePeriod", "Period during which night mode brightness is used."),
+            sonoffExtend.tpWgzbaTimePeriod(
+                "customSonoffTpWgzba",
+                "night_mode_period",
+                "screenNightModePeriod",
+                "Period during which night mode brightness is used.",
+            ),
             m.numeric<"customSonoffTpWgzba", SonoffTpWgzba>({
                 name: "night_brightness",
                 cluster: "customSonoffTpWgzba",
@@ -11089,6 +11165,11 @@ export const definitions: DefinitionWithExtend[] = [
                     heatPercentageHour: {name: "heatPercentageHour", ID: 0x6033, type: Zcl.DataType.UINT8, max: 0xff},
                     motorTravelCalibration: {name: "motorTravelCalibration", ID: 0x6036, type: Zcl.DataType.BOOLEAN, write: true},
                     motorTravelCalibrationStatus: {name: "motorTravelCalibrationStatus", ID: 0x6037, type: Zcl.DataType.UINT8, max: 0xff},
+                    deviceWorkMode: {name: "deviceWorkMode", ID: 0x0018, type: Zcl.DataType.UINT8},
+                    screenNightModeEnable: {name: "screenNightModeEnable", ID: 0x6026, type: Zcl.DataType.BOOLEAN, write: true},
+                    screenNightModePeriod: {name: "screenNightModePeriod", ID: 0x6027, type: Zcl.DataType.STRUCT, write: true},
+                    holidayEnable: {name: "holidayEnable", ID: 0x602b, type: Zcl.DataType.BOOLEAN, write: true},
+                    valveOpeningRatio: {name: "valveOpeningRatio", ID: 0x6040, type: Zcl.DataType.UINT8},
                 },
                 commands: {
                     scheduleGroup: {name: "scheduleGroup", ID: 0x13, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -11264,6 +11345,57 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Calibrates the valve travel range to ensure accurate opening and closing control.",
             }),
             sonoffExtend.motorTravelCalibrationStatus(),
+            m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "device_work_mode",
+                lookup: {frost_protection: 0x02, manual: 0x03, schedule: 0x04, temporary_manual: 0x05, holiday: 0x06, direct_control: 0x07},
+                cluster: "customSonoffTrvzbt",
+                attribute: "deviceWorkMode",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                description: "Operating mode reported by the device.",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "valve_opening",
+                cluster: "customSonoffTrvzbt",
+                attribute: "valveOpeningRatio",
+                entityCategory: "diagnostic",
+                description: "Current valve opening.",
+                unit: "%",
+                access: "STATE_GET",
+            }),
+            withFirmwareGate(
+                m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
+                    name: "night_mode",
+                    cluster: "customSonoffTrvzbt",
+                    attribute: "screenNightModeEnable",
+                    entityCategory: "config",
+                    description: "Reduce screen brightness during the night mode period.",
+                    valueOn: ["enable", 0x01],
+                    valueOff: ["disable", 0x00],
+                }),
+                featureGates.trvzbl_support_iteration,
+            ),
+            withConditionalExpose(
+                sonoffExtend.tpWgzbaTimePeriod(
+                    "customSonoffTrvzbt",
+                    "night_mode_period",
+                    "screenNightModePeriod",
+                    "Period during which night mode brightness is used.",
+                ),
+                featureGates.trvzbl_support_iteration,
+            ),
+            withFirmwareGate(
+                m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
+                    name: "holiday_mode",
+                    cluster: "customSonoffTrvzbt",
+                    attribute: "holidayEnable",
+                    entityCategory: "config",
+                    description: "Enable or disable the holiday schedule.",
+                    valueOn: ["ON", 0x01],
+                    valueOff: ["OFF", 0x00],
+                }),
+                featureGates.trvzbl_support_iteration,
+            ),
         ],
         ota: true,
         configure: async (device) => {
