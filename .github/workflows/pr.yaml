@@ -8,6 +8,7 @@ on:
             - ready_for_review
             - edited
             - closed
+            - synchronize
     workflow_dispatch:
         inputs:
             pr_number:
@@ -21,7 +22,7 @@ permissions:
 jobs:
     prs:
         # Only run on the main repo, forks don't have the secrets (e.g. COPILOT_TOKEN)
-        if: github.repository == 'Koenkk/zigbee-herdsman-converters' && github.event.action != 'closed'
+        if: github.repository == 'Koenkk/zigbee-herdsman-converters' && github.event.action != 'closed' && (github.event.action != 'synchronize' || github.event.sender.login == 'autofix-ci[bot]')
         runs-on: ubuntu-latest
         outputs:
             prs: ${{ steps.prs.outputs.result }}
@@ -89,7 +90,11 @@ jobs:
                           "   definition, fingerprint or whiteLabel, including tuya.whitelabel(...)): ",
                           "   `fix(detect): Detect `ZIGBEE_MODEL_OR_MANUFACTURER_NAME` as VENDOR MODEL`, where the identifier is wrapped in backticks",
                           "   and VENDOR MODEL is the vendor and model the new identifier is detected as (the white label vendor/model if a white label is added).",
-                          "   When multiple identifiers are added for the same device, comma separate them: `fix(detect): Detect `ID1`, `ID2` as VENDOR MODEL`.",
+                          "   When multiple identifiers are added for the same device, comma separate them and join the last one with ` and `:",
+                          "   `fix(detect): Detect `ID1`, `ID2` and `ID3` as VENDOR MODEL`.",
+                          "   When identifiers are added to different devices, give each device its own `as VENDOR MODEL` part:",
+                          "   `fix(detect): Detect `ID1` as VENDOR1 MODEL1 and `ID2` as VENDOR2 MODEL2`.",
+                          "   Always use rule 2 when the diff only adds identifiers, even if the original title uses another type such as `fix(tuya): add ...`.",
                           "3. New features are added to an existing device: `feat: VENDOR MODEL: description of what the user gains`.",
                           "4. A fix for an existing device: `fix: VENDOR MODEL: description of what now works for the user`.",
                           "If multiple devices are involved in rule 3 or 4, comma separate them and join the last one with ` and `,",
@@ -115,6 +120,7 @@ jobs:
                           "feat(add): 929004610603",
                           "feat(add): SNZB-01M, SNZB-02D",
                           "fix(detect): Detect `_TZ3000_ahvrgyac` as Nous B2Z",
+                          "fix(detect): Detect `_TZ3000_sjb7pafq` as AVATTO ZWSM16-2 and `_TZ3000_9il3ag1z` as AVATTO ZWSM16-DC-1",
                           "feat: OWON PC321: expose metering report schedule",
                           "feat: Yale LIA: expose lock action, source and user",
                           "fix: Develco SMSZB-120: fix incorrect temperature",
