@@ -25950,7 +25950,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a14rjslz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a14rjslz", "_TZE284_73llxjvf"]),
         model: "ATMS10013Z3",
         vendor: "Ourtop",
         description: "Zigbee 3 Phase Meter",

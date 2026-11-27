@@ -562,6 +562,36 @@ describe("ZHC", () => {
         expect(ZNCZ04LM.options.length).toBe(10);
     });
 
+    it("matches the Ourtop ATMS10013Z3 manufacturer variant", async () => {
+        const definition = await findByDevice(mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_73llxjvf", endpoints: []}));
+
+        expect(definition.model).toBe("ATMS10013Z3");
+        expect(definition.exposes.map((expose) => expose.property)).toStrictEqual([
+            "energy",
+            "voltage_a",
+            "voltage_b",
+            "voltage_c",
+            "power_a",
+            "power_b",
+            "power_c",
+            "current_a",
+            "current_b",
+            "current_c",
+            "produced_energy",
+            "total_energy",
+            "power",
+            "power_reactive",
+            "power_factor",
+        ]);
+        expect(definition.options.map((option) => option.name)).toStrictEqual([
+            "time_start",
+            "energy_calibration",
+            "energy_precision",
+            "power_calibration",
+            "power_precision",
+        ]);
+    });
+
     it("computes calibration/precision", async () => {
         const ts0601SoilDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []});
         const ts0601Soil = await findByDevice(ts0601SoilDevice);
