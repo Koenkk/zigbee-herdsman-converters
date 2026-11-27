@@ -4893,6 +4893,24 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vw5ufrvc"]),
+        model: "TS0601_air_quality_sensor_3",
+        vendor: "Tuya",
+        description: "5-in-1 air quality sensor (CO2, HCHO, VOC, temperature, humidity)",
+        // Temperature and humidity are reported on their own, CO2/VOC/HCHO only after a dataQuery.
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryOnDeviceAnnounce: true})],
+        exposes: [e.temperature(), e.humidity(), e.co2(), e.voc().withUnit("ppb"), e.formaldehyd().withUnit("µg/m³")],
+        meta: {
+            tuyaDatapoints: [
+                [2, "co2", tuya.valueConverter.raw],
+                [18, "temperature", tuya.valueConverter.divideBy10],
+                [19, "humidity", tuya.valueConverter.raw],
+                [21, "voc", tuya.valueConverter.raw],
+                [22, "formaldehyd", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_it9utkro"]),
         model: "PM2.5_airbox",
         vendor: "Tuya",
