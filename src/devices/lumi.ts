@@ -5812,19 +5812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "ON: Enables thermostat mode, buttons send encrypted payloads, and the middle line is displayed. OFF: Disables thermostat mode, buttons send actions, and the middle line is hidden.",
                 ),
-            e
-                .climate()
-                .withSystemMode(["off", "heat", "cool", "auto"])
-                .withFanMode(["auto", "low", "medium", "high"])
-                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
-                .withLocalTemperature()
-                .withDescription(
-                    "Climate control (HVAC Mode & Target Temperature): Use when thermostat_mode is ON. Configure min/max temperature range in device-specific Settings.",
-                ),
             e.action(["W100_PMTSD_request"]).withDescription("PMTSD request sent by the W100 via the 08000844 sequence"),
-            e
-                .text("PMTSD_from_W100_Data", ea.STATE)
-                .withDescription('Latest PMTSD values sent by the W100 when manually changed, formatted as "YYYY-MM-DD HH:mm:ss_Px_Mx_Tx_Sx_Dx"'),
             e.battery(),
         ],
         options: [
@@ -5852,33 +5840,33 @@ export const definitions: DefinitionWithExtend[] = [
             // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
             if (!device.meta.state) (device.meta as any).state = {};
 
-            // Send thermostat_mode = OFF. We construct a fake meta object as convertSet needs it.
-            // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-            const meta = {device, state: (device.meta as any).state, logger} as any;
-            try {
+            // Send thermostat_mode = OFF on a new device, it also detects the protocol. Not when the user enabled it: Z2M also
+            // runs configure after an OTA update, the subscription is then restored after the reboot (0x00EE).
+            if (device.meta.w100ThermostatMode !== "ON") {
+                // We construct a fake meta object as convertSet needs it.
                 // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
-                await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
-            } catch (_error) {
-                // ignore
+                const meta = {device, state: (device.meta as any).state, logger} as any;
+                try {
+                    // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
+                    await lumi.toZigbee.w100_mode.convertSet(endpoint, "thermostat_mode", "OFF", meta as any);
+                } catch (_error) {
+                    // ignore
+                }
             }
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
-            await endpoint.configureReporting("msTemperatureMeasurement", [
-                {
-                    attribute: "measuredValue",
-                    minimumReportInterval: 10,
-                    maximumReportInterval: 3600,
-                    reportableChange: 100,
-                },
-            ]);
+            // 0x0174 and 0x00F7 are only reported when bound.
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0172], {manufacturerCode});
 
             logger.info("Aqara W100: configure completed", NS);
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumi.modernExtend.w100Thermostat(),
             lumiZigbeeOTA(),
-            m.temperature(),
-            m.humidity(),
+            // The W100 reports based on its own settings (e.g. temp_threshold), don't filter these.
+            m.temperature({reporting: {min: 1, max: 3600, change: 1}}),
+            m.humidity({reporting: {min: 1, max: 3600, change: 1}}),
             lumiExternalSensor(),
             m.deviceEndpoints({endpoints: {plus: 1, center: 2, minus: 3}}),
             lumiAction({

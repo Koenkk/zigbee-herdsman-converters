@@ -3,7 +3,7 @@ import {Zcl} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
 import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv, w500Ntc} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
-import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
+import type {Definition, DefinitionExposesFunction, Expose, Fz, KeyValueAny, Tz, Zh} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/lumi", () => {
@@ -1428,5 +1428,317 @@ describe("SJCGQ12LM IAS enrollment", () => {
         const {device, coordinatorEndpoint, definition} = await setup(read);
 
         await expect(definition.configure?.(device, coordinatorEndpoint, definition)).rejects.toThrow("IAS enrollment failed");
+    });
+});
+
+describe("TH-S04D (W100) thermostat", () => {
+    afterEach(() => globalStore.clear());
+
+    const setup = (meta: KeyValueAny = {}, options: KeyValueAny = {}, extraState: KeyValueAny = {}) => {
+        const device = mockDevice(
+            {
+                modelID: "lumi.sensor_ht.agl001",
+                ieeeAddr: "0x54ef4410013afed0",
+                endpoints: [{ID: 1, inputClusters: ["msTemperatureMeasurement", "msRelativeHumidity", 0xfcc0]}],
+            },
+            "EndDevice",
+        );
+        device.meta = meta;
+        vi.spyOn(device, "save").mockImplementation(() => {});
+        const endpoint = device.getEndpoint(1);
+        const write = vi.fn();
+        endpoint.write = write;
+        const state: KeyValueAny = {
+            thermostat_mode: "ON",
+            system_mode: "heat",
+            occupied_heating_setpoint: 20,
+            fan_mode: "auto",
+            unused: "0",
+            ...extraState,
+        };
+        const tzMeta = {device, state, options} as unknown as Tz.Meta;
+        const set = async (converter: "w100_pmtsd" | "w100_mode", key: string, value: unknown) =>
+            await toZigbee[converter].convertSet(endpoint, key, value, tzMeta);
+        const deviceExposesChanged = vi.fn();
+        const report = async (data: KeyValueAny) =>
+            await fromZigbee.w100_specific.convert(
+                undefined,
+                // @ts-expect-error mock
+                {type: "attributeReport", data, endpoint, device},
+                undefined,
+                options,
+                {device, state, deviceExposesChanged},
+            );
+        return {device, endpoint, write, set, report, state, deviceExposesChanged};
+    };
+    const tlvWrites = (write: ReturnType<typeof vi.fn>) => write.mock.calls.filter((c) => c[1][372]).map((c) => c[1][372].value.toString("hex"));
+    const definition = async (device: Zh.Device) => await findByDevice(device);
+    const frames = (write: ReturnType<typeof vi.fn>): Buffer[] => write.mock.calls.map((c) => c[1][65522].value);
+    const expectValid = (frame: Buffer) => {
+        expect(frame.subarray(0, 6).reduce((sum, b) => sum + b, 0) & 0xff).toStrictEqual(0);
+        expect(frame[2]).toStrictEqual(frame.length - 6);
+        expect(frame[8]).toStrictEqual(frame.length - 9);
+    };
+
+    it("PMTSD: sends valid frames building on the last sent values", async () => {
+        const {write, set} = setup();
+        await set("w100_pmtsd", "system_mode", "cool");
+        expect(await set("w100_pmtsd", "occupied_heating_setpoint", 8.6)).toStrictEqual({
+            state: {system_mode: "cool", occupied_heating_setpoint: 9, fan_mode: "auto", unused: "0"},
+        });
+        for (const frame of frames(write)) expectValid(frame);
+        expect(frames(write).map((f) => f.subarray(22).toString())).toStrictEqual(["P0_M0_T20_S0_D0", "P0_M0_T9_S0_D0"]);
+        expect(frames(write)[1][4]).toStrictEqual(frames(write)[0][4] + 1);
+        await expect(set("w100_pmtsd", "occupied_heating_setpoint", 31)).rejects.toThrow("must be between 5 and 30");
+    });
+
+    it("PMTSD: keeps the frame counter in the device meta, skipping ahead after a restart", async () => {
+        const {write, set, device} = setup({w100Counter: 250});
+        await set("w100_pmtsd", "occupied_heating_setpoint", 21);
+        await set("w100_pmtsd", "occupied_heating_setpoint", 22);
+        expect(frames(write).map((f) => f[4])).toStrictEqual([5, 6]);
+        expect(device.meta.w100Counter).toStrictEqual(6);
+    });
+
+    it("PMTSD: acknowledges a change on the device and sends back the result", async () => {
+        const {write, report} = setup();
+        const data = Buffer.from("M0_T22");
+        const result = await report({65522: Buffer.from([0xaa, 0x71, 0, 0x84, 0x12, 0, 5, 0x41, 0, 0x08, 0x00, 0x08, 0x44, data.length, ...data])});
+        expect(result).toMatchObject({system_mode: "cool", occupied_heating_setpoint: 22, MW: "0", TW: "22"});
+        const [ack, state] = frames(write);
+        expectValid(ack);
+        expect([ack[3], ack[4]]).toStrictEqual([0x24, 0x12]);
+        expect(state.subarray(22).toString()).toStrictEqual("P0_M0_T22_S0_D0");
+    });
+
+    it("PMTSD: responds to a request", async () => {
+        const {write, report} = setup();
+        const result = await report({65522: Buffer.from([0xaa, 0x71, 0, 0x84, 0x12, 0, 5, 0x41, 0, 0x08, 0x00, 0x08, 0x44])});
+        expect(result).toMatchObject({action: "W100_PMTSD_request"});
+        expect(frames(write)[1].subarray(22).toString()).toStrictEqual("P0_M1_T20_S0_D0");
+    });
+
+    it("0x0174: decodes the thermostat state", async () => {
+        const {report} = setup({w100HaMode: "ON"});
+        expect(await report({372: Buffer.from("01300302295a0a033005", "hex")})).toStrictEqual({
+            system_mode: "cool",
+            occupied_heating_setpoint: 26.5,
+            fan_mode: "auto",
+        });
+        // Auto mode is reported without setpoint, limits are echoed
+        expect(await report({372: Buffer.from("0130010429f401033001", "hex")})).toStrictEqual({system_mode: "auto", fan_mode: "low"});
+    });
+
+    it("0x0174: only writes the changed value", async () => {
+        const {write, set} = setup({w100HaMode: "ON"});
+        expect(await set("w100_pmtsd", "occupied_heating_setpoint", 26.5)).toStrictEqual({state: {occupied_heating_setpoint: 26.5}});
+        await set("w100_pmtsd", "system_mode", "off");
+        expect(write.mock.calls.map((c) => c[1][372].value.toString("hex"))).toStrictEqual(["02295a0a", "013000"]);
+    });
+
+    it("thermostat_mode: subscribes based on the firmware and after a reboot", async () => {
+        const {device, endpoint, write, set, report} = setup();
+        endpoint.read = vi.fn().mockRejectedValueOnce(new Error("Status 'UNSUPPORTED_ATTRIBUTE'")).mockResolvedValue({373: 50});
+
+        await set("w100_mode", "thermostat_mode", "ON");
+        expect(device.meta.w100HaMode).toBeUndefined();
+        expectValid(frames(write)[0]);
+        await report({238: 1641});
+        expect(write).toHaveBeenCalledTimes(1);
+
+        // Setpoint step, then the state, the limits (tags 4-7) and the allowed modes / fan modes (tags 8/9, all allowed).
+        const subscribe = [
+            {373: {value: 50, type: 33}},
+            {372: {value: Buffer.from("0130040229d0070330050429f4010529b80b0629f4010729b80b08181b09182e", "hex"), type: 65}},
+        ];
+        write.mockClear();
+        await set("w100_mode", "thermostat_mode", "ON");
+        expect(device.meta.w100HaMode).toStrictEqual("ON");
+        // The PMTSD subscription is cleared once (PMTSD thermostat mode OFF frame, action 0x04) before the first subscription.
+        expect(write.mock.calls[0][1][65522].value[6]).toStrictEqual(0x04);
+        expect(write.mock.calls.slice(1).map((c) => c[1])).toStrictEqual(subscribe);
+
+        write.mockClear();
+        globalStore.clear(); // The restore runs at most every 10 seconds.
+        await report({238: 1643});
+        expect(write.mock.calls.map((c) => c[1])).toStrictEqual(subscribe);
+
+        write.mockClear();
+        await set("w100_mode", "thermostat_mode", "OFF");
+        expect(device.meta.w100HaMode).toStrictEqual("OFF");
+        expectValid(write.mock.calls[0][1][65522].value);
+        expect(write.mock.calls[1][1][372].value.toString("hex")).toStrictEqual("001000");
+    });
+    it("exposes follow the protocol and the options", async () => {
+        const {device} = setup();
+        const exposes = (await definition(device)).exposes as DefinitionExposesFunction;
+        // biome-ignore lint/suspicious/noExplicitAny: test
+        const climate = (options: KeyValueAny) => exposes(device, options).find((e) => e.type === "climate") as any;
+        const feature = (options: KeyValueAny, name: string) => climate(options).features.find((f: Expose) => f.name === name);
+
+        // PMTSD: whole degrees and the PMTSD data.
+        expect(feature({min_target_temp: 12, max_target_temp: 26}, "occupied_heating_setpoint")).toMatchObject({
+            value_min: 12,
+            value_max: 26,
+            value_step: 1,
+        });
+        expect(exposes(device, {}).find((e) => e.name === "PMTSD_from_W100_Data")).toBeDefined();
+        device.meta.w100HaMode = "ON";
+        expect(feature({setpoint_step: 0.1}, "occupied_heating_setpoint").value_step).toStrictEqual(0.1);
+        expect(exposes(device, {}).find((e) => e.name === "PMTSD_from_W100_Data")).toBeUndefined();
+        expect(feature({system_modes: ["heat", "off"]}, "system_mode").values).toStrictEqual(["off", "heat"]);
+        expect(feature({fan_modes: ["high", "auto"]}, "fan_mode").values).toStrictEqual(["auto", "high"]);
+        expect(feature({fan_modes: ["none"]}, "fan_mode")).toBeUndefined();
+        expect(feature({thermostat_protocol: "legacy"}, "occupied_heating_setpoint").value_step).toStrictEqual(1);
+    });
+
+    it("0x0174: sends the step, the allowed modes and fan modes, refuses the others", async () => {
+        const options = {setpoint_step: 0.1, system_modes: ["off", "heat"], fan_modes: ["none"]};
+        const {write, set} = setup({w100HaMode: "OFF", w100PmtsdCleared: true}, options);
+        await set("w100_mode", "thermostat_mode", "ON");
+        expect(write.mock.calls[0][1]).toStrictEqual({373: {value: 10, type: 33}});
+        // Tag 8: off (bit 0) + heat (bit 4) = 0x11, tag 9: no fan = 0x00.
+        expect(tlvWrites(write)[0].endsWith("081811091800")).toStrictEqual(true);
+        expect(await set("w100_pmtsd", "occupied_heating_setpoint", 20.36)).toStrictEqual({state: {occupied_heating_setpoint: 20.4}});
+        await expect(set("w100_pmtsd", "system_mode", "cool")).rejects.toThrow("not allowed");
+        await expect(set("w100_pmtsd", "fan_mode", "high")).rejects.toThrow("not allowed");
+    });
+
+    it("0x0174: reverts a mode and a fan mode not allowed, detects the protocol and clears the stale keys", async () => {
+        const pmtsdData = "PMTSD_from_W100_Data";
+        const {device, write, report, deviceExposesChanged} = setup(
+            {},
+            {system_modes: ["off", "heat"], fan_modes: ["low", "auto"]},
+            {PW: "0", [pmtsdData]: "x"},
+        );
+        expect(await report({372: Buffer.from("01300302295a0a033003", "hex")})).toStrictEqual({
+            system_mode: "heat",
+            fan_mode: "auto",
+            PW: null,
+            [pmtsdData]: null,
+        });
+        expect(tlvWrites(write)).toStrictEqual(["013004033005"]);
+        expect(device.meta.w100HaMode).toStrictEqual("ON");
+        expect(deviceExposesChanged).toHaveBeenCalled();
+    });
+
+    it("PMTSD: reverts a mode and a fan mode not allowed", async () => {
+        const {write, report} = setup({}, {system_modes: ["off", "heat"], fan_modes: ["auto", "high"]});
+        const data = Buffer.from("M0_S2");
+        const result = await report({65522: Buffer.from([0xaa, 0x71, 0, 0x84, 0x12, 0, 5, 0x41, 0, 0x08, 0x00, 0x08, 0x44, data.length, ...data])});
+        expect(result).toMatchObject({system_mode: "heat", fan_mode: "auto"});
+        expect(frames(write)[1].subarray(22).toString()).toStrictEqual("P0_M1_T20_S0_D0");
+    });
+
+    it("thermostat_protocol: forces the protocol without detection", async () => {
+        const {endpoint, write, set} = setup({}, {thermostat_protocol: "legacy"});
+        endpoint.read = vi.fn();
+        await set("w100_mode", "thermostat_mode", "ON");
+        expect(endpoint.read).not.toHaveBeenCalled();
+        expect(frames(write)[0][6]).toStrictEqual(0x02);
+    });
+
+    it("0x00F7: records the reception and clears the bogus state", async () => {
+        const {device, report} = setup({}, {}, {state: "OFF"});
+        expect(await report({247: Buffer.from([0x66, 0x20, 0x64])})).toStrictEqual({state: null});
+        expect(globalStore.getValue(device, "w100_struct_received")).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it("restore: rebinds, configures reporting and subscribes with the mode set by the user", async () => {
+        const {endpoint, write, report} = setup({w100HaMode: "ON", w100ThermostatMode: "ON", w100PmtsdCleared: true}, {}, {thermostat_mode: "OFF"});
+        const coordinator = {ID: 1} as Zh.Endpoint;
+        const temperature = Zcl.Utils.getCluster("msTemperatureMeasurement");
+        vi.spyOn(endpoint, "binds", "get").mockReturnValue([{cluster: temperature, target: coordinator}]);
+        vi.spyOn(endpoint, "configuredReportings", "get").mockReturnValue([
+            {
+                cluster: temperature,
+                attribute: temperature.attributes.measuredValue,
+                minimumReportInterval: 1,
+                maximumReportInterval: 3600,
+                reportableChange: 1,
+            },
+        ]);
+        endpoint.read = vi.fn();
+
+        await report({238: 4139});
+        expect(endpoint.bind).toHaveBeenCalledWith("msTemperatureMeasurement", coordinator);
+        expect(endpoint.configureReporting).toHaveBeenCalledWith(
+            temperature.ID,
+            [{attribute: {ID: 0, type: Zcl.DataType.INT16}, minimumReportInterval: 1, maximumReportInterval: 3600, reportableChange: 1}],
+            undefined,
+        );
+        // Subscribed although a 0x0172 report changed thermostat_mode to OFF, then the mode is read again.
+        expect(tlvWrites(write).length).toStrictEqual(1);
+        expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [0x0172], {manufacturerCode: 0x115f});
+        // At most once per 10 seconds.
+        await report({238: 4139});
+        expect(tlvWrites(write).length).toStrictEqual(1);
+    });
+
+    it("configure: turns the thermostat mode off only on a new device", async () => {
+        const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+        for (const [meta, unsubscribed] of [
+            [{}, true],
+            [{w100ThermostatMode: "ON"}, false],
+        ] as const) {
+            const {device, write} = setup({...meta});
+            const def = await definition(device);
+            await def.configure?.(device, coordinatorEndpoint, def);
+            expect(tlvWrites(write).includes("001000")).toStrictEqual(unsubscribed);
+            expect(device.getEndpoint(1).bind).toHaveBeenCalledWith("manuSpecificLumi", coordinatorEndpoint);
+        }
+    });
+
+    it("events: reads the mode after an interview, restores when silent for 2 hours", async () => {
+        vi.useFakeTimers();
+        try {
+            const {device, endpoint} = setup();
+            const temperature = Zcl.Utils.getCluster("msTemperatureMeasurement");
+            vi.spyOn(endpoint, "binds", "get").mockReturnValue([{cluster: temperature, target: {ID: 1} as Zh.Endpoint}]);
+            const def = await definition(device);
+            const data = {device, options: {}, state: {}, deviceExposesChanged: vi.fn()};
+            await def.onEvent?.({type: "deviceInterview", data: {...data, status: "successful"}});
+            expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [0x0172], {manufacturerCode: 0x115f});
+
+            await def.onEvent?.({type: "start", data});
+            await vi.advanceTimersByTimeAsync(90 * 60 * 1000);
+            expect(endpoint.bind).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(60 * 60 * 1000);
+            expect(endpoint.bind).toHaveBeenCalledWith("msTemperatureMeasurement", {ID: 1});
+            await def.onEvent?.({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("external sensor: incrementing counter, latest values sent on wake-up with the battery read", async () => {
+        const {device, endpoint, write} = setup();
+        const def = await definition(device);
+        const tzMeta = {device, state: {sensor: "external"}, options: {}} as unknown as Tz.Meta;
+        const converter = def.toZigbee.find((c) => c.key.includes("external_temperature")) as Tz.Converter;
+        write.mockRejectedValue(new Error("timeout"));
+        for (const value of [20, 21]) await converter.convertSet(endpoint, "external_temperature", value, tzMeta);
+        await converter.convertSet(endpoint, "external_humidity", 50, tzMeta);
+        write.mockReset();
+        endpoint.read = vi.fn();
+
+        for (const c of def.fromZigbee.filter((c) => c.cluster === "msTemperatureMeasurement")) {
+            // @ts-expect-error mock
+            await c.convert(
+                def,
+                {type: "attributeReport", data: {measuredValue: 2000}, device, endpoint},
+                vi.fn(),
+                {},
+                {device, state: {sensor: "external"}},
+            );
+        }
+        await vi.waitFor(() => expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [0x00f7], {manufacturerCode: 0x115f}));
+        const sent = frames(write);
+        for (const frame of sent) expectValid(frame);
+        expect(sent.map((f) => [f[f.length - 7], f.subarray(f.length - 4).readFloatBE()])).toStrictEqual([
+            [1, 2100],
+            [2, 5000],
+        ]);
+        expect(sent[1][4]).toStrictEqual((sent[0][4] + 1) & 0xff);
     });
 });
