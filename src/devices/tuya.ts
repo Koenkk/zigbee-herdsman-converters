@@ -5051,6 +5051,24 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.binary("carbon_monoxide", ea.STATE, "ON", "OFF").withDescription("Indicates if CO (carbon monoxide) is detected"), e.co()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mxjtmqln"]),
+        model: "ZB-708",
+        vendor: "Tuya",
+        description: "Carbon monoxide detector with siren",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryOnDeviceAnnounce: true})],
+        exposes: [e.carbon_monoxide(), e.co(), tuya.exposes.selfTest(), tuya.exposes.selfTestResult(), tuya.exposes.fault(), tuya.exposes.silence()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "carbon_monoxide", tuya.valueConverter.trueFalseEnum0],
+                [2, "co", tuya.valueConverter.raw],
+                [8, "self_test", tuya.valueConverter.raw],
+                [9, "self_test_result", tuya.valueConverter.selfTestResult],
+                [11, "fault", tuya.valueConverter.trueFalse1],
+                [16, "silence", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ggev5fsl", "_TZE200_u319yc66", "_TZE200_kvpwq8z7", "_TZE204_kvpwq8z7"]),
         model: "TS0601_gas_sensor_1",
         vendor: "Tuya",
