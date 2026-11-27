@@ -31131,6 +31131,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZRM01",
         vendor: "Novato",
         description: "Smart relay 1 channel",
+        whiteLabel: [tuya.whitelabel("Tuya", "QS-Zigbee-SEC01-DC_1", "Mini 1 gang switch module (dry contact)", ["_TZ3218_n0jsuogs"])],
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
