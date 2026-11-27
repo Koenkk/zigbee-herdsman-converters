@@ -20,7 +20,8 @@ permissions:
 
 jobs:
     prs:
-        if: github.event.action != 'closed'
+        # Only run on the main repo, forks don't have the secrets (e.g. COPILOT_TOKEN)
+        if: github.repository == 'Koenkk/zigbee-herdsman-converters' && github.event.action != 'closed'
         runs-on: ubuntu-latest
         outputs:
             prs: ${{ steps.prs.outputs.result }}
@@ -219,7 +220,7 @@ jobs:
                       await check({github, context, core, prNumber: ${{ matrix.pr }}});
 
     device-picture-upload:
-        if: github.event.action == 'closed' && github.event.pull_request.merged && (startsWith(github.event.pull_request.title, 'feat(add)') || startsWith(github.event.pull_request.title, 'fix(detect)'))
+        if: github.repository == 'Koenkk/zigbee-herdsman-converters' && github.event.action == 'closed' && github.event.pull_request.merged && (startsWith(github.event.pull_request.title, 'feat(add)') || startsWith(github.event.pull_request.title, 'fix(detect)'))
         runs-on: ubuntu-latest
         # Checks out the base branch (for the script), never PR code.
         steps:
