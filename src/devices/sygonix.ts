@@ -3,6 +3,7 @@ import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, KeyValue, Tuya, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -45,7 +46,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sygonix",
         description: "Tubular motor",
         exposes: (_device, options = {}) => [
-            tuya.exposes.coverPosition(),
+            e.cover_position(),
             tuya.exposes.motorState(),
             e.battery().withDescription("Battery level reported by the motor in %"),
             tuya.exposes
@@ -83,6 +84,16 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Whether the motor defines 100% as fully open or fully closed"),
         ],
         options: [exposes.options.invert_cover()],
+        toZigbee: [
+            {
+                ...tuya.tz.datapoints,
+                convertGet: async (entity, key) => {
+                    utils.assertEndpoint(entity);
+                    if (key !== "position") throw new Error(`Getting '${key}' is not supported`);
+                    await entity.command("manuSpecificTuya", "dataQuery", {});
+                },
+            },
+        ],
         onEvent: async (event) => {
             if (event.type === "stop") {
                 clearPendingStop(event.data.ieeeAddr);

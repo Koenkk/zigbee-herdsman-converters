@@ -1,10 +1,12 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {Group} from "zigbee-herdsman/dist/controller/model";
 import {definitions} from "../src/devices/sygonix";
 import {prepareDefinition} from "../src/index";
+import {access} from "../src/lib/exposes";
 import {logger} from "../src/lib/logger";
 import * as globalStore from "../src/lib/store";
 import * as tuya from "../src/lib/tuya";
-import type {KeyValue, Tuya, Tz} from "../src/lib/types";
+import type {KeyValue, Tuya, Tz, Zh} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("Sygonix SY-6872860", () => {
@@ -52,22 +54,101 @@ describe("Sygonix SY-6872860", () => {
             if (datatype === 2) data.writeUInt32BE(value);
             return reportFrame([{dp, datatype, data}], options);
         };
+        const makeMeta = (message: KeyValue, options: KeyValue = {}): Tz.Meta => ({
+            device,
+            mapped: definition,
+            message,
+            options,
+            state,
+            publish,
+            endpoint_name: undefined,
+            deviceExposesChanged: () => {},
+        });
+        const converterFor = (key: string) => {
+            const converter = definition.toZigbee.find((candidate) => !candidate.key || candidate.key.includes(key));
+            if (!converter) throw new Error(`No converter for '${key}'`);
+            return converter;
+        };
         const send = (key: string, value: number | string, options: KeyValue = {}) => {
-            const meta: Tz.Meta = {
-                device,
-                mapped: definition,
-                message: {[key]: value},
-                options,
-                state,
-                publish,
-                endpoint_name: undefined,
-                deviceExposesChanged: () => {},
-            };
-            return tuya.tz.datapoints.convertSet(endpoint, key, value, meta);
+            const converter = converterFor(key);
+            if (!converter.convertSet) throw new Error(`No SET converter for '${key}'`);
+            return converter.convertSet(endpoint, key, value, makeMeta({[key]: value}, options));
+        };
+        const sendMessage = async (message: KeyValue) => {
+            const used = new Set<Tz.Converter>();
+            const results: Tz.ConvertSetResult[] = [];
+            for (const [key, value] of Object.entries(message)) {
+                const converter = converterFor(key);
+                if (used.has(converter)) continue;
+                if (!converter.convertSet) throw new Error(`No SET converter for '${key}'`);
+                used.add(converter);
+                results.push(await converter.convertSet(endpoint, key, value, makeMeta(message)));
+            }
+            return results;
+        };
+        const get = (key: string, target: Zh.Endpoint | Zh.Group = endpoint) => {
+            const converter = converterFor(key);
+            if (!converter.convertGet) throw new Error(`No GET converter for '${key}'`);
+            const meta = makeMeta({[key]: ""});
+            if (target !== endpoint) {
+                meta.device = undefined;
+                meta.mapped = [definition];
+            }
+            return converter.convertGet(target, key, meta);
         };
         const start = () => definition.onEvent({type: "start", data: {device, state, options: {}, deviceExposesChanged: () => {}}});
-        return {definition, device, command, publish, report, reportFrame, send, start};
+        return {definition, device, command, publish, report, reportFrame, send, sendMessage, get, start};
     };
+
+    it("exposes position GET while preserving position SET and cover commands", () => {
+        const {definition, device} = setup();
+        const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+        const cover = exposes.find((expose) => expose.type === "cover");
+        expect(cover?.features.find((feature) => feature.name === "position")?.access).toBe(access.ALL);
+        expect(cover?.features.find((feature) => feature.name === "state")?.access).toBe(access.STATE_SET);
+    });
+
+    it("queries position once without optimistic state or ongoing polling", async () => {
+        const {command, publish, get} = setup();
+        expect(await get("position")).toBeUndefined();
+        expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        expect(publish).not.toHaveBeenCalled();
+        await vi.advanceTimersByTimeAsync(60000);
+        expect(command).toHaveBeenCalledTimes(1);
+        expect(publish).not.toHaveBeenCalled();
+    });
+
+    it("rejects a group position query without sending a command", async () => {
+        const {command, publish, get} = setup();
+        const group = Object.create(Group.prototype) as Group;
+        const groupCommand = vi.spyOn(group, "command").mockResolvedValue(undefined);
+        await expect(get("position", group)).rejects.toThrow("Not an endpoint");
+        expect(groupCommand).not.toHaveBeenCalled();
+        expect(command).not.toHaveBeenCalled();
+        expect(publish).not.toHaveBeenCalled();
+    });
+
+    it.each(["state", "battery", "unsupported"])("rejects an unsupported GET for %s", async (key) => {
+        const {command, publish, get} = setup();
+        await expect(get(key)).rejects.toThrow(`Getting '${key}' is not supported`);
+        expect(command).not.toHaveBeenCalled();
+        expect(publish).not.toHaveBeenCalled();
+    });
+
+    it.each([false, true])(
+        "routes a mixed SET message through one converter without duplicate commands (position first=%s)",
+        async (positionFirst) => {
+            const {command, publish, sendMessage} = setup();
+            const message = positionFirst ? {position: 75, state: "OPEN"} : {state: "OPEN", position: 75};
+            expect(await sendMessage(message)).toEqual([{state: {}}]);
+            const state = {dp: 1, datatype: 4, data: Buffer.from([0])};
+            const position = {dp: 2, datatype: 2, data: Buffer.from([0, 0, 0, 75])};
+            const expected = positionFirst ? [position, state] : [state, position];
+            expect(command).toHaveBeenCalledTimes(2);
+            expect(command.mock.calls.map((call) => call[2])).toEqual(expected.map((dp) => expect.objectContaining({dpValues: [dp]})));
+            expect(publish).not.toHaveBeenCalled();
+        },
+    );
 
     it.each([false, true])("keeps target echoes separate from actual position (invert_cover=%s)", async (invertCover) => {
         const {command, publish, report, send} = setup();
