@@ -2129,6 +2129,7 @@ export interface AqaraFp400Config {
         installationHeightMax: number;
         installationStatus: number;
         installationAngle: number;
+        zones: unknown[];
         entryExitRegion: Buffer;
         interferenceRegion: Buffer;
         monitoringRegion: Buffer;
@@ -2141,11 +2142,16 @@ export interface AqaraFp400Config {
         detectionDirection: number;
         proximityDistance: number;
     };
-    commands: {startLearning: Record<string, never>};
-    commandResponses: never;
+    commands: {
+        startLearning: Record<string, never>;
+        appendZone: {zone: {elmType: number; elmVal: unknown}[]};
+        updateZone: {zone: {elmType: number; elmVal: unknown}[]};
+        removeZone: {zoneId: number};
+    };
+    commandResponses: {appendZoneResponse: {status: number}; updateZoneResponse: {status: number}; removeZoneResponse: {status: number}};
 }
 export interface AqaraFp400Radar {
-    attributes: {humanCount: number};
+    attributes: {childEndpointList: number[]; zoneId: number; humanCount: number};
     commands: never;
     commandResponses: never;
 }
@@ -2175,6 +2181,7 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             installationHeightMax: {name: "installationHeightMax", ID: 0x0006, type: Zcl.DataType.UINT16},
             installationStatus: {name: "installationStatus", ID: 0x0007, type: Zcl.DataType.ENUM8},
             installationAngle: {name: "installationAngle", ID: 0x0008, type: Zcl.DataType.UINT8},
+            zones: {name: "zones", ID: 0x0010, type: Zcl.DataType.ARRAY},
             entryExitRegion: {name: "entryExitRegion", ID: 0x0012, type: Zcl.DataType.OCTET_STR, write: true},
             interferenceRegion: {name: "interferenceRegion", ID: 0x0013, type: Zcl.DataType.OCTET_STR, write: true},
             monitoringRegion: {name: "monitoringRegion", ID: 0x0014, type: Zcl.DataType.OCTET_STR, write: true},
@@ -2187,14 +2194,25 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             detectionDirection: {name: "detectionDirection", ID: 0x002e, type: Zcl.DataType.ENUM8, write: true, max: 1},
             proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
         },
-        commands: {startLearning: {name: "startLearning", ID: 0x03, parameters: []}},
-        commandsResponse: {},
+        commands: {
+            startLearning: {name: "startLearning", ID: 0x03, parameters: []},
+            appendZone: {name: "appendZone", ID: 0x04, response: 0x05, parameters: [{name: "zone", type: Zcl.DataType.STRUCT}]},
+            updateZone: {name: "updateZone", ID: 0x06, response: 0x07, parameters: [{name: "zone", type: Zcl.DataType.STRUCT}]},
+            removeZone: {name: "removeZone", ID: 0x08, response: 0x09, parameters: [{name: "zoneId", type: Zcl.DataType.UINT8}]},
+        },
+        commandsResponse: {
+            appendZoneResponse: {name: "appendZoneResponse", ID: 0x05, parameters: [{name: "status", type: Zcl.DataType.ENUM8}]},
+            updateZoneResponse: {name: "updateZoneResponse", ID: 0x07, parameters: [{name: "status", type: Zcl.DataType.ENUM8}]},
+            removeZoneResponse: {name: "removeZoneResponse", ID: 0x09, parameters: [{name: "status", type: Zcl.DataType.ENUM8}]},
+        },
     },
     aqaraFp400Radar: {
         name: "aqaraFp400Radar",
         ID: 0xfc0b,
         manufacturerCode,
         attributes: {
+            childEndpointList: {name: "childEndpointList", ID: 0x0000, type: Zcl.DataType.ARRAY},
+            zoneId: {name: "zoneId", ID: 0x0001, type: Zcl.DataType.UINT8},
             humanCount: {name: "humanCount", ID: 0x0002, type: Zcl.DataType.UINT16},
         },
         commands: {},
@@ -2346,27 +2364,83 @@ function fp400RoomView(device: Zh.Device): Zh.Device {
     });
 }
 
+const FP400_ZONE_ENDPOINTS = [3, 4, 5, 6, 7, 8, 9, 10];
+
+const fp400OccupancyReporting = (maximumReportInterval: number) => [
+    {attribute: "occupancy" as const, minimumReportInterval: 0, maximumReportInterval, reportableChange: 0},
+];
 const fp400LightReporting = (maximumReportInterval: number) => [
     {attribute: "measuredValue" as const, minimumReportInterval: 10, maximumReportInterval, reportableChange: 5},
 ];
 
 /**
- * The sensor's reporting table holds five entries. Room presence takes the first (`m.occupancy` on endpoint 1) and the
- * light sensor the next; when it gets no entry, it is polled.
+ * The zone endpoints that carry a zone, as endpoint 1 lists them (0xFC0B childEndpointList); undefined when unknown. The
+ * other zone endpoints answer too, with a zone id of their own, so the zone id does not tell.
  */
-const fp400ConfigureReporting: Configure = async (device, coordinatorEndpoint) => {
-    const reported: number[] = [];
+async function fp400ReadZoneEndpoints(device: Zh.Device): Promise<number[] | undefined> {
     try {
-        const light = device.getEndpoint(2);
+        const {childEndpointList} = await device
+            .getEndpoint(1)
+            .read<"aqaraFp400Radar", AqaraFp400Radar>("aqaraFp400Radar", ["childEndpointList"], {manufacturerCode});
+        if (Array.isArray(childEndpointList)) return FP400_ZONE_ENDPOINTS.filter((id) => childEndpointList.includes(id));
+    } catch (error) {
+        logger.debug(`FP400 '${device.ieeeAddr}': reading which endpoints carry zones failed (${error})`, NS);
+    }
+    return undefined;
+}
+
+/**
+ * The sensor's reporting table holds five entries. Room presence takes the first (`m.occupancy` on endpoint 1), the light
+ * sensor the next and the zones on `zones` what is left; whatever gets no entry is polled. A zone endpoint that no longer
+ * carries a zone gives its entry back first: a maximum interval of 0xFFFF stops a report. With `zones` unknown, the zones'
+ * entries are left as they are.
+ */
+async function fp400ShareReporting(device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, zones: number[] | undefined) {
+    const before: number[] = (device.meta?.fp400ReportedEndpoints ?? []).filter((id: number) => FP400_ZONE_ENDPOINTS.includes(id));
+    for (const id of zones ? before.filter((id) => !zones.includes(id)) : []) {
+        try {
+            await device.getEndpoint(id).configureReporting("msOccupancySensing", fp400OccupancyReporting(0xffff));
+        } catch (error) {
+            logger.debug(`FP400 '${device.ieeeAddr}': freeing the reporting entry of endpoint ${id} failed (${error})`, NS);
+        }
+    }
+    const reported = zones ? [] : [...before];
+    const report = async (id: number, configure: (endpoint: Zh.Endpoint) => Promise<void>) => {
+        try {
+            await configure(device.getEndpoint(id));
+            reported.push(id);
+        } catch (error) {
+            logger.debug(`FP400 '${device.ieeeAddr}': endpoint ${id} is polled instead of reported (${error})`, NS);
+        }
+    };
+    await report(2, async (light) => {
         await light.bind("msIlluminanceMeasurement", coordinatorEndpoint);
         await light.configureReporting("msIlluminanceMeasurement", fp400LightReporting(3600));
-        reported.push(2);
-    } catch (error) {
-        logger.debug(`FP400 '${device.ieeeAddr}': endpoint 2 is polled instead of reported (${error})`, NS);
+    });
+    for (const id of zones ?? []) {
+        await report(id, async (zone) => {
+            await zone.bind("msOccupancySensing", coordinatorEndpoint);
+            await zone.configureReporting("msOccupancySensing", fp400OccupancyReporting(3600));
+        });
     }
     device.meta.fp400ReportedEndpoints = reported;
+    if (zones) device.meta.fp400ReportingZones = zones;
     device.save();
+}
+
+const fp400ConfigureReporting: Configure = async (device, coordinatorEndpoint) => {
+    await fp400ShareReporting(device, coordinatorEndpoint, await fp400ReadZoneEndpoints(device));
 };
+
+/** The coordinator endpoint the sensor reports to: room presence is bound to it when the sensor is configured. */
+function fp400CoordinatorEndpoint(device: Zh.Device): Zh.Endpoint | undefined {
+    for (const endpoint of device.endpoints) {
+        for (const {target} of endpoint.binds) {
+            if ("getDevice" in target && target.getDevice()?.type === "Coordinator") return target;
+        }
+    }
+    return undefined;
+}
 
 /* ── The sensor's own settings ───────────────────────────────────────────────────────────────────────────────────── */
 
@@ -2809,6 +2883,213 @@ function fp400Areas(): ModernExtend[] {
     ];
 }
 
+/** The zone list (0xFC0A attribute 0x0010) in the fields native_zone takes; undefined unless every record is a whole zone. */
+function fp400DecodeZones(value: unknown): KeyValue[] | undefined {
+    if (!Array.isArray(value)) return;
+    const zones: KeyValue[] = [];
+    for (const record of value) {
+        if (!Array.isArray(record) || record.length < 4) return;
+        const [id, type, cells, enabled] = record as {elmType: number; elmVal: unknown}[];
+        if (
+            id?.elmType !== Zcl.DataType.UINT8 ||
+            type?.elmType !== Zcl.DataType.ENUM8 ||
+            cells?.elmType !== Zcl.DataType.OCTET_STR ||
+            enabled?.elmType !== Zcl.DataType.BOOLEAN ||
+            !Buffer.isBuffer(cells.elmVal) ||
+            cells.elmVal.length !== 40
+        ) {
+            return;
+        }
+        zones.push({zone_id: id.elmVal as number, mask_hex: cells.elmVal.toString("hex"), enabled: Boolean(enabled.elmVal)});
+    }
+    return zones;
+}
+
+/**
+ * The sensor's own detection zones, on endpoints 3-10 (zone_id_N tells which zone an endpoint carries). The zones the
+ * sensor has report their occupancy in the reporting entries room presence and the light leave (fp400ShareReporting);
+ * everything else is polled, also on endpoints without a zone, which answer too. Configure reads are left out. The zone
+ * list (native_zones) is read on the first poll, after each native_zone or native_zone_remove, on refresh, and when the
+ * poll finds zones created or removed in the Aqara app. From two zones on, the list takes more than one frame, and Ember
+ * coordinators pass on only the first (Koenkk/zigbee-herdsman#1886): there the read fails and the list is not published.
+ */
+function fp400NativeZones(): ModernExtend[] {
+    const endpointNames = ["3", "4", "5", "6", "7", "8", "9", "10"];
+    const zoneCommand = async (endpoint: Zh.Endpoint, command: "appendZone" | "updateZone" | "removeZone", payload: KeyValueAny) => {
+        const reply = await endpoint.command<"aqaraFp400Config", typeof command, AqaraFp400Config>("aqaraFp400Config", command, payload as never, {
+            manufacturerCode,
+        });
+        return reply?.status;
+    };
+    const readZones = async (device: Zh.Device) => {
+        await device.getEndpoint(1).read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", ["zones"], {manufacturerCode});
+    };
+    // For the reads after a zone change: the change is made by then, so a failed read is only logged.
+    const listZones = async (device: Zh.Device) => {
+        try {
+            await readZones(device);
+            return true;
+        } catch (error) {
+            logger.debug(`FP400 '${device.ieeeAddr}': reading the zone list failed (${error})`, NS);
+            return false;
+        }
+    };
+    const extend: ModernExtend = {
+        isModernExtend: true,
+        exposes: [
+            e
+                .list(
+                    "native_zones",
+                    ea.STATE_GET,
+                    e
+                        .composite("zone", "zone", ea.STATE)
+                        .withFeature(e.numeric("zone_id", ea.STATE))
+                        .withFeature(e.text("mask_hex", ea.STATE))
+                        .withFeature(e.binary("enabled", ea.STATE, true, false)),
+                )
+                .withDescription("Zones the sensor has, also those made in the Aqara app, as native_zone takes them"),
+            e
+                .composite("native_zone", "native_zone", ea.SET)
+                .withFeature(e.numeric("zone_id", ea.SET).withValueMin(1).withValueMax(8))
+                .withFeature(e.text("mask_hex", ea.SET).withDescription("Cells of the zone as 80 hexadecimal characters, as in the area masks"))
+                .withFeature(e.binary("enabled", ea.SET, true, false))
+                .withCategory("config")
+                .withDescription("Create a zone, or change one the sensor has"),
+            e.numeric("native_zone_remove", ea.SET).withValueMin(1).withValueMax(8).withCategory("config").withDescription("Remove a zone"),
+        ],
+        fromZigbee: [
+            {
+                cluster: "aqaraFp400Config",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.endpoint.ID !== 1 || msg.data.zones === undefined) return;
+                    // A cut list would read as zones gone: only a whole one is published.
+                    const zones = fp400DecodeZones(msg.data.zones);
+                    if (zones) return {native_zones: zones};
+                },
+            } satisfies Fz.Converter<"aqaraFp400Config", AqaraFp400Config, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["native_zones"],
+                convertGet: async (entity, key, meta) => {
+                    await readZones(meta.device);
+                },
+            },
+            {
+                key: ["native_zone_remove"],
+                convertSet: async (entity, key, value, meta) => {
+                    const status = await zoneCommand(meta.device.getEndpoint(1), "removeZone", {zoneId: toNumber(value, key)});
+                    if (status !== 0) throw new Error(`Removing zone ${value} failed (status ${status})`);
+                    await listZones(meta.device);
+                },
+            },
+            {
+                key: ["native_zone"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    const {zone_id: zoneId, mask_hex: maskHex, enabled = true} = value as KeyValueAny;
+                    const cells = Buffer.from(String(maskHex), "hex");
+                    if (cells.length !== 40) throw new Error("mask_hex must be 80 hexadecimal characters");
+                    // The sensor rejects the zone type unless it is tagged enum8.
+                    const zone = [
+                        {elmType: Zcl.DataType.UINT8, elmVal: toNumber(zoneId, "zone_id")},
+                        {elmType: Zcl.DataType.ENUM8, elmVal: 0},
+                        {elmType: Zcl.DataType.OCTET_STR, elmVal: cells},
+                        {elmType: Zcl.DataType.BOOLEAN, elmVal: enabled ? 1 : 0},
+                    ];
+                    let status = await zoneCommand(endpoint, "updateZone", {zone});
+                    if (status !== 0) status = await zoneCommand(endpoint, "appendZone", {zone});
+                    if (status !== 0) throw new Error(`Setting zone ${zoneId} failed (status ${status})`);
+                    await listZones(meta.device);
+                },
+            },
+        ],
+    };
+    const noConfigure = (extend: ModernExtend): ModernExtend => ({...extend, configure: []});
+    return [
+        extend,
+        noConfigure(
+            modernExtend.numeric<"aqaraFp400Radar", AqaraFp400Radar>({
+                name: "zone_id",
+                cluster: "aqaraFp400Radar",
+                attribute: "zoneId",
+                description: "Zone carried by this endpoint",
+                zigbeeCommandOptions: {manufacturerCode},
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                endpointNames,
+            }),
+        ),
+        modernExtend.occupancy({endpointNames, reporting: false}),
+        noConfigure(
+            modernExtend.numeric<"aqaraFp400Radar", AqaraFp400Radar>({
+                name: "human_count",
+                cluster: "aqaraFp400Radar",
+                attribute: "humanCount",
+                description: "People the sensor counts in this zone",
+                zigbeeCommandOptions: {manufacturerCode},
+                access: "STATE_GET",
+                endpointNames,
+            }),
+        ),
+        ...endpointNames.map((endpointName) =>
+            noConfigure(
+                modernExtend.enumLookup<"aqaraFp400Sensitivity", AqaraFp400Sensitivity>({
+                    name: "presence_sensitivity",
+                    lookup: {low: 0, medium: 1, high: 2},
+                    cluster: "aqaraFp400Sensitivity",
+                    attribute: "presenceSensitivity",
+                    description: "Presence detection sensitivity in this zone",
+                    entityCategory: "config",
+                    endpointName,
+                }),
+            ),
+        ),
+        noConfigure(
+            modernExtend.numeric<"msOccupancySensing", undefined>({
+                name: "absence_timeout",
+                cluster: "msOccupancySensing",
+                attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                valueMin: 0,
+                valueMax: 300,
+                unit: "s",
+                description: "Seconds without any detection before this zone is reported empty",
+                entityCategory: "config",
+                endpointNames,
+            }),
+        ),
+        modernExtend.poll({
+            key: "fp400_zones",
+            defaultIntervalSeconds: 60,
+            poll: async (device) => {
+                // Zones created or removed since the reporting entries were shared out, here or in the Aqara app.
+                const zones = await fp400ReadZoneEndpoints(device);
+                if (zones && zones.join() !== device.meta?.fp400ReportingZones?.join()) {
+                    const coordinatorEndpoint = fp400CoordinatorEndpoint(device);
+                    if (coordinatorEndpoint) await fp400ShareReporting(device, coordinatorEndpoint, zones);
+                    else logger.debug(`FP400 '${device.ieeeAddr}': no binding to the coordinator, the zones are polled`, NS);
+                }
+                // The zone list on the first poll, and again once zones were created or removed; a read that fails is
+                // not repeated every minute.
+                if (zones && zones.join() !== globalStore.getValue(device.ieeeAddr, "fp400_listed_zones")) {
+                    globalStore.putValue(device.ieeeAddr, "fp400_listed_zones", zones.join());
+                    await listZones(device);
+                }
+                const reported: number[] = device.meta?.fp400ReportedEndpoints ?? [];
+                for (const name of endpointNames) {
+                    const endpoint = device.getEndpoint(Number(name));
+                    const reads: Promise<unknown>[] = [
+                        endpoint.read<"aqaraFp400Radar", AqaraFp400Radar>("aqaraFp400Radar", ["zoneId", "humanCount"], {manufacturerCode}),
+                    ];
+                    if (!reported.includes(endpoint.ID)) reads.push(endpoint.read("msOccupancySensing", ["occupancy"]));
+                    await Promise.allSettled(reads);
+                }
+            },
+        }),
+    ];
+}
+
 export const fp400 = {
     clusters: fp400Clusters,
     parseFrame: fp400ParseFrame,
@@ -2843,6 +3124,7 @@ export const lumiModernExtend = {
     fp400Settings,
     fp400Room,
     fp400Areas,
+    fp400NativeZones,
     lumiLight: (
         args?: Omit<modernExtend.LightArgs, "colorTemp"> & {
             colorTemp?: true;

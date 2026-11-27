@@ -6841,13 +6841,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             // Its own clusters 0xFC0A-0xFC0C and 0x0080 (see lib/lumi.ts).
             lumi.lumiModernExtend.fp400AddClusters(),
-            // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones, whose reports are ignored here.
+            // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones.
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
             m.occupancy({endpointNames: ["1"]}),
             m.illuminance({endpointNames: ["2"], reporting: false}),
             ...lumi.lumiModernExtend.fp400Settings(),
             ...lumi.lumiModernExtend.fp400Room(),
             ...lumi.lumiModernExtend.fp400Areas(),
+            ...lumi.lumiModernExtend.fp400NativeZones(),
             m.identify(),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
             // Herdsman cannot parse Aqara's 0x8A/0x8B frames and answers each with a Default Response (UNSUP_COMMAND):
