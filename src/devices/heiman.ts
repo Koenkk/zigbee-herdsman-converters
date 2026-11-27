@@ -4143,8 +4143,18 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             m.battery(),
+            m.numeric({
+                name: "voltage",
+                cluster: "genPowerCfg",
+                attribute: "batteryVoltage",
+                reporting: false,
+                unit: "mV",
+                deviceClass: "voltage",
+                entityCategory: "diagnostic",
+                access: "STATE",
+                scale: 0.01, // zigbee reports 30 (x100mV) -> 3000 mV
+            }),
             m.identify(),
-            m.voltage(),
             m.temperature(),
             m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
             heimanExtend.heimanClusterSpecial(),
