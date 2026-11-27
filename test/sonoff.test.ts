@@ -22,40 +22,6 @@ interface State {
     readonly weekly_schedule_saturday?: string;
 }
 
-describe("Sonoff TP-WGZBA", () => {
-    it.each([
-        {firmware: undefined, supportsIteration: false},
-        {firmware: "1.0.5", supportsIteration: false},
-        {firmware: "1.0.6", supportsIteration: true},
-        {firmware: "1.0.7", supportsIteration: true},
-    ])("gates initialization reads on firmware $firmware", async ({firmware, supportsIteration}) => {
-        const inputClusters = ["hvacThermostat"];
-        if (supportsIteration) {
-            inputClusters.push("msOccupancySensing");
-        }
-        const device = mockDevice({
-            modelID: "TP-WGZBA",
-            softwareBuildID: firmware,
-            endpoints: [{ID: 1, inputClusters, inputClusterIDs: [0xfc11]}],
-        });
-        const definition = await findByDevice(device);
-        const endpoint = device.getEndpoint(1);
-
-        await definition.configure(device, endpoint, definition);
-
-        const reads = vi.mocked(endpoint.read).mock.calls;
-        const customReads = reads.filter(([cluster]) => cluster === "customSonoffTpWgzba").flatMap(([, attributes]) => attributes);
-        const iterationAttributes = ["antiStuckEnable", "antiStuckSchedule", "holidayEnable", "holidaySchedule", "defaultDisplayPage"];
-        for (const attribute of iterationAttributes) {
-            expect(customReads.filter((readAttribute) => readAttribute === attribute)).toHaveLength(supportsIteration ? 1 : 0);
-        }
-        const occupancyReads = reads.filter(([cluster]) => cluster === "msOccupancySensing").flatMap(([, attributes]) => attributes);
-        expect(occupancyReads).toEqual(supportsIteration ? ["ultrasonicOToUDelay"] : []);
-        expect(customReads).toContain("radarEnable");
-        expect(customReads).toContain("screenNightModeEnable");
-    });
-});
-
 describe("Sonoff TRVZB", () => {
     let trv: Definition;
 

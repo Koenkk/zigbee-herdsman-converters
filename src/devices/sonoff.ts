@@ -211,7 +211,6 @@ interface SonoffTrvzbt {
     attributes: {
         childLock: number;
         faultCode: number;
-        deviceWorkMode: number;
         openWindow: number;
         frostProtectionTemperature: number;
         idleSteps: number;
@@ -236,12 +235,11 @@ interface SonoffTrvzbt {
         heatPercentageHour: number;
         motorTravelCalibration: number;
         motorTravelCalibrationStatus: number;
+        deviceWorkMode: number;
         screenNightModeEnable: number;
         screenNightModePeriod: SonoffStructValue;
         holidayEnable: number;
-        holidaySchedule: SonoffStructValue;
         valveOpeningRatio: number;
-        valveDirectControl: number[];
     };
     commands: {
         readTemperatureControlHistory: {data: number[]};
@@ -447,7 +445,6 @@ interface SonoffTpWgzba {
         radarSensitivityLevel: number;
         radarDoNotDisturbEnable: number;
         radarDoNotDisturbPeriod: SonoffStructValue;
-        defaultDisplayPage: number;
         screenWorkingBrightness: number;
         screenStandbyBrightness: number;
         screenNightStandbyBrightness: number;
@@ -459,10 +456,9 @@ interface SonoffTpWgzba {
         overheatProtectionTemperature: number;
         overheatProtectionEnable: number;
         radarEnable: number;
-        antiStuckEnable: number;
-        antiStuckSchedule: SonoffStructValue;
+        defaultDisplayPage: number;
         holidayEnable: number;
-        holidaySchedule: SonoffStructValue;
+        antiStuckEnable: number;
     };
     commands: {
         setTemporaryMode: {data: number[]};
@@ -1349,10 +1345,6 @@ const parseSonoffTpWgzbaTimePeriod = (value: unknown, key: string): [number, num
         throw new Error(`Invalid ${key}: expected HH:mm-HH:mm`);
     }
 
-    if (parts[0] === parts[1]) {
-        throw new Error(`Invalid ${key}: start time and end time must be different`);
-    }
-
     return [parseSonoffTpWgzbaTimeValue(parts[0], `${key} start`), parseSonoffTpWgzbaTimeValue(parts[1], `${key} end`)];
 };
 
@@ -1554,11 +1546,7 @@ const featureGates = {
     // Unknown firmware retains the legacy display controls, matching the original firmwareAtLeast fallback.
     snzb02dr2_legacy_remote_source: (device: Zh.Device): boolean => !featureGates.snzb02dr2_support_remote_source(device),
     snzb02dr2_support_remote_source: firmwareSupportFeaturesVersion("1.0.5", "higher"),
-    // Gate multiple remote temperature inputs, valve direct control, night mode, and holiday mode.
     trvzbl_support_iteration: firmwareSupportFeaturesVersion("1.0.5", "higher", {modelID: "TRV-ZBL"}),
-    // Expose the legacy single remote temperature input below the same firmware threshold.
-    trvzbl_support_single_temperature: firmwareSupportFeaturesVersion("1.0.5", "lower", {modelID: "TRV-ZBL"}),
-    // Expose anti-stuck scheduling, holiday mode, radar occupancy and its timeout, and screen temperature selection.
     tpwgzba_support_iteration: firmwareSupportFeaturesVersion("1.0.6", "higher", {modelID: "TP-WGZBA"}),
     zbminir2_external_switch_actions: firmwareSupportFeaturesVersion("1.1.0", "higher", {modelID: "ZBMINIR2"}),
     zbminil2_external_switch_trigger_mode: firmwareSupportFeaturesVersion("1.0.19", "higher", {modelID: "ZBMINIL2"}),
@@ -1951,287 +1939,15 @@ const parseSonoffSnzb02dr2RemoteSourceElements = (elements: number[] | undefined
     return offset === elements.length ? items : undefined;
 };
 
+// Like withConditionalExpose, but also skips configure reads on unsupported firmware.
+const withFirmwareGate = (extend: ModernExtend, gate: FirmwareFeatureGate): ModernExtend => ({
+    ...withConditionalExpose(extend, gate),
+    configure: extend.configure?.map((configure) => async (device, coordinatorEndpoint, definition) => {
+        if (gate(device)) await configure(device, coordinatorEndpoint, definition);
+    }),
+});
+
 const sonoffExtend = {
-    valveControl: (): ModernExtend => {
-        const clusterName = "customSonoffTrvzbt";
-        const enableKey = "direct_control_enable";
-        const targetKey = "valve_direct_control_target";
-        const durationKey = "duration_time";
-        const defaultTarget = 50;
-        const defaultDuration = 0;
-        const controlType = 0x00;
-        const controlLength = 0x06;
-        const exposes = [
-            e
-                .binary(enableKey, ea.ALL, true, false)
-                .withLabel("Valve direct control")
-                .withCategory("config")
-                .withDescription("Enable or disable direct valve control. The default opening is 50% and duration is permanent."),
-            e
-                .numeric(durationKey, ea.ALL)
-                .withLabel("Valve direct control duration")
-                .withCategory("config")
-                .withValueMin(0)
-                .withValueMax(1439)
-                .withValueStep(1)
-                .withUnit("min")
-                .withDescription(
-                    "Direct control duration in minutes: 0 means permanent (default), or set 1 to 1440. Changes are saved while off and sent immediately while on.",
-                ),
-            e
-                .numeric(targetKey, ea.ALL)
-                .withLabel("Valve direct control opening")
-                .withCategory("config")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription(
-                    "Target valve opening. Changes are saved while direct control is off and sent immediately while it is on. Default: 50%.",
-                ),
-        ];
-        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>[] = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg) => {
-                    const bytes = zclArrayValueToBytes(msg.data.valveDirectControl);
-                    if (bytes?.length !== 2 + controlLength || bytes[0] !== controlType || bytes[1] !== controlLength) {
-                        return;
-                    }
-
-                    const enabled = bytes[2];
-                    if (enabled === 0x00) {
-                        return {[enableKey]: false};
-                    }
-
-                    const targetPercent = bytes[3];
-                    const durationSeconds = Buffer.from(bytes).readUInt32LE(4);
-                    const validDuration = durationSeconds === 0 || (durationSeconds >= 60 && durationSeconds <= 86400);
-                    if (enabled !== 0x01 || targetPercent > 100 || !validDuration) {
-                        return;
-                    }
-
-                    return {[enableKey]: true, [targetKey]: targetPercent, [durationKey]: durationSeconds / 60};
-                },
-            },
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: [enableKey, targetKey, durationKey],
-                convertGet: async (entity) => {
-                    await entity.read<typeof clusterName, SonoffTrvzbt>(clusterName, ["valveDirectControl"]);
-                },
-                convertSet: async (entity, key, value, meta) => {
-                    const currentState = meta.state ?? {};
-                    const enabled = key === enableKey ? value : currentState[enableKey];
-                    const targetPercent = (key === targetKey ? value : (currentState[targetKey] ?? defaultTarget)) as number;
-                    const durationMinutes = (key === durationKey ? value : (currentState[durationKey] ?? defaultDuration)) as number;
-                    const changingSettingsWhileDisabled = key !== enableKey && enabled !== true;
-                    if (changingSettingsWhileDisabled) {
-                        return {state: {[key]: value}};
-                    }
-
-                    const payload = Buffer.alloc(2 + controlLength);
-                    payload[0] = controlType;
-                    payload[1] = controlLength;
-                    const state: KeyValueAny = {[enableKey]: enabled};
-                    if (enabled === true) {
-                        const durationSeconds = durationMinutes * 60;
-                        payload[2] = 0x01; //enable
-                        payload[3] = targetPercent;
-                        payload.writeUInt32LE(durationSeconds, 4);
-                        state[targetKey] = targetPercent;
-                        state[durationKey] = durationSeconds / 60;
-                    }
-
-                    await entity.write(clusterName, {
-                        [0x6041]: {
-                            type: Zcl.DataType.ARRAY,
-                            value: {elementType: Zcl.DataType.UINT8, elements: payload},
-                        },
-                    });
-                    return {state};
-                },
-            },
-        ];
-        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
-    },
-    holidaySchedule: ({
-        clusterName,
-        canSelectHeatingBehavior,
-    }: {
-        clusterName: "customSonoffTpWgzba" | "customSonoffTrvzbt";
-        canSelectHeatingBehavior: boolean;
-    }): ModernExtend => {
-        const property = "holiday_schedule";
-        const startKey = "holiday_start_time";
-        const endKey = "holiday_end_time";
-        const modeKey = "holiday_mode";
-        const temperatureKey = "holiday_target_temperature";
-        const scheduleKeys = [startKey, endKey];
-        const dateTimeFormat = "YYYY-MM-DDTHH:mm";
-        const targetTemperatureMode = "target_temperature";
-        const offMode = "off";
-        const holidayModes = [targetTemperatureMode, offMode];
-        const invalidTargetTemperature = 0xffff;
-        const {min, max, step} = sonoffTrvzbtTargetTemperatureRange;
-
-        // Use UTC formatting to preserve the device's local clock fields.
-        const formatScheduleTime = (localSecondsSince2000: number): string => {
-            const calendarTimeMs = (YEAR_2000_IN_UTC + localSecondsSince2000) * 1000;
-            return new Date(calendarTimeMs).toISOString().slice(0, dateTimeFormat.length);
-        };
-        const parseScheduleTime = (value: unknown): number | undefined => {
-            if (!utils.isString(value)) {
-                return;
-            }
-
-            const calendarSeconds = parseIsoWithOffsetToUtcSeconds(`${value}Z`);
-            if (calendarSeconds === undefined) {
-                return;
-            }
-
-            const deviceSeconds = calendarSeconds - YEAR_2000_IN_UTC;
-            const fitsUint32 = deviceSeconds >= 0 && deviceSeconds <= 0xffffffff;
-            if (!fitsUint32 || formatScheduleTime(deviceSeconds) !== value) {
-                return;
-            }
-            return deviceSeconds;
-        };
-
-        const exposes: Expose[] = [
-            e
-                .text(startKey, ea.ALL)
-                .withLabel("Holiday begin time")
-                .withCategory("config")
-                .withDescription(`Enter the local date and time when Holiday mode starts (${dateTimeFormat}).`),
-            e
-                .text(endKey, ea.ALL)
-                .withLabel("Holiday end time")
-                .withCategory("config")
-                .withDescription(
-                    `Enter the local date and time when Holiday mode ends (${dateTimeFormat}). The end time must be after the start time.`,
-                ),
-        ];
-        if (canSelectHeatingBehavior) {
-            holidayModes.push("open");
-            scheduleKeys.push(modeKey);
-            exposes.push(
-                e
-                    .enum(modeKey, ea.ALL, holidayModes)
-                    .withLabel("Holiday mode heating behavior")
-                    .withCategory("config")
-                    .withDescription("Heating behavior during the holiday."),
-            );
-        }
-        scheduleKeys.push(temperatureKey);
-        exposes.push(
-            e
-                .numeric(temperatureKey, ea.ALL)
-                .withLabel("Holiday mode target temperature")
-                .withCategory("config")
-                .withUnit("°C")
-                .withValueMin(min)
-                .withValueMax(max)
-                .withValueStep(step)
-                .withDescription("Set the temperature to maintain during the holiday"),
-        );
-
-        const scheduleState = (startTime: string, endTime: string, holidayMode: string, targetTemperature: number | undefined): KeyValueAny => {
-            const schedule: KeyValueAny = {start_time: startTime, end_time: endTime};
-            const state: KeyValueAny = {[property]: schedule, [startKey]: startTime, [endKey]: endTime};
-            if (canSelectHeatingBehavior) {
-                schedule.holiday_mode = holidayMode;
-                state[modeKey] = holidayMode;
-            }
-            if (targetTemperature !== undefined) {
-                if (!canSelectHeatingBehavior || holidayMode === targetTemperatureMode) {
-                    schedule.target_temp = targetTemperature;
-                }
-                state[temperatureKey] = targetTemperature;
-            }
-            return state;
-        };
-
-        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>[] = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg) => {
-                    const schedule = msg.data.holidaySchedule;
-                    if (schedule === undefined) {
-                        return;
-                    }
-
-                    const start = getSonoffStructNumber(schedule, 0, Zcl.DataType.UINT32);
-                    const end = getSonoffStructNumber(schedule, 1, Zcl.DataType.UINT32);
-                    if (start === 0 && end === 0) {
-                        return {[property]: null, [startKey]: "", [endKey]: ""};
-                    }
-
-                    const mode = getSonoffStructNumber(schedule, 2, Zcl.DataType.UINT8);
-                    const temperature = getSonoffStructNumber(schedule, 3, Zcl.DataType.UINT16);
-                    const holidayMode = holidayModes[mode];
-                    if (start === undefined || end === undefined || temperature === undefined || holidayMode === undefined) {
-                        return;
-                    }
-
-                    const targetTemperature = temperature === invalidTargetTemperature ? undefined : temperature / 100;
-                    return scheduleState(formatScheduleTime(start), formatScheduleTime(end), holidayMode, targetTemperature);
-                },
-            },
-        ];
-
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: scheduleKeys,
-                convertSet: async (entity, key, value, meta) => {
-                    const update = {[key]: value};
-                    const settings = {...meta.state, ...update};
-                    const startTime = settings[startKey] as string | undefined;
-                    const endTime = settings[endKey] as string | undefined;
-                    const holidayMode = canSelectHeatingBehavior ? (settings[modeKey] as string | undefined) : targetTemperatureMode;
-                    const targetTemperature = settings[temperatureKey] as number | undefined;
-                    const start = parseScheduleTime(startTime);
-                    const end = parseScheduleTime(endTime);
-                    const invalidTimeEdit = (key === startKey && start === undefined) || (key === endKey && end === undefined);
-                    if (invalidTimeEdit) {
-                        logger.error(`Invalid ${key}: expected local date and time (${dateTimeFormat})`, NS);
-                        return;
-                    }
-
-                    const usesTargetTemperature = holidayMode === targetTemperatureMode;
-                    const scheduleIsIncomplete = start === undefined || end === undefined || holidayMode === undefined;
-                    const needsTemperatureDraft = usesTargetTemperature ? targetTemperature === undefined : key === temperatureKey;
-                    if (scheduleIsIncomplete || needsTemperatureDraft) {
-                        return {state: update};
-                    }
-                    if (end <= start) {
-                        logger.error(`Invalid ${key}: holiday end time must be after the start`, NS);
-                        return;
-                    }
-
-                    const encodedTemperature = usesTargetTemperature ? Math.round(targetTemperature * 100) : invalidTargetTemperature;
-                    const holidaySchedule: SonoffStructValue = [
-                        {elmType: Zcl.DataType.UINT32, elmVal: start},
-                        {elmType: Zcl.DataType.UINT32, elmVal: end},
-                        {elmType: Zcl.DataType.UINT8, elmVal: holidayModes.indexOf(holidayMode)},
-                        {elmType: Zcl.DataType.UINT16, elmVal: encodedTemperature},
-                    ];
-                    await entity.write<typeof clusterName, SonoffTrvzbt>(clusterName, {holidaySchedule});
-
-                    const savedTargetTemperature = usesTargetTemperature ? encodedTemperature / 100 : targetTemperature;
-                    return {state: scheduleState(startTime, endTime, holidayMode, savedTargetTemperature)};
-                },
-                convertGet: async (entity) => {
-                    await entity.read<typeof clusterName, SonoffTrvzbt>(clusterName, ["holidaySchedule"]);
-                },
-            },
-        ];
-
-        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
-    },
     externalSwitchActions: (args: {endpointNames?: string[]; gate: FirmwareFeatureGate}): ModernExtend => {
         const clusterName = "customClusterEwelink" as const;
         const actionLookup: Record<number, string> = {
@@ -3292,12 +3008,10 @@ const sonoffExtend = {
         const exposes = [
             e
                 .enum(activeGroupKey, ea.ALL, Object.keys(sonoffTrvzbtScheduleGroupLookup))
-                .withLabel("Weekly schedule active group")
                 .withCategory("config")
                 .withDescription("The schedule group currently used in Auto mode."),
             e
                 .enum(selectedGroupKey, ea.ALL, Object.keys(sonoffTrvzbtScheduleGroupLookup))
-                .withLabel("Weekly schedule edit group")
                 .withCategory("config")
                 .withDescription("Select the schedule group to view or edit its weekly schedule settings."),
             ...sonoffTrvzbtScheduleDays.map((day) =>
@@ -3351,19 +3065,13 @@ const sonoffExtend = {
             } satisfies Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>,
             {
                 cluster: clusterName,
-                type: ["commandScheduleGroup", "raw"],
+                type: ["raw"],
                 convert: (model, msg, publish, options, meta) => {
-                    let payload: Buffer;
-                    if (msg.data instanceof Buffer) {
-                        const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
-                        if (parsedRawCommand?.commandId !== 0x13) return;
-                        payload = parsedRawCommand.payload;
-                    } else if ("data" in msg.data) {
-                        payload = Buffer.from(msg.data.data);
-                    } else {
-                        return;
-                    }
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x13) return;
 
+                    const payload = parsedRawCommand.payload;
                     logger.info(`TRV-ZBT received scheduleGroup payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
                     if (payload.length < 4 || payload[0] !== 0x01) return;
                     const readOrWrite = payload[1];
@@ -3427,7 +3135,7 @@ const sonoffExtend = {
                     }
                     return result;
                 },
-            } satisfies Fz.Converter<typeof clusterName, SonoffTrvzbt, ["commandScheduleGroup", "raw"]>,
+            } satisfies Fz.Converter<typeof clusterName, SonoffTrvzbt, ["raw"]>,
         ];
 
         const toZigbee: Tz.Converter[] = [
@@ -4436,158 +4144,6 @@ const sonoffExtend = {
 
         return {configure, isModernExtend: true};
     },
-    remoteTemperatureSources: (sourceCount: number): ModernExtend => {
-        const clusterName = "customSonoffTrvzbt";
-        const temperatureScale = 100;
-        const {min: minTemperature, max: maxTemperature, step: temperatureStep} = sonoffTpWgzbaExternalTemperatureInputRange;
-        const sensorStates = {unbound: 0x00, online: 0x01, offline: 0x02, restored: 0x03} as const;
-        const slots: {temperatureKey: string; stateKey: string; sensorId: number}[] = [];
-        for (let sensorId = 1; sensorId <= sourceCount; sensorId++) {
-            const temperatureKey = `external_temperature_input_${sensorId}`;
-            const stateKey = `${temperatureKey}_state`;
-            slots.push({temperatureKey, stateKey, sensorId});
-        }
-        const exposes = slots.flatMap(({temperatureKey, stateKey, sensorId}) => [
-            e
-                .numeric(temperatureKey, ea.ALL)
-                .withLabel(`External temperature input ${sensorId}`)
-                .withDescription(
-                    "The value of an external temperature sensor. Note: synchronisation of this value with the external temperature sensor needs to happen outside of Zigbee2MQTT.",
-                )
-                .withCategory("config")
-                .withUnit("°C")
-                .withValueMin(minTemperature)
-                .withValueMax(maxTemperature)
-                .withValueStep(temperatureStep),
-            e
-                .enum(stateKey, ea.ALL, Object.keys(sensorStates))
-                .withLabel(`External temperature input ${sensorId} state`)
-                .withDescription(
-                    "Select the temperature source state used for control. " +
-                        "unbound: The external sensor is not bound. " +
-                        "online: Uses the external temperature sensor. " +
-                        "offline: The external sensor is offline. " +
-                        "restored: The external sensor has reconnected.",
-                )
-                .withCategory("config"),
-        ]);
-
-        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>[] = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg) => {
-                    const elements = zclArrayValueToBytes(msg.data.remoteAttributeLinkage);
-                    if (!elements || elements.length < 3 || elements[1] !== 0x01 || elements[2] !== 0x00) {
-                        return;
-                    }
-
-                    const data = Buffer.from(elements);
-                    const updates: Record<string, number | string | null> = {};
-                    let offset = 3;
-                    for (let index = 0; index < data[0]; index++) {
-                        if (offset + 2 > data.length) {
-                            return;
-                        }
-                        const type = data[offset];
-                        const start = offset + 2;
-                        const end = start + data[offset + 1];
-                        if (end > data.length) {
-                            return;
-                        }
-                        offset = end;
-                        if (type !== 0x03) {
-                            continue;
-                        }
-                        if (start === end) {
-                            return;
-                        }
-
-                        let itemOffset = start + 1;
-                        for (let sensorIndex = 0; sensorIndex < data[start]; sensorIndex++) {
-                            const valueOffset = itemOffset + 4;
-                            if (valueOffset > end) {
-                                return;
-                            }
-                            const sensorType = data[itemOffset];
-                            const slot = slots[data[itemOffset + 1] - 1];
-                            const sensorState = data[itemOffset + 2];
-                            const valueLength = data[itemOffset + 3];
-                            itemOffset = valueOffset + valueLength;
-                            if (itemOffset > end) {
-                                return;
-                            }
-                            if (sensorType !== 0x00 || !slot) {
-                                continue;
-                            }
-                            if (sensorState > 0x03 || (valueLength !== 0 && valueLength !== 2)) {
-                                return;
-                            }
-
-                            // A report can update a subset of the slots.
-                            updates[slot.stateKey] = utils.getFromLookupByValue(sensorState, sensorStates);
-                            if (sensorState === sensorStates.unbound || sensorState === sensorStates.offline) {
-                                updates[slot.temperatureKey] = null;
-                            } else if (valueLength === 2) {
-                                updates[slot.temperatureKey] = data.readInt16LE(valueOffset) / temperatureScale;
-                            }
-                        }
-                        if (itemOffset !== end) {
-                            return;
-                        }
-                    }
-                    if (offset === data.length && Object.keys(updates).length > 0) {
-                        return updates;
-                    }
-                },
-            },
-        ];
-
-        const toZigbee: Tz.Converter[] = slots.map(({temperatureKey, stateKey, sensorId}) => ({
-            key: [temperatureKey, stateKey],
-            convertSet: async (entity, key, value, meta) => {
-                // Z2M calls this converter once per slot, using either key from the message.
-                const temperature = (key === temperatureKey ? value : meta?.message?.[temperatureKey]) as number | null | undefined;
-                const requestedState = key === stateKey ? value : meta?.message?.[stateKey];
-                const defaultState = temperature === null ? "unbound" : "online";
-                const state = requestedState === undefined ? defaultState : requestedState;
-                const sensorState = sensorStates[state as keyof typeof sensorStates];
-
-                const clearsTemperature = sensorState === sensorStates.unbound || sensorState === sensorStates.offline;
-                if (!clearsTemperature && temperature === null) {
-                    logger.error(`Invalid ${temperatureKey}: null requires an unbound or offline state`, NS);
-                    return;
-                }
-
-                // One temperature sensor item per write, with its fixed slot ID.
-                const item = [0x00, sensorId, sensorState, 0x00];
-                const updatedState: Record<string, number | string | null> = {[stateKey]: utils.getFromLookupByValue(sensorState, sensorStates)};
-                if (clearsTemperature) {
-                    updatedState[temperatureKey] = null;
-                } else if (temperature !== undefined) {
-                    const encoded = Buffer.alloc(2);
-                    const rawTemperature = Math.round(temperature * temperatureScale);
-                    encoded.writeInt16LE(rawTemperature);
-                    item[3] = encoded.length;
-                    item.push(...encoded);
-                    updatedState[temperatureKey] = rawTemperature / temperatureScale;
-                }
-                const elements = [0x01, 0x01, 0x00, 0x03, 1 + item.length, 0x01, ...item];
-                await entity.write(clusterName, {
-                    [0x601e]: {
-                        type: Zcl.DataType.ARRAY,
-                        value: {elementType: Zcl.DataType.UINT8, elements},
-                    },
-                });
-                return {state: updatedState};
-            },
-            convertGet: async (entity) => {
-                await entity.read<typeof clusterName, SonoffTrvzbt>(clusterName, ["remoteAttributeLinkage"]);
-            },
-        }));
-
-        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
-    },
     remoteTemperatureSource: (clusterName: "customSonoffTpWgzba" | "customSonoffTrvzbt"): ModernExtend => {
         const temperatureSensorSelectKey = "temperature_sensor_select";
         const externalTemperatureInputKey = "external_temperature_input";
@@ -5001,109 +4557,6 @@ const sonoffExtend = {
 
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
-    tpWgzbaAntiStuck: (): ModernExtend => {
-        const clusterName = "customSonoffTpWgzba";
-        const dayKey = "anti_stuck_day";
-        const timeKey = "anti_stuck_time";
-        const durationKey = "anti_stuck_duration";
-        const scheduleKeys = [dayKey, timeKey, durationKey];
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        const minDuration = 1;
-        const maxDuration = 30;
-        const antiStuckSwitch = m.binary<typeof clusterName, SonoffTpWgzba>({
-            name: "anti_stuck",
-            label: "Valve anti-sticking",
-            cluster: clusterName,
-            attribute: "antiStuckEnable",
-            entityCategory: "config",
-            description:
-                "Helps prevent the valve from sticking after long periods of inactivity. When enabled, the thermostat turns on its 3 A powered relay output once a week for the set duration. Use this feature only if a thermal actuator is connected to this output.",
-            valueOn: ["ON", 0x01],
-            valueOff: ["OFF", 0x00],
-        });
-        const scheduleExposes = [
-            e
-                .enum(dayKey, ea.ALL, days)
-                .withLabel("Valve anti-sticking day")
-                .withCategory("config")
-                .withDescription("Choose the day of the week for the cycle."),
-            e
-                .text(timeKey, ea.ALL)
-                .withLabel("Valve anti-sticking start time")
-                .withCategory("config")
-                .withDescription("Set the start time in 24-hour format (HH:mm)."),
-            e
-                .numeric(durationKey, ea.ALL)
-                .withLabel("Valve anti-sticking duration")
-                .withCategory("config")
-                .withValueMin(minDuration)
-                .withValueMax(maxDuration)
-                .withValueStep(1)
-                .withUnit("min")
-                .withDescription("Set how long the relay output stays on, in minutes."),
-        ];
-        const scheduleState = (day: string, time: string, duration: number): KeyValueAny => ({
-            [dayKey]: day,
-            [timeKey]: time,
-            [durationKey]: duration,
-        });
-        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg) => {
-                    const schedule = msg.data.antiStuckSchedule;
-                    if (schedule === undefined) {
-                        return;
-                    }
-                    const dayIndex = getSonoffStructNumber(schedule, 0, Zcl.DataType.UINT8);
-                    const startMinutes = getSonoffStructNumber(schedule, 1, Zcl.DataType.UINT16);
-                    const duration = getSonoffStructNumber(schedule, 2, Zcl.DataType.UINT8);
-                    const day = days[dayIndex];
-                    if (day === undefined || startMinutes === undefined || duration === undefined) {
-                        return;
-                    }
-                    return scheduleState(day, formatSonoffTpWgzbaTimeValue(startMinutes), duration);
-                },
-            },
-        ];
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: scheduleKeys,
-                convertSet: async (entity, key, value, meta) => {
-                    const update = {[key]: value};
-                    const settings = {...meta.state, ...update};
-                    const day = settings[dayKey] as string | undefined;
-                    const time = settings[timeKey] as string | undefined;
-                    const duration = settings[durationKey] as number | undefined;
-                    const startMinutes = time === undefined ? undefined : parseSonoffTpWgzbaTimeValue(time, timeKey);
-
-                    // The device accepts a complete schedule. Cache individual edits until all fields are set.
-                    const scheduleIsIncomplete = day === undefined || startMinutes === undefined || duration === undefined;
-                    if (scheduleIsIncomplete) {
-                        return {state: update};
-                    }
-                    const dayIndex = days.indexOf(day);
-                    const antiStuckSchedule: SonoffStructValue = [
-                        {elmType: Zcl.DataType.UINT8, elmVal: dayIndex},
-                        {elmType: Zcl.DataType.UINT16, elmVal: startMinutes},
-                        {elmType: Zcl.DataType.UINT8, elmVal: duration},
-                    ];
-                    await entity.write<typeof clusterName, SonoffTpWgzba>(clusterName, {antiStuckSchedule});
-                    return {state: scheduleState(day, time, duration)};
-                },
-                convertGet: async (entity) => {
-                    await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, ["antiStuckSchedule"]);
-                },
-            },
-        ];
-        return {
-            exposes: [...antiStuckSwitch.exposes, ...scheduleExposes],
-            fromZigbee: [...antiStuckSwitch.fromZigbee, ...fromZigbee],
-            toZigbee: [...antiStuckSwitch.toZigbee, ...toZigbee],
-            isModernExtend: true,
-        };
-    },
     tpWgzbaTimePeriod: (
         clusterName: "customSonoffTpWgzba" | "customSonoffTrvzbt",
         key: "radar_do_not_disturb_period" | "night_mode_period",
@@ -5111,6 +4564,7 @@ const sonoffExtend = {
         description: string,
     ): ModernExtend => {
         const exposes = [e.text(key, ea.ALL).withCategory("config").withDescription(`${description} Format: HH:mm-HH:mm, e.g. 00:00-06:00.`)];
+
         const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: clusterName,
@@ -11374,7 +10828,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
                     btPairingBroadcastReq: {name: "btPairingBroadcastReq", ID: 0x0029, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    defaultDisplayPage: {name: "defaultDisplayPage", ID: 0x002a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     openWindow: {name: "openWindow", ID: 0x6000, type: Zcl.DataType.BOOLEAN, write: true},
                     frostProtectionTemperature: {name: "frostProtectionTemperature", ID: 0x6002, type: Zcl.DataType.INT16, write: true, min: -32768},
                     temporaryMode: {name: "temporaryMode", ID: 0x6014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
@@ -11398,10 +10851,9 @@ export const definitions: DefinitionWithExtend[] = [
                     screenNightModeEnable: {name: "screenNightModeEnable", ID: 0x6026, type: Zcl.DataType.BOOLEAN, write: true},
                     screenNightModePeriod: {name: "screenNightModePeriod", ID: 0x6027, type: Zcl.DataType.STRUCT, write: true},
                     relayOutputType: {name: "relayOutputType", ID: 0x6028, type: Zcl.DataType.BITMAP8, write: true, max: 0xff},
+                    defaultDisplayPage: {name: "defaultDisplayPage", ID: 0x002a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     holidayEnable: {name: "holidayEnable", ID: 0x602b, type: Zcl.DataType.BOOLEAN, write: true},
-                    holidaySchedule: {name: "holidaySchedule", ID: 0x602c, type: Zcl.DataType.STRUCT, write: true},
                     antiStuckEnable: {name: "antiStuckEnable", ID: 0x602d, type: Zcl.DataType.BOOLEAN, write: true},
-                    antiStuckSchedule: {name: "antiStuckSchedule", ID: 0x602e, type: Zcl.DataType.STRUCT, write: true},
                     remoteAttributeLinkage: {name: "remoteAttributeLinkage", ID: 0x601e, type: Zcl.DataType.ARRAY, write: true},
                     currentNtcTemperature: {name: "currentNtcTemperature", ID: 0x6031, type: Zcl.DataType.INT16, min: -32768},
                     overheatProtectionTemperature: {
@@ -11461,28 +10913,6 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.tpWgzbaTemporaryMode(),
             sonoffExtend.remoteTemperatureSource("customSonoffTpWgzba"),
             sonoffExtend.tpWgzbaTemperatureHysteresis(),
-            withConditionalExpose(sonoffExtend.tpWgzbaAntiStuck(), featureGates.tpwgzba_support_iteration),
-            withConditionalExpose(
-                {
-                    ...m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
-                        name: "holiday_enabled",
-                        label: "Holiday mode",
-                        cluster: "customSonoffTpWgzba",
-                        attribute: "holidayEnable",
-                        entityCategory: "config",
-                        description:
-                            "When enabled, the thermostat applies your holiday heating settings at the scheduled start time and resumes normal heating control at the scheduled end time. The thermostat screen displays HO while holiday mode is active.",
-                        valueOn: [true, 0x01],
-                        valueOff: [false, 0x00],
-                    }),
-                    configure: [],
-                },
-                featureGates.tpwgzba_support_iteration,
-            ),
-            withConditionalExpose(
-                sonoffExtend.holidaySchedule({clusterName: "customSonoffTpWgzba", canSelectHeatingBehavior: false}),
-                featureGates.tpwgzba_support_iteration,
-            ),
             sonoffExtend.tpWgzbaRelayOutput(),
             sonoffExtend.tpWgzbaNtcTemperature(),
             m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
@@ -11510,7 +10940,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
                 name: "radar_detection",
-                label: "Radar detection switch",
                 cluster: "customSonoffTpWgzba",
                 attribute: "radarEnable",
                 entityCategory: "config",
@@ -11518,22 +10947,53 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["enable", 0x01],
                 valueOff: ["disable", 0x00],
             }),
-            withConditionalExpose(
-                {
-                    ...m.numeric({
-                        name: "occupancy_timeout",
-                        label: "Occupancy hold time",
-                        cluster: "msOccupancySensing",
-                        attribute: "ultrasonicOToUDelay",
-                        entityCategory: "config",
-                        description:
-                            "Set how many seconds the status stays Occupied after the radar stops detecting anyone. If you turn off radar detection while the status is Occupied, it changes to Clear once the hold time expires.",
-                        valueMin: 10,
-                        valueMax: 3600,
-                        unit: "s",
-                    }),
-                    configure: [],
-                },
+            withFirmwareGate(m.occupancy({reporting: false}), featureGates.tpwgzba_support_iteration),
+            withFirmwareGate(
+                m.numeric({
+                    name: "occupancy_timeout",
+                    cluster: "msOccupancySensing",
+                    attribute: "ultrasonicOToUDelay",
+                    entityCategory: "config",
+                    description: "Time in seconds the occupancy stays occupied after the radar stops detecting presence.",
+                    valueMin: 10,
+                    valueMax: 3600,
+                    unit: "s",
+                }),
+                featureGates.tpwgzba_support_iteration,
+            ),
+            withFirmwareGate(
+                m.enumLookup<"customSonoffTpWgzba", SonoffTpWgzba>({
+                    name: "screen_temperature_display",
+                    lookup: {ambient_temperature: 0x00, target_temperature: 0x01},
+                    cluster: "customSonoffTpWgzba",
+                    attribute: "defaultDisplayPage",
+                    entityCategory: "config",
+                    description: "Temperature shown on the screen by default.",
+                }),
+                featureGates.tpwgzba_support_iteration,
+            ),
+            withFirmwareGate(
+                m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                    name: "holiday_mode",
+                    cluster: "customSonoffTpWgzba",
+                    attribute: "holidayEnable",
+                    entityCategory: "config",
+                    description: "Enable or disable the holiday schedule.",
+                    valueOn: ["ON", 0x01],
+                    valueOff: ["OFF", 0x00],
+                }),
+                featureGates.tpwgzba_support_iteration,
+            ),
+            withFirmwareGate(
+                m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                    name: "anti_stuck",
+                    cluster: "customSonoffTpWgzba",
+                    attribute: "antiStuckEnable",
+                    entityCategory: "config",
+                    description: "Periodically switch on the relay output to prevent the valve from sticking.",
+                    valueOn: ["ON", 0x01],
+                    valueOff: ["OFF", 0x00],
+                }),
                 featureGates.tpwgzba_support_iteration,
             ),
             m.enumLookup<"customSonoffTpWgzba", SonoffTpWgzba>({
@@ -11549,7 +11009,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customSonoffTpWgzba",
                 attribute: "radarDoNotDisturbEnable",
                 entityCategory: "config",
-                description: "Prevent radar detection from waking the screen automatically during the do-not-disturb period.",
+                description: "Do not wake the screen automatically when presence is detected during the configured period.",
                 valueOn: ["enable", 0x01],
                 valueOff: ["disable", 0x00],
             }),
@@ -11557,30 +11017,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "customSonoffTpWgzba",
                 "radar_do_not_disturb_period",
                 "radarDoNotDisturbPeriod",
-                "Period when radar detection does not wake the screen automatically.",
-            ),
-            withConditionalExpose(
-                m.occupancy({
-                    reporting: false,
-                    description:
-                        "Shows Occupied when the thermostat’s radar detects someone within range. Presence detection is paused when radar detection is disabled or Radar Do Not Disturb is active.",
-                }),
-                featureGates.tpwgzba_support_iteration,
-            ),
-            withConditionalExpose(
-                {
-                    ...m.enumLookup<"customSonoffTpWgzba", SonoffTpWgzba>({
-                        name: "screen_temperature_display",
-                        lookup: {ambient_temperature: 0x00, target_temperature: 0x01},
-                        cluster: "customSonoffTpWgzba",
-                        attribute: "defaultDisplayPage",
-                        entityCategory: "config",
-                        description:
-                            "Choose whether the screen shows the room temperature or the set temperature. The screen shows the room temperature by default. Press the thermostat button twice to switch between the two.",
-                    }),
-                    configure: [],
-                },
-                featureGates.tpwgzba_support_iteration,
+                "During the scheduled period, presence detection will not wake the screen automatically.",
             ),
             m.numeric<"customSonoffTpWgzba", SonoffTpWgzba>({
                 name: "standby_brightness",
@@ -11645,36 +11082,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
             // await reporting.thermostatTemperature(endpoint);
             await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
-            const customAttributes: (keyof SonoffTpWgzba["attributes"])[] = [
-                "childLock",
-                "btPairingBroadcastReq",
-                "openWindow",
-                "frostProtectionTemperature",
-                "temporaryMode",
-                "temporaryModeTime",
-                "temporaryModeTemp",
-                "weeklyScheduleActiveNum",
-                "temperatureControlThreshold",
-                "radarSensitivityLevel",
-                "radarDoNotDisturbEnable",
-                "radarDoNotDisturbPeriod",
-                "screenWorkingBrightness",
-                "screenStandbyBrightness",
-                "screenNightStandbyBrightness",
-                "screenNightModeEnable",
-                "screenNightModePeriod",
-                "relayOutputType",
-                "remoteAttributeLinkage",
-                "currentNtcTemperature",
-                "overheatProtectionTemperature",
-                "overheatProtectionEnable",
-                "radarEnable",
+            const customAttributes = [
+                0x0000, 0x0029, 0x6000, 0x6002, 0x6014, 0x6015, 0x6016, 0x601d, 0x601f, 0x6020, 0x6021, 0x6022, 0x6023, 0x6024, 0x6025, 0x6026,
+                0x6027, 0x6028, 0x601e, 0x6031, 0x6032, 0x6034, 0x6035,
             ];
-            if (featureGates.tpwgzba_support_iteration(device)) {
-                customAttributes.push("antiStuckEnable", "antiStuckSchedule", "holidayEnable", "holidaySchedule", "defaultDisplayPage");
-                await readAttributesInBatches("msOccupancySensing", ["ultrasonicOToUDelay"], endpoint);
-            }
-            await readAttributesInBatches<"customSonoffTpWgzba", SonoffTpWgzba>("customSonoffTpWgzba", customAttributes, endpoint);
+            await readAttributesInBatches(0xfc11, customAttributes, endpoint);
         },
     },
     {
@@ -11738,20 +11150,16 @@ export const definitions: DefinitionWithExtend[] = [
                     heatPercentageHour: {name: "heatPercentageHour", ID: 0x6033, type: Zcl.DataType.UINT8, max: 0xff},
                     motorTravelCalibration: {name: "motorTravelCalibration", ID: 0x6036, type: Zcl.DataType.BOOLEAN, write: true},
                     motorTravelCalibrationStatus: {name: "motorTravelCalibrationStatus", ID: 0x6037, type: Zcl.DataType.UINT8, max: 0xff},
+                    deviceWorkMode: {name: "deviceWorkMode", ID: 0x0018, type: Zcl.DataType.UINT8},
                     screenNightModeEnable: {name: "screenNightModeEnable", ID: 0x6026, type: Zcl.DataType.BOOLEAN, write: true},
                     screenNightModePeriod: {name: "screenNightModePeriod", ID: 0x6027, type: Zcl.DataType.STRUCT, write: true},
                     holidayEnable: {name: "holidayEnable", ID: 0x602b, type: Zcl.DataType.BOOLEAN, write: true},
-                    holidaySchedule: {name: "holidaySchedule", ID: 0x602c, type: Zcl.DataType.STRUCT, write: true},
                     valveOpeningRatio: {name: "valveOpeningRatio", ID: 0x6040, type: Zcl.DataType.UINT8},
-                    valveDirectControl: {name: "valveDirectControl", ID: 0x6041, type: Zcl.DataType.ARRAY, write: true},
-                    deviceWorkMode: {name: "deviceWorkMode", ID: 0x0018, type: Zcl.DataType.UINT8},
                 },
                 commands: {
                     scheduleGroup: {name: "scheduleGroup", ID: 0x13, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
                 },
-                commandsResponse: {
-                    scheduleGroup: {name: "scheduleGroup", ID: 0x13, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-                },
+                commandsResponse: {},
             }),
             sonoffExtend.trvzbtFaultCode(),
             m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
@@ -11793,24 +11201,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "°C",
                 scale: 100,
             }),
-            withConditionalExpose(sonoffExtend.remoteTemperatureSource("customSonoffTrvzbt"), featureGates.trvzbl_support_single_temperature),
-            withConditionalExpose(sonoffExtend.remoteTemperatureSources(5), featureGates.trvzbl_support_iteration),
-            m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
-                name: "device_work_mode",
-                lookup: {
-                    frost_protection: 0x02,
-                    manual: 0x03,
-                    schedule: 0x04,
-                    temporary_manual: 0x05,
-                    holiday: 0x06,
-                    direct_control: 0x07,
-                },
-                cluster: "customSonoffTrvzbt",
-                attribute: "deviceWorkMode",
-                access: "STATE_GET",
-                entityCategory: "diagnostic",
-                description: "Operating mode reported by the device.",
-            }),
+            sonoffExtend.remoteTemperatureSource("customSonoffTrvzbt"),
             m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
                 name: "idle_steps",
                 cluster: "customSonoffTrvzbt",
@@ -11935,44 +11326,38 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {calibrate: 0x01},
                 cluster: "customSonoffTrvzbt",
                 attribute: "motorTravelCalibration",
-                access: "SET",
                 entityCategory: "config",
                 description: "Calibrates the valve travel range to ensure accurate opening and closing control.",
+            }),
+            sonoffExtend.motorTravelCalibrationStatus(),
+            m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "device_work_mode",
+                lookup: {frost_protection: 0x02, manual: 0x03, schedule: 0x04, temporary_manual: 0x05, holiday: 0x06, direct_control: 0x07},
+                cluster: "customSonoffTrvzbt",
+                attribute: "deviceWorkMode",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                description: "Operating mode reported by the device.",
             }),
             m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
                 name: "valve_opening",
                 cluster: "customSonoffTrvzbt",
                 attribute: "valveOpeningRatio",
                 entityCategory: "diagnostic",
-                description: "Current valve opening percentage.",
-                valueMin: 0,
-                valueMax: 100,
+                description: "Current valve opening.",
                 unit: "%",
                 access: "STATE_GET",
-                fzConvert: (model, msg) => {
-                    const opening = msg.data.valveOpeningRatio;
-                    // Herdsman decodes the reserved UINT8 value 0xff as NaN.
-                    if (typeof opening !== "number" || Number.isNaN(opening) || opening < 0 || opening > 100) {
-                        return;
-                    }
-
-                    return {valve_opening: opening};
-                },
             }),
-            // The device configure function reads these switches only on supported firmware.
-            withConditionalExpose(
-                {
-                    ...m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
-                        name: "night_mode",
-                        cluster: "customSonoffTrvzbt",
-                        attribute: "screenNightModeEnable",
-                        entityCategory: "config",
-                        description: "Reduce screen brightness during the scheduled period.",
-                        valueOn: ["enable", 0x01],
-                        valueOff: ["disable", 0x00],
-                    }),
-                    configure: [],
-                },
+            withFirmwareGate(
+                m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
+                    name: "night_mode",
+                    cluster: "customSonoffTrvzbt",
+                    attribute: "screenNightModeEnable",
+                    entityCategory: "config",
+                    description: "Reduce screen brightness during the night mode period.",
+                    valueOn: ["enable", 0x01],
+                    valueOff: ["disable", 0x00],
+                }),
                 featureGates.trvzbl_support_iteration,
             ),
             withConditionalExpose(
@@ -11984,60 +11369,27 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
                 featureGates.trvzbl_support_iteration,
             ),
-            withConditionalExpose(
-                {
-                    ...m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
-                        name: "holiday_enabled",
-                        label: "Holiday mode",
-                        cluster: "customSonoffTrvzbt",
-                        attribute: "holidayEnable",
-                        entityCategory: "config",
-                        description:
-                            "When enabled, the thermostat applies your holiday heating settings at the scheduled start time and resumes normal heating control at the scheduled end time. The thermostat screen displays HO while holiday mode is active.",
-                        valueOn: [true, 0x01],
-                        valueOff: [false, 0x00],
-                    }),
-                    configure: [],
-                },
+            withFirmwareGate(
+                m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
+                    name: "holiday_mode",
+                    cluster: "customSonoffTrvzbt",
+                    attribute: "holidayEnable",
+                    entityCategory: "config",
+                    description: "Enable or disable the holiday schedule.",
+                    valueOn: ["ON", 0x01],
+                    valueOff: ["OFF", 0x00],
+                }),
                 featureGates.trvzbl_support_iteration,
             ),
-            withConditionalExpose(
-                sonoffExtend.holidaySchedule({clusterName: "customSonoffTrvzbt", canSelectHeatingBehavior: true}),
-                featureGates.trvzbl_support_iteration,
-            ),
-            withConditionalExpose(sonoffExtend.valveControl(), featureGates.trvzbl_support_iteration),
-            sonoffExtend.motorTravelCalibrationStatus(),
         ],
         ota: true,
         configure: async (device) => {
             const endpoint = device.getEndpoint(1);
-            const customAttributes: (keyof SonoffTrvzbt["attributes"])[] = [
-                "childLock",
-                "faultCode",
-                "screenDirection",
-                "openWindow",
-                "frostProtectionTemperature",
-                "idleSteps",
-                "closingSteps",
-                "valveOpeningLimitVoltage",
-                "valveClosingLimitVoltage",
-                "valveMotorRunningVoltage",
-                "valveOpeningDegree",
-                "valveClosingDegree",
-                "temperatureTriggerOfValveOpening",
-                "temperatureControlMode",
-                "temporaryMode",
-                "temporaryModeTemp",
-                "lowBatteryValveState",
-                "weeklyScheduleActiveNum",
-                "remoteAttributeLinkage",
-                "heatPercentageHour",
-                "motorTravelCalibrationStatus",
+            const customAttributes = [
+                0x0000, 0x0010, 0x0021, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007, 0x600b, 0x600c, 0x6011, 0x6013, 0x6014, 0x6016,
+                0x601c, 0x601d, 0x601e, 0x6033, 0x6037,
             ];
-            if (featureGates.trvzbl_support_iteration(device)) {
-                customAttributes.push("screenNightModePeriod", "holidayEnable", "holidaySchedule", "valveDirectControl", "screenNightModeEnable");
-            }
-            await readAttributesInBatches<"customSonoffTrvzbt", SonoffTrvzbt>("customSonoffTrvzbt", customAttributes, endpoint);
+            await readAttributesInBatches(0xfc11, customAttributes, endpoint);
         },
     },
     {
