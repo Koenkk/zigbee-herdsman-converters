@@ -12065,11 +12065,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "temperature", tuya.valueConverter.divideBy10],
+                [1, "temperature", {from: (v: number) => (v > 32767 ? v - 65536 : v) / 10}],
                 [2, "humidity", tuya.valueConverter.raw],
                 [3, "battery_state", tuya.valueConverter.batteryState],
                 [17, "time_format", tuya.valueConverter.onOff],
-                [38, "external_temperature", tuya.valueConverter.divideBy10],
+                [38, "external_temperature", {from: (v: number) => (v > 32767 ? v - 65536 : v) / 10}],
             ],
         },
     },
