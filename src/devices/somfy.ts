@@ -235,30 +235,6 @@ glydeaWindowCovering.fromZigbee = [fzLocal.glydeaPosition];
 
 glydeaWindowCovering.toZigbee = [tzLocal.glydeaCoverState, tzLocal.glydeaCoverPositionTilt];
 
-const somfyLinkyInvalidSummation = 0xffffffffffff;
-
-const fzSomfyLinkyMetering: Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]> = {
-    ...fz.metering,
-    convert: (model, msg, publish, options, meta) => {
-        // Until TIC frames are decoded (e.g. right after power-up), the device reports 0xFFFFFFFFFFFF
-        // as summation: ignore it to avoid huge spikes in energy statistics.
-        const data = {...msg.data};
-        if (data.currentSummDelivered === somfyLinkyInvalidSummation) delete data.currentSummDelivered;
-        if (data.currentSummReceived === somfyLinkyInvalidSummation) delete data.currentSummReceived;
-        if (Object.keys(data).length === 0) return;
-        const result = fz.metering.convert(model, {...msg, data}, publish, options, meta);
-        // Subscribed power is only known once TIC frames are decoded: read it when still missing.
-        if (data.currentSummDelivered !== undefined && !meta.state?.available_power) {
-            const lastRead = globalStore.getValue(msg.endpoint, "somfyLinkyAvailablePowerRead", 0);
-            if (Date.now() - lastRead > 10 * 60 * 1000) {
-                globalStore.putValue(msg.endpoint, "somfyLinkyAvailablePowerRead", Date.now());
-                msg.endpoint.read("seMeterIdentification", ["availablePower"]).catch(() => {});
-            }
-        }
-        return result;
-    },
-};
-
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Tilt Only 50 WF TiltOnly"],
@@ -436,18 +412,17 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Linky Energy Sensor"],
         model: "9029425",
         vendor: "Somfy",
-        description: "Zigbee consumption sensor for Linky meter (TIC)",
+        description: "Linky energy sensor",
         extend: [
-            m.electricityMeter({voltage: false, power: {cluster: "metering"}, fzMetering: fzSomfyLinkyMetering}),
+            m.electricityMeter({voltage: false, producedEnergy: false, power: {cluster: "metering"}}),
             m.numeric({
                 name: "available_power",
                 cluster: "seMeterIdentification",
                 attribute: "availablePower",
-                description: "Subscribed power (ISOUSC)",
+                description: "Subscribed power",
                 unit: "VA",
                 access: "STATE_GET",
                 entityCategory: "diagnostic",
-                reporting: false,
             }),
         ],
     },
