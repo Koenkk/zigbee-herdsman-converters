@@ -1553,6 +1553,7 @@ const featureGates = {
         const minVersion = device.modelID === "SWV-ZF2" ? "1.0.9" : "1.1.0";
         return firmwareSupportFeaturesVersion(minVersion, "higher")(device);
     },
+    zbm5_external_switch_actions: firmwareSupportFeaturesVersion("1.0.9", "higher"),
 } satisfies Record<string, FirmwareFeatureGate>;
 
 const basicZB1GSPConfigureReadAttributes = [
@@ -1772,6 +1773,7 @@ export interface SonoffEwelink {
         deviceWorkMode: number;
         detachRelayMode2: number;
         detachRelayActionEvent: number;
+        pulseFastClickEnableBitmap: number;
         motorTravelCalibrationAction: number;
         lackWaterCloseValveTimeout: number;
         motorTravelCalibrationStatus: number;
@@ -1932,15 +1934,14 @@ const parseSonoffSnzb02dr2RemoteSourceElements = (elements: number[] | undefined
 };
 
 const sonoffExtend = {
-    externalSwitchActions: (args: {endpointNames?: string[]; gate: FirmwareFeatureGate}): ModernExtend => {
+    externalSwitchActions: (args: {endpointNames?: string[]; gate: FirmwareFeatureGate; withSwitchOnOff?: boolean}): ModernExtend => {
         const clusterName = "customClusterEwelink" as const;
+        const {endpointNames = undefined, gate, withSwitchOnOff = true} = args;
         const actionLookup: Record<number, string> = {
             2: "double_click",
             3: "long_press",
-            4: "switch_on",
-            5: "switch_off",
+            ...(withSwitchOnOff ? {4: "switch_on", 5: "switch_off"} : {}),
         };
-        const {endpointNames = undefined, gate} = args;
         const getActions = (device: Zh.Device | DummyDevice): string[] => {
             const actions = ["toggle"];
             if (utils.isDummyDevice(device) || gate(device)) {
@@ -2312,6 +2313,7 @@ const sonoffExtend = {
                 levelForCalibration: {name: "levelForCalibration", ID: 0x4006, type: Zcl.DataType.UINT8},
                 programmableStepperSequence: {name: "programmableStepperSequence", ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
                 detachRelayActionEvent: {name: "detachRelayActionEvent", ID: 0x0028, type: Zcl.DataType.UINT8},
+                pulseFastClickEnableBitmap: {name: "pulseFastClickEnableBitmap", ID: 0x002b, type: Zcl.DataType.BITMAP8, write: true},
             },
             commands: {
                 protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -5125,6 +5127,51 @@ const sonoffExtend = {
             toZigbee,
             isModernExtend: true,
         };
+    },
+    // Bitmap on endpoint 1 with one bit per channel; when set, the channel only reports single presses.
+    singlePressOnly: (args: {endpointNames?: string[]; gate: FirmwareFeatureGate}): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const {endpointNames, gate} = args;
+        const keys = endpointNames ? endpointNames.map((name) => `single_press_only_${name}`) : ["single_press_only"];
+        const exposes = keys.map((key) =>
+            e
+                .binary(key, ea.ALL, "ON", "OFF")
+                .withCategory("config")
+                .withDescription("Respond faster to a single press, double and long press actions are disabled"),
+        );
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    const value = msg.data.pulseFastClickEnableBitmap;
+                    if (value === undefined) return;
+                    return Object.fromEntries(keys.map((key, i) => [key, value & (1 << i) ? "ON" : "OFF"]));
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["single_press_only"],
+                convertSet: async (entity, key, value, meta) => {
+                    const fullKey = endpointNames ? `${key}_${meta.endpoint_name}` : key;
+                    const bitmap = keys.reduce((acc, k, i) => ((k === fullKey ? value : meta.state[k]) === "ON" ? acc | (1 << i) : acc), 0);
+                    await meta.device
+                        .getEndpoint(1)
+                        .write<typeof clusterName, SonoffEwelink>(clusterName, {pulseFastClickEnableBitmap: bitmap}, defaultResponseOptions);
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    await meta.device.getEndpoint(1).read<typeof clusterName, SonoffEwelink>(clusterName, ["pulseFastClickEnableBitmap"]);
+                },
+            },
+        ];
+        const configure: Configure[] = [
+            async (device) => {
+                if (gate(device)) await device.getEndpoint(1).read<typeof clusterName, SonoffEwelink>(clusterName, ["pulseFastClickEnableBitmap"]);
+            },
+        ];
+        return withConditionalExpose({exposes, fromZigbee, toZigbee, configure, isModernExtend: true}, gate);
     },
     detachRelayModeControl: (relayCount: number): ModernExtend => {
         const clusterName = "customClusterEwelink";
@@ -11749,7 +11796,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee Smart one-channel wall switch (type 120)",
         ota: true,
         extend: [
-            m.commandsOnOff({commands: ["toggle"], bind: false}),
+            sonoffExtend.externalSwitchActions({gate: featureGates.zbm5_external_switch_actions, withSwitchOnOff: false}),
+            sonoffExtend.singlePressOnly({gate: featureGates.zbm5_external_switch_actions}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
@@ -11798,7 +11846,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"], bind: false}),
+            sonoffExtend.externalSwitchActions({
+                endpointNames: ["l1", "l2"],
+                gate: featureGates.zbm5_external_switch_actions,
+                withSwitchOnOff: false,
+            }),
+            sonoffExtend.singlePressOnly({endpointNames: ["l1", "l2"], gate: featureGates.zbm5_external_switch_actions}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
@@ -11852,7 +11905,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"], bind: false}),
+            sonoffExtend.externalSwitchActions({
+                endpointNames: ["l1", "l2", "l3"],
+                gate: featureGates.zbm5_external_switch_actions,
+                withSwitchOnOff: false,
+            }),
+            sonoffExtend.singlePressOnly({endpointNames: ["l1", "l2", "l3"], gate: featureGates.zbm5_external_switch_actions}),
             m.onOff({endpointNames: ["l1", "l2", "l3"]}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
