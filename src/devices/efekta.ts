@@ -10614,7 +10614,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "invert_Illuminance_control",
+                name: "invert_illuminance_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msIlluminanceMeasurement",
@@ -10623,7 +10623,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_Illuminance_control",
+                name: "enable_illuminance_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msIlluminanceMeasurement",
@@ -10632,7 +10632,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "high_Illuminance",
+                name: "high_illuminance",
                 unit: "raw",
                 valueMin: 0,
                 valueMax: 65535,
@@ -10642,7 +10642,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "low_Illuminance",
+                name: "low_illuminance",
                 unit: "raw",
                 valueMin: 0,
                 valueMax: 65535,
@@ -10652,7 +10652,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "invert_Temperature_control",
+                name: "invert_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
@@ -10661,7 +10661,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_Temperature_control",
+                name: "enable_temperature_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msTemperatureMeasurement",
@@ -10670,7 +10670,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "high_Temperature",
+                name: "high_temperature",
                 unit: "°C",
                 valueMin: -10,
                 valueMax: 60,
@@ -10682,7 +10682,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "low_Temperature",
+                name: "low_temperature",
                 unit: "°C",
                 valueMin: -10,
                 valueMax: 60,
@@ -10694,7 +10694,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "invert_Humidity_control",
+                name: "invert_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
@@ -10703,7 +10703,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                name: "enable_Humidity_control",
+                name: "enable_humidity_control",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "msRelativeHumidity",
