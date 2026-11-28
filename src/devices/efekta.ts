@@ -8458,7 +8458,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "power_mode",
-                lookup: {Fast: 1, Medium: 5, Slow: 10},
+                lookup: {Normal: 5, Slow: 10},
                 cluster: "genPowerCfg",
                 attribute: {ID: 0x0201, type: 0x21},
                 description: "Set power mode",
