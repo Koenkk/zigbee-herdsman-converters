@@ -143,7 +143,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true, applyRedFix: true}})],
     },
     {
-        fingerprint: [{modelID: "RGBW light ", manufacturerName: "Paulmann Licht GmbH ", softwareBuildID: "1218-0909", dateCode: "Jan 24 2019"}],
+        fingerprint: [
+            {modelID: "RGBW light ", manufacturerName: "Paulmann Licht GmbH ", softwareBuildID: "1218-0909", dateCode: "Jan 24 2019", priority: 1},
+        ],
         model: "500.54",
         vendor: "Paulmann",
         description: "SmartHome E27 Bulb Opal 7,5W 650lm, RGB and tuneable white 2700K-6500K",
@@ -175,7 +177,14 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
-            {modelID: "CCT Light", manufacturerName: "Paulmann lamp", dateCode: "20200710", hardwareVersion: 21, softwareBuildID: "00.00.01"},
+            {
+                modelID: "CCT Light",
+                manufacturerName: "Paulmann lamp",
+                dateCode: "20200710",
+                hardwareVersion: 21,
+                softwareBuildID: "00.00.01",
+                priority: 1,
+            },
         ],
         model: "503.95",
         vendor: "Paulmann",
