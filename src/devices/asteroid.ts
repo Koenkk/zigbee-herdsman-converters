@@ -133,5 +133,46 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
         ],
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                const tpl = payload.value_template ?? payload.val_tpl ?? "";
+                const property = payload.object_id ?? payload.obj_id ?? "";
+
+                if (tpl.includes("sensor_status")) {
+                    payload.name = "XDB401";
+                }
+
+                if (/\bdisplay_1\b/.test(tpl) || /(?:^|_)display_1$/.test(property) || payload.name === "Display 1") {
+                    payload.name = "Display";
+                }
+
+                if (/\breset_pairing_2\b/.test(tpl) || /(?:^|_)reset_pairing_2$/.test(property) || /^Reset pairing 2$/i.test(payload.name ?? "")) {
+                    payload.name = "Reset pairing";
+                }
+
+                const cls = payload.device_class ?? payload.dev_cla;
+
+                if (cls !== "temperature" && cls !== "pressure" && cls !== "atmospheric_pressure") return;
+
+                const topic = payload.state_topic ?? payload.stat_t;
+
+                if (!topic) return;
+
+                const status = {
+                    topic,
+                    value_template: "{{ 'online' if value_json.sensor_status | default('ERROR') == 'OK' else 'offline' }}",
+                    payload_available: "online",
+                    payload_not_available: "offline",
+                };
+
+                if (Array.isArray(payload.availability)) {
+                    payload.availability.push(status);
+                } else {
+                    payload.availability = [status];
+                }
+
+                payload.availability_mode = "all";
+            },
+        },
     },
 ];
