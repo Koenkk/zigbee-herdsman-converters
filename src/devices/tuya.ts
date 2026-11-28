@@ -5776,12 +5776,24 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0505B", ["_TZB210_3zfp8mki", "_TZB210_gj0ccsar", "_TZ3210_jaap6jeb"]),
+        // https://github.com/Koenkk/zigbee2mqtt/issues/18301
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZB210_3zfp8mki"]),
+        model: "WZ5_dim_2",
+        vendor: "Skydance",
+        description: "Zigbee & RF 5 in 1 LED controller (DIM mode)",
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"]}})],
+        // Has separate colour and white channels, genLevelCtrl only controls the white one
+        toZigbee: [tz.on_off, tzLocal.led_control],
+        configure: (device, coordinatorEndpoint) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZB210_gj0ccsar", "_TZ3210_jaap6jeb"]),
         model: "TS0505B_3",
         vendor: "Tuya",
         description: "Zigbee RGB+CCT light",
         whiteLabel: [
-            tuya.whitelabel("Skydance", "WZ5_dim_2", "Zigbee & RF 5 in 1 LED controller (DIM mode)", ["_TZB210_3zfp8mki"]),
             tuya.whitelabel("QA", "QADZC5", "5 in 1 LED controller", ["_TZB210_gj0ccsar"]),
             tuya.whitelabel("LEDEPLY", "SG45-E26", "Zigbee A15 5W Smart Bulbs", ["_TZ3210_jaap6jeb"]),
         ],
