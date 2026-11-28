@@ -5495,12 +5495,12 @@ const sonoffExtend = {
                                 enable_min_current: enableMinCurrentBuffer,
                                 enable_min_power: enableMinPowerBuffer,
                                 enable_min_voltage: enableMinVoltageBuffer,
-                                max_current: maxCurrent,
-                                max_power: maxActPower,
-                                max_voltage: maxVoltage,
-                                min_current: minCurrent,
-                                min_power: minActPower,
-                                min_voltage: minVoltage,
+                                ...(enableMaxCurrentBuffer === "ENABLE" ? {max_current: maxCurrent} : {}),
+                                ...(enableMaxPowerBuffer === "ENABLE" ? {max_power: maxActPower} : {}),
+                                ...(enableMaxVoltageBuffer === "ENABLE" ? {max_voltage: maxVoltage} : {}),
+                                ...(enableMinCurrentBuffer === "ENABLE" ? {min_current: minCurrent} : {}),
+                                ...(enableMinPowerBuffer === "ENABLE" ? {min_power: minActPower} : {}),
+                                ...(enableMinVoltageBuffer === "ENABLE" ? {min_voltage: minVoltage} : {}),
                             },
                         };
                     }
