@@ -10891,7 +10891,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "2",
+                endpointNames: ["2"],
                 name: "high_temperature",
                 unit: "°C",
                 valueMin: -40,
