@@ -2323,12 +2323,7 @@ export const definitions: DefinitionWithExtend[] = [
             exposes.numeric("leakage_current", ea.STATE).withUnit("A").withDescription("Residual Current Display"),
 
             exposes.binary("over_current_breaker", ea.ALL, "ON", "OFF").withDescription("Overcurrent Alarm Enabled"),
-            exposes
-                .numeric("over_current_threshold", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(63)
-                .withUnit("A")
-                .withDescription("Overcurrent Threshold"),
+            exposes.numeric("over_current_threshold", ea.ALL).withValueMin(1).withValueMax(63).withUnit("A").withDescription("Overcurrent Threshold"),
             exposes.binary("over_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Overvoltage Alarm Enabled"),
             exposes
                 .numeric("over_voltage_threshold", ea.ALL)
@@ -2345,12 +2340,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Undervoltage Threshold"),
 
             exposes.binary("over_load_breaker", ea.ALL, "ON", "OFF").withDescription("Overload Alarm Enabled"),
-            exposes
-                .numeric("over_load_threshold", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(15000)
-                .withUnit("W")
-                .withDescription("Overload Threshold"),    
+            exposes.numeric("over_load_threshold", ea.ALL).withValueMin(1).withValueMax(15000).withUnit("W").withDescription("Overload Threshold"),
             exposes.binary("high_temperature_breaker", ea.ALL, "ON", "OFF").withDescription("Temperature Alarm Enabled"),
             exposes
                 .numeric("high_temperature_threshold", ea.ALL)
@@ -2369,7 +2359,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("remote_mode", ea.STATE_SET, ["remote_only", "panel_only", "all"]).withDescription("Switch control mode"),
             e.enum("relay_power_on_state", ea.STATE_SET, ["Off", "On", "Restore"]).withDescription("Relay Power-On State Setting"),
             exposes.binary("maintenance_lock", ea.STATE_SET, "ON", "OFF").withDescription("Maintenance lock"),
-            e.enum("data_refresh", ea.STATE_SET, ["clr_alarm", "refresh", ]).withDescription("Refresh current,voltage,power.."),
+            e.enum("data_refresh", ea.STATE_SET, ["clr_alarm", "refresh"]).withDescription("Refresh current,voltage,power.."),
             exposes.binary("factory_reset", ea.SET, "ON", "OFF").withDescription("Factory reset"),
             exposes
                 .enum("fault", ea.STATE, [
@@ -2396,11 +2386,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "overpow_early_warning",
                     "undvol_early_warning",
                     "higtemp_early_warning",
-
                 ])
                 .withDescription("Fault Alarm"),
-
-          
         ],
         meta: {
             tuyaDatapoints: [
@@ -2431,11 +2418,11 @@ export const definitions: DefinitionWithExtend[] = [
                         magnetism_alarm: 1 << 14,
                         credit_alarm: 1 << 15,
                         no_balance_alarm: 1 << 16,
-                        overcur_early_warning: 1<<18,
-                        overvol_early_warning: 1<<19,
-                        overpow_early_warning: 1<<20,
-                        undvol_early_warning: 1<<21,
-                        higtemp_early_warning: 1<<22,
+                        overcur_early_warning: 1 << 18,
+                        overvol_early_warning: 1 << 19,
+                        overpow_early_warning: 1 << 20,
+                        undvol_early_warning: 1 << 21,
+                        higtemp_early_warning: 1 << 22,
                     }),
                 ],
                 [11, "switch_prepayment", tuya.valueConverter.onOff],
@@ -2457,13 +2444,12 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "over_load_threshold", tuya.valueConverter.raw],
                 [108, "high_temperature_breaker", tuya.valueConverter.onOff],
                 [107, "high_temperature_threshold", tuya.valueConverter.divideBy10],
-                [51, "status", tuya.valueConverterBasic.lookup({off: 0,on: 1,  manual_on: 2})], // Valve status
+                [51, "status", tuya.valueConverterBasic.lookup({off: 0, on: 1, manual_on: 2})], // Valve status
                 [60, "remote_mode", tuya.valueConverterBasic.lookup({remote_only: 0, panel_only: 1, all: 2})],
                 [61, "relay_power_on_state", tuya.valueConverterBasic.lookup({Off: 0, On: 1, Restore: 2})],
                 [36, "maintenance_lock", tuya.valueConverter.onOff],
-                [114, "data_refresh", tuya.valueConverterBasic.lookup({clr_alarm: 0,refresh: 1})],
+                [114, "data_refresh", tuya.valueConverterBasic.lookup({clr_alarm: 0, refresh: 1})],
                 [34, "factory_reset", tuya.valueConverter.onOff],
-
             ],
         },
     },
@@ -2487,7 +2473,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("tof_distance", ea.STATE).withUnit("m").withDescription("TOF distance"),
             e.numeric("fill_percent", ea.STATE).withUnit("%").withDescription("Fill(Liquid level) ratio"),
             e.numeric("fill_depth", ea.STATE).withUnit("m").withDescription("Fill depth"),
-            e.enum("fill_state", ea.STATE, ["normal","low", "high"]).withDescription("Fill(Liquid level) status"),
+            e.enum("fill_state", ea.STATE, ["normal", "low", "high"]).withDescription("Fill(Liquid level) status"),
             e.enum("distance_measurement", ea.SET, ["measurement"]).withDescription("Active distance measurement (online mode needs to be enabled)"),
             e.binary("online_mode", ea.STATE_SET, "ON", "OFF").withDescription("Real-time online,POLL_RATE=4s~10s"),
             e.battery(),
@@ -2506,50 +2492,50 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("m")
                 .withDescription("Maximum tank depth,Fill depth= Max Fill Depth -TOF Distance +(Installation height - Max Fill Depth)"),
             e
-            .numeric("min_set", ea.STATE_SET)
-            .withUnit("%")
-            .withDescription("Fill minimum percentage threshold")
-            .withValueMin(0)
-            .withValueMax(100)
-            .withValueStep(1)
-            .withCategory("config"),
+                .numeric("min_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Fill minimum percentage threshold")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withCategory("config"),
 
             e
-            .numeric("max_set", ea.STATE_SET)
-            .withUnit("%")
-            .withDescription("Fill maximum percentage threshold")
-            .withValueMin(0)
-            .withValueMax(100)
-            .withValueStep(1)
-            .withCategory("config"),
+                .numeric("max_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Fill maximum percentage threshold")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withCategory("config"),
             e
                 .numeric("distance_sampling", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(3600)
                 .withValueStep(1)
                 .withUnit("s")
-                .withDescription("Distance sampling interval"), 
+                .withDescription("Distance sampling interval"),
             e
                 .numeric("upload_threshold", ea.STATE_SET)
                 .withValueMin(5)
                 .withValueMax(1000)
                 .withValueStep(1)
                 .withUnit("mm")
-                .withDescription("Difference threshold for distance information upload"), 
+                .withDescription("Difference threshold for distance information upload"),
             e
                 .numeric("distance_calibration", ea.STATE_SET)
                 .withValueMin(-1.0)
                 .withValueMax(1.0)
                 .withValueStep(0.001)
                 .withUnit("m")
-                .withDescription("TOF distance calibration"),     
+                .withDescription("TOF distance calibration"),
         ],
         meta: {
             tuyaDatapoints: [
                 [104, "tof_distance", tuya.valueConverter.divideBy1000],
                 [22, "fill_percent", tuya.valueConverter.raw],
                 [2, "fill_depth", tuya.valueConverter.divideBy1000],
-                [1, "fill_state", tuya.valueConverterBasic.lookup({normal: 0,low: 1,  high: 2})],
+                [1, "fill_state", tuya.valueConverterBasic.lookup({normal: 0, low: 1, high: 2})],
                 [105, "distance_measurement", tuya.valueConverterBasic.lookup({measurement: 0})],
                 [106, "online_mode", tuya.valueConverter.onOff],
                 [5, "battery", tuya.valueConverter.raw],
@@ -2563,5 +2549,4 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
 ];
