@@ -41,6 +41,18 @@ export const eurotronicExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    // The Spirit reports pIHeatingDemand as 0-255 instead of the ZCL 0-100 (fz.thermostat maps it back to %).
+    // Without raising the max, every value above 100 (~39%) is rejected as INVALID_VALUE and the demand freezes.
+    addSpiritPIHeatingDemandRange: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                pIHeatingDemand: {name: "pIHeatingDemand", ID: 0x0008, type: Zcl.DataType.UINT8, report: true, max: 0xff},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 export const tzLocal = {
@@ -232,7 +244,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPZB0001",
         vendor: "Eurotronic",
         description: "Spirit Zigbee wireless heater thermostat",
-        extend: [eurotronicExtend.addEurotronicHvacThermostatCluster()],
+        extend: [eurotronicExtend.addEurotronicHvacThermostatCluster(), eurotronicExtend.addSpiritPIHeatingDemandRange()],
         fromZigbee: [fzLocal.eurotronic_thermostat, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
