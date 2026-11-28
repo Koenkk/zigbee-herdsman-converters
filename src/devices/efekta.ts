@@ -10052,6 +10052,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 name: "air_enthalpy",
@@ -10247,6 +10248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 name: "air_enthalpy",
@@ -10432,6 +10434,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor",
                 precision: 2,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 name: "air_enthalpy",
@@ -11126,6 +11129,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 name: "air_enthalpy",
@@ -11374,6 +11378,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 name: "air_enthalpy",
@@ -11615,6 +11620,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 endpointNames: ["1"],
@@ -11682,6 +11688,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from external sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 endpointNames: ["2"],
@@ -11917,6 +11924,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from built-in sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 endpointNames: ["1"],
@@ -11984,6 +11992,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Dew point calculated from external sensor data",
                 scale: 100,
                 access: "STATE",
+                homeassistant: {name: "Dew point"},
             }),
             m.numeric({
                 endpointNames: ["2"],
