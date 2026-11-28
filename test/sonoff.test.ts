@@ -1146,3 +1146,37 @@ describe("Sonoff TP-WGZBA", () => {
         });
     });
 });
+
+describe("SONOFF overload protection reports", () => {
+    it("reports thresholds only for enabled limits", async () => {
+        const device = await findByDevice(mockDevice({modelID: "S60ZBTPF", endpoints: [{ID: 1}]}));
+        const report = (currentFlags: number, current: number) => {
+            const rawData = Buffer.alloc(17);
+            rawData[8] = 4;
+            rawData[10] = currentFlags;
+            rawData.writeUInt32LE(current, 13);
+            const attribute = 0x7003;
+            const message = {
+                type: "attributeReport",
+                cluster: "customClusterEwelink",
+                data: {[attribute]: true},
+                meta: {rawData},
+            } as Fz.Message;
+            for (const converter of device.fromZigbee) {
+                if (converter.cluster !== message.cluster || !converter.type.includes(message.type)) continue;
+                const result = converter.convert(device, message, vi.fn(), {}, {} as Fz.Meta);
+                if (result?.overload_protection) return result.overload_protection;
+            }
+            throw new Error("Missing overload protection report");
+        };
+
+        expect(report(0, 0)).toEqual({
+            enable_max_voltage: "DISABLE",
+            enable_min_current: "DISABLE",
+            enable_min_power: "DISABLE",
+            enable_min_voltage: "DISABLE",
+        });
+        expect(report(1, 0)).toMatchObject({max_current: 0});
+        expect(report(1, 2500)).toMatchObject({max_current: 2.5});
+    });
+});
