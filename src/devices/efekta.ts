@@ -5158,6 +5158,15 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
+                access: "STATE",
+            }),
+            m.numeric({
                 name: "reading_interval",
                 unit: "min",
                 valueMin: 1,
@@ -5251,6 +5260,15 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.humidity({
                 reporting: slow2Reporting,
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
                 access: "STATE",
             }),
             m.illuminance({
