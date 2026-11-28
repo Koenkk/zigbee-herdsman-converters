@@ -10063,7 +10063,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -10258,7 +10258,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -10456,7 +10456,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0461, type: 0x39},
@@ -11137,7 +11137,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -11385,7 +11385,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -11628,7 +11628,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 endpointNames: ["1"],
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -11695,7 +11695,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 endpointNames: ["2"],
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -11930,7 +11930,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 endpointNames: ["1"],
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -11997,7 +11997,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 endpointNames: ["2"],
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
