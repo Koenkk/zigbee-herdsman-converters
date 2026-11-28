@@ -2306,4 +2306,247 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        zigbeeModel: ["ZG-307Z"],
+        model: "ZG-307Z",
+        vendor: "HOBEIAN",
+        description: "Smart circuit breaker",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET).withDescription("Circuit Breaker Switch"),
+            e.energy().withDescription("Total Forward Energy (kWh)").withAccess(ea.STATE),
+            e.power().withDescription("Active Power (W)").withAccess(ea.STATE),
+            e.voltage().withDescription("Voltage (V)").withAccess(ea.STATE),
+            e.current().withDescription("Current (A)").withAccess(ea.STATE),
+            e.ac_frequency().withDescription("AC frequency (Hz)").withAccess(ea.STATE),
+            exposes.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current Temperature"),
+            exposes.numeric("leakage_current", ea.STATE).withUnit("A").withDescription("Residual Current Display"),
+
+            exposes.binary("over_current_breaker", ea.ALL, "ON", "OFF").withDescription("Overcurrent Alarm Enabled"),
+            exposes.numeric("over_current_threshold", ea.ALL).withValueMin(1).withValueMax(63).withUnit("A").withDescription("Overcurrent Threshold"),
+            exposes.binary("over_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Overvoltage Alarm Enabled"),
+            exposes
+                .numeric("over_voltage_threshold", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(265)
+                .withUnit("V")
+                .withDescription("Overvoltage Threshold"),
+            exposes.binary("under_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Undervoltage Alarm Enabled"),
+            exposes
+                .numeric("under_voltage_threshold", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(265)
+                .withUnit("V")
+                .withDescription("Undervoltage Threshold"),
+
+            exposes.binary("over_load_breaker", ea.ALL, "ON", "OFF").withDescription("Overload Alarm Enabled"),
+            exposes.numeric("over_load_threshold", ea.ALL).withValueMin(1).withValueMax(15000).withUnit("W").withDescription("Overload Threshold"),
+            exposes.binary("high_temperature_breaker", ea.ALL, "ON", "OFF").withDescription("Temperature Alarm Enabled"),
+            exposes
+                .numeric("high_temperature_threshold", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(150)
+                .withUnit("°C")
+                .withDescription("Temperature Threshold"),
+
+            exposes.binary("switch_prepayment", ea.STATE_SET, "ON", "OFF").withDescription("Prepaid Function Switch"),
+            exposes.binary("clear_energy", ea.SET, "ON", "OFF").withDescription("Clear Remaining Available Energy"),
+            exposes.numeric("balance_energy", ea.STATE).withUnit("kWh").withDescription("Remaining Available Energy Display (kWh)"),
+            exposes.numeric("charge_energy", ea.SET).withValueMin(0).withValueMax(999999).withUnit("kWh").withDescription("Energy Recharge"),
+
+            exposes.numeric("switch_times", ea.STATE).withDescription("Total accumulated switch on/off times"),
+            e.enum("status", ea.STATE, ["off", "on", "manual_on"]).withDescription("Switch status (off, on, manual on)"),
+            e.enum("remote_mode", ea.STATE_SET, ["remote_only", "panel_only", "all"]).withDescription("Switch control mode"),
+            e.enum("relay_power_on_state", ea.STATE_SET, ["Off", "On", "Restore"]).withDescription("Relay Power-On State Setting"),
+            exposes.binary("maintenance_lock", ea.STATE_SET, "ON", "OFF").withDescription("Maintenance lock"),
+            e.enum("data_refresh", ea.STATE_SET, ["clr_alarm", "refresh"]).withDescription("Refresh current,voltage,power.."),
+            exposes.binary("factory_reset", ea.SET, "ON", "OFF").withDescription("Factory reset"),
+            exposes
+                .enum("fault", ea.STATE, [
+                    "clear",
+                    "short_circuit_alarm",
+                    "surge_alarm",
+                    "overload_alarm",
+                    "leakagecurr_alarm",
+                    "temp_dif_fault",
+                    "fire_alarm",
+                    "high_power_alarm",
+                    "self_test_alarm",
+                    "ov_cr",
+                    "unbalance_alarm",
+                    "ov_vol",
+                    "undervoltage_alarm",
+                    "miss_phase_alarm",
+                    "outage_alarm",
+                    "magnetism_alarm",
+                    "credit_alarm",
+                    "no_balance_alarm",
+                    "overcur_early_warning",
+                    "overvol_early_warning",
+                    "overpow_early_warning",
+                    "undvol_early_warning",
+                    "higtemp_early_warning",
+                ])
+                .withDescription("Fault Alarm"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [111, "voltage", tuya.valueConverter.raw],
+                [112, "power", tuya.valueConverter.raw],
+                [113, "current", tuya.valueConverter.divideBy1000],
+                [32, "ac_frequency", tuya.valueConverter.divideBy100],
+                [
+                    9,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        clear: 0,
+                        short_circuit_alarm: 1 << 0,
+                        surge_alarm: 1 << 1,
+                        overload_alarm: 1 << 2,
+                        leakagecurr_alarm: 1 << 3,
+                        temp_dif_fault: 1 << 4,
+                        fire_alarm: 1 << 5,
+                        high_power_alarm: 1 << 6,
+                        self_test_alarm: 1 << 7,
+                        ov_cr: 1 << 8,
+                        unbalance_alarm: 1 << 9,
+                        ov_vol: 1 << 10,
+                        undervoltage_alarm: 1 << 11,
+                        miss_phase_alarm: 1 << 12,
+                        outage_alarm: 1 << 13,
+                        magnetism_alarm: 1 << 14,
+                        credit_alarm: 1 << 15,
+                        no_balance_alarm: 1 << 16,
+                        overcur_early_warning: 1 << 18,
+                        overvol_early_warning: 1 << 19,
+                        overpow_early_warning: 1 << 20,
+                        undvol_early_warning: 1 << 21,
+                        higtemp_early_warning: 1 << 22,
+                    }),
+                ],
+                [11, "switch_prepayment", tuya.valueConverter.onOff],
+                [12, "clear_energy", tuya.valueConverter.onOff],
+                [13, "balance_energy", tuya.valueConverter.divideBy100],
+                [14, "charge_energy", tuya.valueConverter.divideBy100],
+                [15, "leakage_current", tuya.valueConverter.divideBy10],
+                [16, "state", tuya.valueConverter.onOff],
+                [56, "switch_times", tuya.valueConverter.raw],
+                [47, "temperature", tuya.valueConverter.divideBy10],
+                [12, "clear_energy", tuya.valueConverter.onOff],
+                [106, "over_current_breaker", tuya.valueConverter.onOff],
+                [105, "over_current_threshold", tuya.valueConverter.divideBy10],
+                [102, "over_voltage_breaker", tuya.valueConverter.onOff],
+                [101, "over_voltage_threshold", tuya.valueConverter.divideBy10],
+                [104, "under_voltage_breaker", tuya.valueConverter.onOff],
+                [103, "under_voltage_threshold", tuya.valueConverter.divideBy10],
+                [110, "over_load_breaker", tuya.valueConverter.onOff],
+                [109, "over_load_threshold", tuya.valueConverter.raw],
+                [108, "high_temperature_breaker", tuya.valueConverter.onOff],
+                [107, "high_temperature_threshold", tuya.valueConverter.divideBy10],
+                [51, "status", tuya.valueConverterBasic.lookup({off: 0, on: 1, manual_on: 2})], // Valve status
+                [60, "remote_mode", tuya.valueConverterBasic.lookup({remote_only: 0, panel_only: 1, all: 2})],
+                [61, "relay_power_on_state", tuya.valueConverterBasic.lookup({Off: 0, On: 1, Restore: 2})],
+                [36, "maintenance_lock", tuya.valueConverter.onOff],
+                [114, "data_refresh", tuya.valueConverterBasic.lookup({clr_alarm: 0, refresh: 1})],
+                [34, "factory_reset", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-807ZP"],
+        model: "ZG-807ZP",
+        vendor: "HOBEIAN",
+        description: "USB router(AC85~250V)",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        exposes: [],
+    },
+
+    {
+        zigbeeModel: ["ZG-107Z"],
+        model: "ZG-107Z",
+        vendor: "HOBEIAN",
+        description: "TOF ranging sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.numeric("tof_distance", ea.STATE).withUnit("m").withDescription("TOF distance"),
+            e.numeric("fill_percent", ea.STATE).withUnit("%").withDescription("Fill(Liquid level) ratio"),
+            e.numeric("fill_depth", ea.STATE).withUnit("m").withDescription("Fill depth"),
+            e.enum("fill_state", ea.STATE, ["normal", "low", "high"]).withDescription("Fill(Liquid level) status"),
+            e.enum("distance_measurement", ea.SET, ["measurement"]).withDescription("Active distance measurement (online mode needs to be enabled)"),
+            e.binary("online_mode", ea.STATE_SET, "ON", "OFF").withDescription("Real-time online,POLL_RATE=4s~10s"),
+            e.battery(),
+            e
+                .numeric("installation_height", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(5)
+                .withValueStep(0.001)
+                .withUnit("m")
+                .withDescription("Distance from sensor to bottom of the tank"),
+            e
+                .numeric("fill_depth_max", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(5)
+                .withValueStep(0.001)
+                .withUnit("m")
+                .withDescription("Maximum tank depth,Fill depth= Max Fill Depth -TOF Distance +(Installation height - Max Fill Depth)"),
+            e
+                .numeric("min_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Fill minimum percentage threshold")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withCategory("config"),
+
+            e
+                .numeric("max_set", ea.STATE_SET)
+                .withUnit("%")
+                .withDescription("Fill maximum percentage threshold")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withCategory("config"),
+            e
+                .numeric("distance_sampling", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Distance sampling interval"),
+            e
+                .numeric("upload_threshold", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withUnit("mm")
+                .withDescription("Difference threshold for distance information upload"),
+            e
+                .numeric("distance_calibration", ea.STATE_SET)
+                .withValueMin(-1.0)
+                .withValueMax(1.0)
+                .withValueStep(0.001)
+                .withUnit("m")
+                .withDescription("TOF distance calibration"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [104, "tof_distance", tuya.valueConverter.divideBy1000],
+                [22, "fill_percent", tuya.valueConverter.raw],
+                [2, "fill_depth", tuya.valueConverter.divideBy1000],
+                [1, "fill_state", tuya.valueConverterBasic.lookup({normal: 0, low: 1, high: 2})],
+                [105, "distance_measurement", tuya.valueConverterBasic.lookup({measurement: 0})],
+                [106, "online_mode", tuya.valueConverter.onOff],
+                [5, "battery", tuya.valueConverter.raw],
+                [19, "installation_height", tuya.valueConverter.divideBy1000],
+                [21, "fill_depth_max", tuya.valueConverter.divideBy1000],
+                [8, "min_set", tuya.valueConverter.raw],
+                [7, "max_set", tuya.valueConverter.raw],
+                [102, "distance_sampling", tuya.valueConverter.raw],
+                [103, "upload_threshold", tuya.valueConverter.raw],
+                [107, "distance_calibration", tuya.valueConverter.divideBy1000],
+            ],
+        },
+    },
 ];
