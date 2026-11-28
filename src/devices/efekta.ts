@@ -10849,7 +10849,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "1",
+                endpointNames: ["1"],
                 name: "high_temperature",
                 unit: "°C",
                 valueMin: -40,
@@ -10860,7 +10860,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "1",
+                endpointNames: ["1"],
                 name: "low_temperature",
                 unit: "°C",
                 valueMin: -40,
@@ -10881,7 +10881,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.binary({
-                endpointName: "2",
+                endpointName: ["2"],
                 name: "invert_logic_temperature",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
@@ -10902,7 +10902,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "2",
+                endpointNames: ["2"],
                 name: "low_temperature",
                 unit: "°C",
                 valueMin: -40,
@@ -11033,7 +11033,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "1",
+                endpointNames: ["1"],
                 name: "high_temperature",
                 unit: "°C",
                 valueMin: -40,
@@ -11044,7 +11044,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "1",
+                endpointNames: ["1"],
                 name: "low_temperature",
                 unit: "°C",
                 valueMin: -40,
@@ -11075,7 +11075,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "2",
+                endpointNames: ["2"],
                 name: "high_temperature",
                 unit: "°C",
                 valueMin: -40,
@@ -11086,7 +11086,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                endpointNames: "2",
+                endpointNames: ["2"],
                 name: "low_temperature",
                 unit: "°C",
                 valueMin: -40,
