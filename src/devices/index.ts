@@ -353,6 +353,7 @@ import {definitions as stuckatprototype} from "./stuckatprototype";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
+import {definitions as sygonix} from "./sygonix";
 import {definitions as sylvania} from "./sylvania";
 import {definitions as tapestry} from "./tapestry";
 import {definitions as taskLighting} from "./task_lighting";
@@ -763,6 +764,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sunricher,
     ...superled,
     ...swann,
+    ...sygonix,
     ...sylvania,
     ...taskLighting,
     ...tapestry,
