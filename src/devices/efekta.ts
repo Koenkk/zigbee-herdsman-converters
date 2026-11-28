@@ -10712,7 +10712,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "high_Humidity",
+                name: "high_humidity",
                 unit: "%",
                 valueMin: 0,
                 valueMax: 100,
@@ -10722,7 +10722,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.numeric({
-                name: "low_Humidity",
+                name: "low_humidity",
                 unit: "%",
                 valueMin: 0,
                 valueMax: 100,
